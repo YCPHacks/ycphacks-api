@@ -3,11 +3,10 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
-
-const registrationRoutes = require('./routes/registrationRoutes');
-const sequelize = require('./models'); // Import the Sequelize instance
-
+const userRoutes = require('./routes/UserRoutes');
+const sequelize = require('./repository/config'); // Import the Sequelize instance
 const app = express();
+const { authMiddleware } = require('./util/JWTUtil');
 
 // CORS configuration
 const corsOptions = {
@@ -16,14 +15,19 @@ const corsOptions = {
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
 };
-
 app.use(cors(corsOptions));
 app.options('*', cors(corsOptions)); // Enable pre-flight for all routes
 
 app.use(bodyParser.json());
 
 // Use your routes
-app.use('/registration', registrationRoutes);
+app.use('/user', userRoutes)
+
+// A protected route
+app.get('/admin', authMiddleware, (req, res) => {
+    res.status(200).json({ message: 'This is a protected route', user: req.user });
+});
+
 
 // Test route
 app.get('/test', (req, res) => {
