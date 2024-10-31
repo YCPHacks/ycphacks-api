@@ -61,6 +61,7 @@ const createUser = async (req, res) => {
             persistedUser.id,
             persistedUser.email,
             persistedUser.firstName,
+            persistedUser.lastName,
             token
         )
 
@@ -100,17 +101,30 @@ const loginUser = async (req, res) => {
         // Generate JWT token
         const token = generateToken({ email: user.email });
 
+        const userResponseDto = new UserResponseDto(
+            user.id,
+            user.email,
+            user.firstName,
+            user.lastName,
+            token
+        )
+
         // Respond with success and token
         res.status(200).json({
             message: 'Login successful',
-            token: token
+            data: userResponseDto
         });
     } catch (err) {
         res.status(500).json({ message: 'Error logging in', error: err.message });
     }
 };
 
+const authWithToken = async (req, res) => {
+
+}
+
 module.exports = {
     createUser,
-    loginUser
+    loginUser,
+    authWithToken
 }

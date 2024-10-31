@@ -16,8 +16,7 @@ function generateToken(payload) {
 // Validate and verify a JWT token
 function validateToken(token) {
     try {
-        const decoded = jwt.verify(token, JWT_SECRET);
-        return { valid: true, decoded };  // Return decoded token if valid
+        return jwt.verify(token, JWT_SECRET);
     } catch (err) {
         return { valid: false, error: err.message };  // Return error if invalid
     }

@@ -2,12 +2,8 @@ name: Run Tests
 
 # This tells GitHub Actions to run the workflow on every push and pull request to the main branch
 on:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
+  push:         # Runs on any push to any branch
+  pull_request: # Still runs on pull requests to any branch
 
 jobs:
   test:
