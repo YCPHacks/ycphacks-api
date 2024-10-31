@@ -1,14 +1,23 @@
 const { DataTypes } = require('sequelize');
-const sequelize = require('./index');
+const sequelize = require('../config/index');
 
-const Registration = sequelize.define(
-    'Registration',
+const User = sequelize.define(
+    'User',
     {
         id: {
             type: DataTypes.INTEGER,
             autoIncrement: true,
             primaryKey: true,
             allowNull: false,
+        },
+        email: {
+            type: DataTypes.STRING(100), // Matches varchar(100)
+            unique: true,
+            validate: {
+                isEmail: true,
+            },
+            allowNull: false,
+            require: true
         },
         firstName: {
             type: DataTypes.STRING(100), // Matches varchar(100)
@@ -20,14 +29,14 @@ const Registration = sequelize.define(
             allowNull: false,
             require: true
         },
-        email: {
-            type: DataTypes.STRING(100), // Matches varchar(100)
-            unique: true,
-            validate: {
-                isEmail: true,
-            },
+        password: {
+            type: DataTypes.STRING,
             allowNull: false,
             require: true
+        },
+        role: {
+            type: DataTypes.INTEGER,
+            allowNull: true,
         },
         phoneNumber: {
             type: DataTypes.STRING(20), // Matches varchar(20)
@@ -44,12 +53,16 @@ const Registration = sequelize.define(
             allowNull: false,
             require: true
         },
+        pronouns: {
+            type: DataTypes.STRING,
+            allowNull: true
+        },
         country: {
             type: DataTypes.STRING(100), // Matches varchar(100)
             allowNull: false,
             require: true
         },
-        tshirtSize: {
+        tShirtSize: {
             type: DataTypes.STRING(5), // Matches varchar(5)
             allowNull: false,
             require: true
@@ -76,26 +89,20 @@ const Registration = sequelize.define(
             allowNull: false,
             require: true
         },
+        isVerified: {
+            type: DataTypes.BOOLEAN,
+            allowNull: false,  // This ensures the field can't be null
+            defaultValue: false  // Sets the default value to false if not provided
+        },
         mlhEmails: {
             type: DataTypes.TINYINT(1), // Matches tinyint(1)
             allowNull: true,
         },
-        status: {
-            type: DataTypes.ENUM('checked in', 'approved', 'denied', 'pending'), // Matches enum
-            defaultValue: 'pending',
-            allowNull: false,
-            require: true
-        },
-        created_at: {
-            type: DataTypes.DATE,
-            defaultValue: DataTypes.NOW, // Matches timestamp with default
-            allowNull: false,
-        },
     },
     {
-        tableName: 'registrations',
+        tableName: 'user',
         timestamps: false,
     }
 );
 
-module.exports = Registration;
+module.exports = User;

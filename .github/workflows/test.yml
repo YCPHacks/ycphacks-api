@@ -1,0 +1,29 @@
+name: Run Tests
+
+# This tells GitHub Actions to run the workflow on every push and pull request to the main branch
+on:
+  push:         # Runs on any push to any branch
+  pull_request: # Still runs on pull requests to any branch
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Check out the code from the repository
+      - name: Check out repository code
+        uses: actions/checkout@v3
+
+      # Step 2: Set up Node.js environment
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      # Step 3: Install dependencies
+      - name: Install dependencies
+        run: npm install
+
+      # Step 4: Run tests
+      - name: Run tests
+        run: npm test
