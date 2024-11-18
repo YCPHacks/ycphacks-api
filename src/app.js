@@ -4,10 +4,13 @@ const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const userRoutes = require('./routes/UserRoutes');
-const sequelize = require('./repository/config'); // Import the Sequelize instance
+const eventRoutes = require('./routes/EventRoutes');
+const sequelize = require('./repository/config'); 
 const app = express();
 const { authMiddleware } = require('./util/JWTUtil');
 
+// this is unused but is required for sequlize to sync the models
+const models = require('./repository/config/Models');
 // CORS configuration
 const corsOptions = {
     origin: process.env.CORS, // Your frontend URL
@@ -22,12 +25,7 @@ app.use(bodyParser.json());
 
 // Use your routes
 app.use('/user', userRoutes)
-
-// A protected route
-app.get('/admin', authMiddleware, (req, res) => {
-    res.status(200).json({ message: 'This is a protected route', user: req.user });
-});
-
+app.use('/event', eventRoutes)
 
 // Test route
 app.get('/test', (req, res) => {
@@ -36,9 +34,8 @@ app.get('/test', (req, res) => {
 
 // Start the server after syncing the models
 const port = process.env.APP_PORT || 3000;
-
 sequelize
-    .sync({ alter: true }) // Sync models with the database
+    .sync({ alter: true }) // Sync models with the database, alter makes sure that the database is updated with the new changes, but does not delete any data
     .then(() => {
         console.log('Database synchronized successfully.');
         app.listen(port, () => {

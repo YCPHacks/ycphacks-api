@@ -62,7 +62,8 @@ const createUser = async (req, res) => {
             persistedUser.email,
             persistedUser.firstName,
             persistedUser.lastName,
-            token
+            token,
+            user.role
         )
 
         // send back user response dto
@@ -106,7 +107,8 @@ const loginUser = async (req, res) => {
             user.email,
             user.firstName,
             user.lastName,
-            token
+            token,
+            user.role
         )
 
         // Respond with success and token
@@ -120,11 +122,109 @@ const loginUser = async (req, res) => {
 };
 
 const authWithToken = async (req, res) => {
+    try {
+        const token = req.body.token;
 
+        // Validate the token
+        const decodedToken = validateToken(token);
+        if (!decodedToken) {
+            return res.status(401).json({ message: 'Invalid token' });
+        }
+
+        // Find the user by email
+        const user = await UserRepo.findByEmail(decodedToken.email);
+
+        if (!user) {
+            return res.status(400).json({ message: 'Invalid email or password' });
+        }
+
+        const userResponseDto = new UserResponseDto(
+            user.id,
+            user.email,
+            user.firstName,
+            user.lastName,
+            token,
+            user.role
+        )
+
+        // Respond with success and token
+        res.status(200).json({
+            message: 'Token validated',
+            data: userResponseDto
+        });
+    } catch (err) {
+        res.status(500).json({ message: 'Error validating token', error: err.message });
+    }
+}
+
+const loginAdminUser = async (req, res) => {
+    try {
+        const { email, password } = req.body;
+
+        // Find the user by email
+        const user = await UserRepo.findByEmail(email);
+
+        if (!user) {
+            return res.status(400).json({ message: 'Invalid email or password' });
+        }
+
+        // Compare the provided password with the stored hashed password
+        const isPasswordValid = await bcrypt.compare(password, user.password);
+        if (!isPasswordValid) {
+            return res.status(400).json({ message: 'Invalid email or password' });
+        }
+
+        // Generate JWT token
+        const token = generateToken({ email: user.email });
+
+        const userResponseDto = new UserResponseDto(
+            user.id,
+            user.email,
+            user.firstName,
+            user.lastName,
+            token,
+            user.role,
+        )
+
+        const role = await UserRepo.getRoles(user.role)
+
+        if (role === 'staff' || role === 'oscar') {
+            // Respond with success and token
+            res.status(200).json({
+                message: 'Login successful',
+                data: userResponseDto
+            });
+        } else {
+            return res.status(403).json({ message: 'Access denied: insufficient permissions' });
+        }
+    } catch (err) {
+        res.status(500).json({ message: 'Error logging in', error: err.message });
+    }
+
+}
+
+const getAllUsers = async (req, res) => {
+    try {
+
+        const users = await UserRepo.getAllUsers();
+        const userData = users.map(user => ({
+            firstName: user.dataValues.firstName,
+            lastName: user.dataValues.lastName,
+            phoneNumber: user.dataValues.phoneNumber,
+            hackathonsAttended: user.dataValues.hackathonsAttended,
+            role: user.dataValues.role,
+        }));
+
+        res.status(200).json({ message: 'All users', data: userData });
+    } catch (err) {
+        res.status(500).json({ message: 'Error getting all users', error: err.message });
+    }
 }
 
 module.exports = {
     createUser,
     loginUser,
-    authWithToken
+    authWithToken,
+    loginAdminUser,
+    getAllUsers
 }

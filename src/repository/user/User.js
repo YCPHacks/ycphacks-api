@@ -12,7 +12,6 @@ const User = sequelize.define(
         },
         email: {
             type: DataTypes.STRING(100), // Matches varchar(100)
-            unique: true,
             validate: {
                 isEmail: true,
             },
@@ -37,6 +36,7 @@ const User = sequelize.define(
         role: {
             type: DataTypes.INTEGER,
             allowNull: true,
+            default: 1
         },
         phoneNumber: {
             type: DataTypes.STRING(20), // Matches varchar(20)
