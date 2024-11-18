@@ -4,13 +4,15 @@ class UserResponseDto {
         email,
         firstName,
         lastName,
-        token
+        token,
+        role
     ) {
         this.id = id
         this.email = email
         this.firstName = firstName
         this.lastName = lastName
         this.token = token
+        this.role = role
     }
 }
 
