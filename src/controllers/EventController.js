@@ -53,7 +53,31 @@ const getAllEvents = async (req, res) => {
     }
 }
 
+const getEventById = async (req, res) => {
+    const { id } = req.params; // Extract the ID from the URL
+
+    try {
+        const event = await EventRepo.findById(id)
+
+        if (!event) {
+            return res.status(404).json({
+                message: 'Event not found'
+            });
+        } else {
+            return res.status(200).json({
+                message: 'Event retrieved successfully',
+                event: event
+            });
+        }
+    } catch (e){
+        return res.status(500).json({
+            message: 'Internal Server Error'
+        });
+    }
+}
+
 module.exports = {
     createEvent,
-    getAllEvents
+    getAllEvents,
+    getEventById
 }
