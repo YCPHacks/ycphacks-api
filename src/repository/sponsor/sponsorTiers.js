@@ -1,7 +1,7 @@
 const {DataTypes} = require("sequelize");
-const sequelize = require('../config/index');
-const eventSponsor = sequelize.define(
-    'eventSponsor',
+const sequelize = require('../config');
+const sponsorTier = sequelize.define(
+    'sponsorTier',
     {
         id: {
             type: DataTypes.INTEGER,
@@ -23,3 +23,5 @@ const eventSponsor = sequelize.define(
         }
     }
 )
+
+module.exports = sponsorTier;

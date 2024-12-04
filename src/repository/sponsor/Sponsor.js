@@ -1,5 +1,5 @@
 const { DataTypes } = require('sequelize');
-const sequelize = require('../config/index');
+const sequelize = require('../config');
 
 const Sponsor = sequelize.define(
     'Sponsor',
@@ -11,28 +11,20 @@ const Sponsor = sequelize.define(
             allowNull: false
         },
         sponsor_name: {
-            type: DataTypes.STRING(100), //todo: determine length for sponsor_name
-            unique: true,
+            type: DataTypes.STRING,
             allowNull: false,
             require: true
         },
         sponsor_website: {
-            type: DataTypes.STRING(100), //todo: determine max length for sponsor_website
+            type: DataTypes.STRING,
             allowNull: false,
             require: true
         },
-        image_id: {
-            type: DataTypes.INTEGER,
-            allowNull: false,
-        },
-        event_id: {
-            type: DataTypes.INTEGER,
-            allowNull: false
-        }
-
     },
     {
         paranoid: true
     }
 
-)
+);
+
+module.exports = Sponsor;

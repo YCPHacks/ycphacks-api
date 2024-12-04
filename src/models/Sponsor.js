@@ -19,10 +19,6 @@ class Sponsor{
             errors.push("Missing Sponsor Website");
         }
 
-        if(!this.image_id) {
-            errors.push("Missing Sponsor Image");
-        }
-
         return errors;
     }
 }

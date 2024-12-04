@@ -1,5 +1,5 @@
 const {DataTypes} = require("sequelize");
-const sequelize = require('../config/index');
+const sequelize = require('../config');
 const eventSponsor = sequelize.define(
     'eventSponsor',
     {
@@ -23,3 +23,5 @@ const eventSponsor = sequelize.define(
         }
     }
 )
+
+module.exports = eventSponsor;
