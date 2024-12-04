@@ -15,7 +15,6 @@ const SponsorTiers = require("../models/sponsorTiers");
  * @returns {Promise<void>}
  */
 const createSponsor = async (req, res) => {
-    //todo: define function
     try {
         const createSponsorDto = req.body;
 
@@ -56,7 +55,7 @@ const createSponsor = async (req, res) => {
  * @returns {Promise<void>}
  */
 const createSponsorship = async (req, res) => {
-    //todo: define function
+    //todo
 }
 
 /**
@@ -68,7 +67,7 @@ const createSponsorship = async (req, res) => {
  * @returns {Promise<void>}
  */
 const getSponsorData = async (req, res) => {
-
+    //todo
 }
 
 /**
@@ -80,5 +79,5 @@ const getSponsorData = async (req, res) => {
  * @returns {Promise<void>}
  */
 const getSponsorsByEvent = async (req, res) => {
-
+    //todo
 }
