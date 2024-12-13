@@ -13,13 +13,11 @@ const sponsorTier = sequelize.define(
             type: DataTypes.CHAR,
             allowNull: false,
             require: true,
-            unique: true
         },
         lower_threshold: {
             type: DataTypes.INTEGER,
             allowNull: false,
             require: true,
-            unique: true
         }
     }
 )

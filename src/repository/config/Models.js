@@ -6,6 +6,7 @@ const Sponsor = require('../sponsor/Sponsor');
 const SponsorTiers = require('../sponsor/sponsorTiers');
 const EventSponsor = require('../sponsor/eventSponsor');
 const Image = require('../image/Image');
+const Activities = require('../event/Activities');
 
 // add all new Sequelize models here
 const models = {
@@ -17,5 +18,6 @@ const models = {
     SponsorTiers,
     EventSponsor,
     Image,
+    Activities
 };
 module.exports = models;
