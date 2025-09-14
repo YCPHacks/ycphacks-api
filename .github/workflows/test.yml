@@ -27,6 +27,5 @@ jobs:
       # Step 4: Run tests
       - name: Run tests
         run: |
-          # Use an environment variable to let your code know to mock Sequelize
-          export MOCK_DB=true
+          export NODE_ENV=true
           npm test

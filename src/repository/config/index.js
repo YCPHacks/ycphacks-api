@@ -14,13 +14,14 @@ const sequelize = new Sequelize(
 );
 
 // Test the connection (optional but recommended)
-sequelize
-    .authenticate()
-    .then(() => {
-        console.log('Connection to the database has been established successfully.');
-    })
-    .catch((err) => {
-        console.error('Unable to connect to the database:', err);
-    });
-
+if (process.env.NODE_ENV !== 'test') {
+    sequelize
+        .authenticate()
+        .then(() => {
+            console.log('Connection to the database has been established successfully.');
+        })
+        .catch((err) => {
+            console.error('Unable to connect to the database:', err);
+        });
+}
 module.exports = sequelize;
