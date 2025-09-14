@@ -2,10 +2,8 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const bodyParser = require('body-parser');
 const userRoutes = require('./routes/UserRoutes');
 const eventRoutes = require('./routes/EventRoutes');
-const sequelize = require('./repository/config'); 
 const app = express();
 const { authMiddleware } = require('./util/JWTUtil');
 
@@ -18,10 +16,13 @@ const corsOptions = {
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
 };
-app.use(cors(corsOptions));
-app.options('*', cors(corsOptions)); // Enable pre-flight for all routes
-
-app.use(bodyParser.json());
+//app.use(cors(corsOptions));
+//app.options('*', cors(corsOptions)); // Enable pre-flight for all routes
+app.use(cors({
+    origin: process.env.CORS,
+    credentials: true,
+}));
+app.use(express.json());
 
 // Use your routes
 app.use('/user', userRoutes)
@@ -32,16 +33,4 @@ app.get('/test', (req, res) => {
     res.json({ message: 'CORS is working!' });
 });
 
-// Start the server after syncing the models
-const port = process.env.APP_PORT || 3000;
-sequelize
-    .sync({ alter: true }) // Sync models with the database, alter makes sure that the database is updated with the new changes, but does not delete any data
-    .then(() => {
-        console.log('Database synchronized successfully.');
-        app.listen(port, () => {
-            console.log(`Server running at http://localhost:${port}`);
-        });
-    })
-    .catch((err) => {
-        console.error('Error syncing the database:', err);
-    });
+module.exports = app;

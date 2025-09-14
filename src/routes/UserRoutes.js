@@ -9,11 +9,11 @@ const {
     getAllUsers
 } = require('../controllers/UserController')
 
-router.post('/create', createUser)
+router.post('/register', createUser)
 
 router.post('/login', loginUser)
 
-router.post('/admin', loginAdminUser)
+router.post('/admin-login', loginAdminUser)
 
 router.post('/auth', authWithToken)
 
