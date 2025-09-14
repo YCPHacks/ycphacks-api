@@ -47,8 +47,36 @@ const createUser = async (req, res) => {
             });
         }
 
+        const existingUser = await UserRepo.findByEmail(user.email);
+        if(existingUser){
+            return res.status(400).json({
+                message: 'Email is already in use please sign in'
+            });
+        }
+
+//        Converts to plain object for Sequelize
+        const userObj = {
+            email: user.email,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            password: user.password,
+            role: user.role,
+            phoneNumber: user.phoneNumber,
+            dob: user.dob,
+            gender: user.gender,
+            pronouns: user.pronouns,
+            country: user.country,
+            tShirtSize: user.tShirtSize,
+            dietaryRestrictions: user.dietaryRestrictions,
+            school: user.school,
+            hackathonsAttended: user.hackathonsAttended,
+            mlhCodeOfConduct: user.mlhCodeOfConduct,
+            mlhPrivacyPolicy: user.mlhPrivacyPolicy,
+            mlhEmails: user.mlhEmails
+        };
+
         // persist user  ONLY IF THE DATA IS VALID
-        const persistedUser = await UserRepoModel.create(user);
+        const persistedUser = await UserRepo.create(userObj);
 
         // generate JWT
         const token = generateToken({ email: user.email });
