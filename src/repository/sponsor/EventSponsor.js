@@ -1,8 +1,16 @@
 const {DataTypes} = require("sequelize");
 const sequelize = require('../config');
-const eventSponsor = sequelize.define(
-    'eventSponsor',
+const EventSponsor = sequelize.define(
+    'EventSponsor',
     {
+        event_id: {
+            type: DataTypes.INTEGER,
+            allowNull: false
+        },
+        sponsor_id: {
+            type: DataTypes.INTEGER,
+            allowNull: false
+        },
         sponsor_tier: {
             type: DataTypes.CHAR,
             allowNull: false,
@@ -12,16 +20,8 @@ const eventSponsor = sequelize.define(
             type: DataTypes.DOUBLE,
             allowNull: false,
             require: true
-        },
-        event_id: {
-            type: DataTypes.INTEGER,
-            allowNull: false
-        },
-        sponsor_id: {
-            type: DataTypes.INTEGER,
-            allowNull: false
         }
     }
 )
 
-module.exports = eventSponsor;
+module.exports = EventSponsor;

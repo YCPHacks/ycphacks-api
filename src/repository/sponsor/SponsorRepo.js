@@ -1,5 +1,5 @@
 const Sponsor = require("Sponsor");
-const EventSponsor = require("eventSponsor")
+const EventSponsor = require("ycphacks-api/src/repository/sponsor/EventSponsor")
 const SponsorTiers = require("sponsorTiers")
 const Image = require("../image/Image")
 

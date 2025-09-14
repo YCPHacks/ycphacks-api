@@ -1,7 +1,7 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/index');
 
-const HackCategories = sequelize.define(
+const HackCategory = sequelize.define(
     'HackCategories',
     {
         id: {
@@ -27,4 +27,4 @@ const HackCategories = sequelize.define(
     }
 );
 
-module.exports = HackCategories;
+module.exports = HackCategory;

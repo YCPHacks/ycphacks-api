@@ -1,6 +1,6 @@
 const Event = require("./Event")
 const Activity = require("./Activities")
-const HackCategories = require("./HackCategories")
+const HackCategories = require("./HackCategory")
 
 const EventRepo = {
     async create(event) {

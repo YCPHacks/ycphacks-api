@@ -31,6 +31,12 @@ const Event = sequelize.define(
             require: true,
             defaultValue: true
         },
+        year: {
+            type: DataTypes.INTEGER,
+            allowNull: false,
+            require: true,
+            defaultValue: new Date().getFullYear() // This will only run when Sequelize sync the model, so we should also check for null values for year and add the current year in the controller or wherever.
+        }
     },
     {
         tableName: 'events',

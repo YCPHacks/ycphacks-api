@@ -1,7 +1,7 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/index');
 
-const EventParticipants = sequelize.define(
+const EventParticipant = sequelize.define(
     'EventParticipants',
     {
         eventId: {
@@ -13,9 +13,9 @@ const EventParticipants = sequelize.define(
             type: DataTypes.INTEGER,
             allowNull: false,
         },
-        status: {
+        teamId: {
             type: DataTypes.INTEGER,
-            require: true,
+            allowNull: false
         }
     },
     {
@@ -24,4 +24,4 @@ const EventParticipants = sequelize.define(
     }
 );
 
-module.exports = EventParticipants;
+module.exports = EventParticipant;

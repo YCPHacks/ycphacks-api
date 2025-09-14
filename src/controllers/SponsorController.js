@@ -1,7 +1,7 @@
 const SponsorRepoModel = require('../repository/sponsor/Sponsor');
 const Sponsor = require('../models/Sponsor');
-const EventSponsorRepoModel = require('../repository/sponsor/eventSponsor');
-const EventSponsor = require("../models/eventSponsor");
+const EventSponsorRepoModel = require('../repository/sponsor/EventSponsor');
+const EventSponsor = require("../models/EventSponsor");
 const SponsorTiersRepoModel = require("../repository/sponsor/sponsorTiers");
 const SponsorTiers = require("../models/sponsorTiers");
 
@@ -47,7 +47,7 @@ const createSponsor = async (req, res) => {
 }
 
 /**
- * function creates a sponsorship entry in eventSponsors
+ * function creates a sponsorship entry in EventSponsors
  * Return needs to be defined in dto
  *
  * @param req
