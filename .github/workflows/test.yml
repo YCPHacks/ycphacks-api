@@ -27,5 +27,5 @@ jobs:
       # Step 4: Run tests
       - name: Run tests
         run: |
-          export NODE_ENV=true
+          export NODE_ENV=test
           npm test
