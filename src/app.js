@@ -2,14 +2,13 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const { Sequelize } = require('sequelize');
-const models = require('./repository/config/Models');
+const sequelize = require('./repository/config/index');
 const userRoutes = require('./routes/UserRoutes');
 const eventRoutes = require('./routes/EventRoutes');
 const app = express();
 const { authMiddleware } = require('./util/JWTUtil');
 
-// this is unused but is required for sequlize to sync the models
+// this is unused but is required for sequelize to sync the models
 const models = require('./repository/config/Models');
 // CORS configuration
 const corsOptions = {
@@ -35,8 +34,6 @@ app.get('/test', (req, res) => {
     res.json({ message: 'CORS is working!' });
 });
 
-module.exports = app;
-
 // Database + server start
 const port = process.env.APP_PORT || 3000;
 
@@ -51,3 +48,5 @@ sequelize
     .catch((err) => {
         console.error('Error syncing the database: ', err);
     });
+
+module.exports = app;

@@ -1,10 +1,13 @@
 const { Sequelize } = require('sequelize');
 require('dotenv').config();
 
+let sequelize;
+
 if (process.env.NODE_ENV === 'test') {
     // Use a mock Sequelize connection
     const SequelizeMock = require('sequelize-mock');
     const DBConnectionMock = new SequelizeMock();
+    DBConnectionMock.sync = async () => {};
     sequelize = DBConnectionMock;
 } else {
     // Real database connection
