@@ -3,7 +3,7 @@ const UserRepo = require('../repository/user/UserRepo')
 const User = require('../models/User')
 const UserResponseDto = require('../dto/UserResponseDto')
 const { generateToken, validateToken} = require('../util/JWTUtil');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 const SALT_ROUNDS = 10;  // Number of salt rounds for bcrypt
 /**
  * This function will create a user based on the data that gets sent in and return
@@ -47,8 +47,36 @@ const createUser = async (req, res) => {
             });
         }
 
+        const existingUser = await UserRepo.findByEmail(user.email);
+        if(existingUser){
+            return res.status(400).json({
+                message: 'Email is already in use please sign in'
+            });
+        }
+
+//        Converts to plain object for Sequelize
+        const userObj = {
+            email: user.email,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            password: user.password,
+            role: user.role,
+            phoneNumber: user.phoneNumber,
+            dob: user.dob,
+            gender: user.gender,
+            pronouns: user.pronouns,
+            country: user.country,
+            tShirtSize: user.tShirtSize,
+            dietaryRestrictions: user.dietaryRestrictions,
+            school: user.school,
+            hackathonsAttended: user.hackathonsAttended,
+            mlhCodeOfConduct: user.mlhCodeOfConduct,
+            mlhPrivacyPolicy: user.mlhPrivacyPolicy,
+            mlhEmails: user.mlhEmails
+        };
+
         // persist user  ONLY IF THE DATA IS VALID
-        const persistedUser = await UserRepoModel.create(user);
+        const persistedUser = await UserRepo.create(userObj);
 
         // generate JWT
         const token = generateToken({ email: user.email });
@@ -165,13 +193,13 @@ const loginAdminUser = async (req, res) => {
         const user = await UserRepo.findByEmail(email);
 
         if (!user) {
-            return res.status(400).json({ message: 'Invalid email or password' });
+            return res.status(400).json({ message: 'Invalid email' });
         }
 
         // Compare the provided password with the stored hashed password
         const isPasswordValid = await bcrypt.compare(password, user.password);
         if (!isPasswordValid) {
-            return res.status(400).json({ message: 'Invalid email or password' });
+            return res.status(400).json({ message: 'Invalid password' });
         }
 
         // Generate JWT token
