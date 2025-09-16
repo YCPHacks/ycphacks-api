@@ -144,3 +144,4 @@ describe('POST /user/register', () => {
         expect(UserRepo.findByEmail).toHaveBeenCalledTimes(1);
     });
 });
+>>>>>>> 0b4638aac8962ace30944f3a27a1a35f5699fb87
