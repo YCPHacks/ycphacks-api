@@ -1,24 +1,15 @@
-class Sponsor{
+class Sponsor {
     constructor(
-        sponsor_name,
-        sponsor_website,
-        image_id,
-    ){
-        this.sponsor_name = sponsor_name;
-        this.sponsor_website = sponsor_website;
-        this.image_id = image_id;
-    }
-    validate() {
-        const errors = [];
-
-        if (!this.sponsor_name) {
-            errors.push("Missing Sponsor Name");
-        }
-
-        if(!this.sponsor_website) {
-            errors.push("Missing Sponsor Website");
-        }
-
-        return errors;
+        id,
+        sponsorName,
+        sponsorWebsite,
+        sponsorImageId
+    ) {
+        this.id = id;
+        this.sponsorName = sponsorName;
+        this.sponsorWebsite = sponsorWebsite;
+        this.sponsorImageId = sponsorImageId;
     }
 }
+
+module.exports = Sponsor;

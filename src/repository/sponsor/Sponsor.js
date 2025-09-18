@@ -10,16 +10,21 @@ const Sponsor = sequelize.define(
             primaryKey: true,
             allowNull: false
         },
-        sponsor_name: {
+        sponsorName: {
             type: DataTypes.STRING,
             allowNull: false,
             require: true
         },
-        sponsor_website: {
-            type: DataTypes.STRING,
-            allowNull: false,
-            require: true
+        sponsorWebsite: {
+            type: DataTypes.STRING
         },
+        sponsorImageId: {
+            type: DataTypes.INTEGER,
+            references: {
+                model: 'Image',
+                key: 'id'
+            }
+        }
     },
     {
         paranoid: true
