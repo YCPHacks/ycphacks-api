@@ -55,7 +55,7 @@ describe('POST /user/register', () => {
             .send({
                 firstName: 'Jane',
                 lastName: 'Doe',
-                password: '$2b$10$Xdummyhash',
+                password: 'strongpassword123!',
                 email: 'test1@example.com',
                 role: 'participant',
                 phoneNumber: '+1234567891',
@@ -75,7 +75,7 @@ describe('POST /user/register', () => {
                 mlhCodeOfConduct: true,
                 mlhPrivacyPolicy: true,
                 mlhEmails: false,
-                isVerified: false,
+                isVerified: false
             });
 
         // Assert: response checks
@@ -104,7 +104,7 @@ describe('POST /user/register', () => {
                 email: 'invalidemail',  // Invalid email
                 role: 'participant',
                 phoneNumber: '+1234567890',
-                age: 15,  // Too young
+                age: 12,  // Too young
                 gender: 'male',
                 country: 'USA',
                 tShirtSize: 'M',

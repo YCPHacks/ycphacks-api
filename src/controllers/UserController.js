@@ -37,9 +37,11 @@ const createUser = async (req, res) => {
             userData.hackathonsAttended,
             userData.linkedInUrl,
             userData.pronouns,
+            userData.checkIn,
             userData.mlhCodeOfConduct,
             userData.mlhPrivacyPolicy,
             userData.mlhEmails,
+            userData.isVerified
         )
 
         // validate data
@@ -60,23 +62,29 @@ const createUser = async (req, res) => {
 
 //        Converts to plain object for Sequelize
         const userObj = {
-            email: user.email,
             firstName: user.firstName,
             lastName: user.lastName,
+            email: user.email,
             password: user.password,
             role: user.role,
             phoneNumber: user.phoneNumber,
-            dob: user.dob,
+            age: user.age,
             gender: user.gender,
-            pronouns: user.pronouns,
             country: user.country,
             tShirtSize: user.tShirtSize,
             dietaryRestrictions: user.dietaryRestrictions,
             school: user.school,
+            major: user.major,
+            graduationYear: user.graduationYear,
+            levelOfStudy: user.levelOfStudy,
             hackathonsAttended: user.hackathonsAttended,
+            linkedInUrl: user.linkedInUrl,
+            pronouns: user.pronouns,
+            checkIn: user.checkIn,
             mlhCodeOfConduct: user.mlhCodeOfConduct,
             mlhPrivacyPolicy: user.mlhPrivacyPolicy,
-            mlhEmails: user.mlhEmails
+            mlhEmails: user.mlhEmails,
+            isVerified: user.isVerified
         };
 
         // persist user  ONLY IF THE DATA IS VALID
