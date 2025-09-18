@@ -5,6 +5,7 @@ const cors = require('cors');
 const sequelize = require('./repository/config/index');
 const userRoutes = require('./routes/UserRoutes');
 const eventRoutes = require('./routes/EventRoutes');
+const sponsorRoutes = require('./routes/SponsorRoutes');
 const app = express();
 const { authMiddleware } = require('./util/JWTUtil');
 
@@ -28,10 +29,15 @@ app.use(express.json());
 // Use your routes
 app.use('/user', userRoutes)
 app.use('/event', eventRoutes)
+app.use('/sponsors', sponsorRoutes)
 
 // Test route
 app.get('/test', (req, res) => {
     res.json({ message: 'CORS is working!' });
+});
+
+app.post('/user/login', (req, res) => {
+    const { email, password } = req.body;
 });
 
 // Database + server start
