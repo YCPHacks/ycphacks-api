@@ -9,6 +9,8 @@ const SponsorTiers = require('../sponsor/SponsorTier');
 const EventSponsor = require('../sponsor/EventSponsor');
 const Image = require('../image/Image');
 const Activities = require('../event/Activities');
+const Hardware = require('../hardware/Hardware');
+const HardwareImage = require('../hardware/HardwareImage');
 
 // Associations
 Prize.belongsTo(Event, { foreignKey: 'eventId', onDelete: 'CASCADE' });
@@ -29,6 +31,8 @@ const models = {
     SponsorTiers,
     EventSponsor,
     Image,
-    Activities
+    Activities,
+    Hardware,
+    HardwareImage
 };
 module.exports = models;
