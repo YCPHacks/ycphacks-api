@@ -19,23 +19,27 @@ const createUser = async (req, res) => {
         const userData = req.body
         const hashedPassword = await bcrypt.hash(userData.password, SALT_ROUNDS);
         const user = new User(
-            userData.email,
             userData.firstName,
             userData.lastName,
+            userData.email,
             hashedPassword,
             userData.role,
             userData.phoneNumber,
-            userData.dob,
+            userData.age,
             userData.gender,
-            userData.pronouns,
             userData.country,
             userData.tShirtSize,
             userData.dietaryRestrictions,
             userData.school,
+            userData.major,
+            userData.graduationYear,
+            userData.levelOfStudy,
             userData.hackathonsAttended,
+            userData.linkedInUrl,
+            userData.pronouns,
             userData.mlhCodeOfConduct,
             userData.mlhPrivacyPolicy,
-            userData.mlhEmails
+            userData.mlhEmails,
         )
 
         // validate data
@@ -186,9 +190,7 @@ const loginAdminUser = async (req, res) => {
             user.role,
         )
 
-        const role = await UserRepo.getRoles(user.role)
-
-        if (role === 'staff' || role === 'oscar') {
+        if (user.role === 'staff' || user.role === 'oscar') {
             // Respond with success and token
             res.status(200).json({
                 message: 'Login successful',
