@@ -21,23 +21,29 @@ describe('POST /user/register', () => {
 
         const mockUser = {
             id: 2,
-            email: 'test1@example.com',
             firstName: 'Jane',
             lastName: 'Doe',
             password: '$2b$10$Xdummyhash',
-            role: 'user',
+            email: 'test1@example.com',
+            role: 'participant',
             phoneNumber: '+1234567891',
-            dob: '2000-01-01',
+            age: 20,
             gender: 'male',
-            pronouns: 'her/she',
             country: 'USA',
             tShirtSize: 'M',
             dietaryRestrictions: 'none',
             school: 'Sample University',
+            major: 'Computer Science',
+            graduationYear: 2027,
+            levelOfStudy: 'College',
             hackathonsAttended: 5,
+            linkedInUrl: 'https://www.linkedin.com',
+            pronouns: 'her/she',
+            checkIn: false,
             mlhCodeOfConduct: true,
             mlhPrivacyPolicy: true,
             mlhEmails: false,
+            isVerified: false,
             toJSON: function() { return this; } // Sequelize-like behavior
         };
 
@@ -47,23 +53,29 @@ describe('POST /user/register', () => {
         const res = await request(app)
             .post('/user/register')
             .send({
-                email: 'test1@example.com',
                 firstName: 'Jane',
                 lastName: 'Doe',
-                password: 'strongpassword123!',
-                role: 'user',
+                password: '$2b$10$Xdummyhash',
+                email: 'test1@example.com',
+                role: 'participant',
                 phoneNumber: '+1234567891',
-                dob: '2000-01-01',
+                age: 20,
                 gender: 'male',
-                pronouns: 'her/she',
                 country: 'USA',
                 tShirtSize: 'M',
                 dietaryRestrictions: 'none',
                 school: 'Sample University',
+                major: 'Computer Science',
+                graduationYear: 2027,
+                levelOfStudy: 'College',
                 hackathonsAttended: 5,
+                linkedInUrl: 'https://www.linkedin.com',
+                pronouns: 'her/she',
+                checkIn: false,
                 mlhCodeOfConduct: true,
                 mlhPrivacyPolicy: true,
-                mlhEmails: false
+                mlhEmails: false,
+                isVerified: false,
             });
 
         // Assert: response checks
@@ -78,7 +90,7 @@ describe('POST /user/register', () => {
             email: 'test1@example.com',
             firstName: 'Jane',
             lastName: 'Doe',
-            role: 'user'
+            role: 'participant'
         }));
     });
 
@@ -86,23 +98,29 @@ describe('POST /user/register', () => {
         const res = await request(app)
             .post('/user/register')
             .send({
-                email: 'invalidemail',  // Invalid email
                 firstName: 'John',
                 lastName: 'Doe',
                 password: 'short',  // Password too short
-                role: 'user',
+                email: 'invalidemail',  // Invalid email
+                role: 'participant',
                 phoneNumber: '+1234567890',
-                dob: '2010-01-01',  // Too young
+                age: 15,  // Too young
                 gender: 'male',
-                pronouns: 'he/him',
                 country: 'USA',
                 tShirtSize: 'M',
                 dietaryRestrictions: 'none',
                 school: 'Sample University',
+                major: 'Computer Science',
+                graduationYear: 2027,
+                levelOfStudy: 'College',
                 hackathonsAttended: 5,
+                linkedInUrl: 'https://www.linkedin.com',
+                pronouns: 'her/she',
+                checkIn: false,
                 mlhCodeOfConduct: true,
                 mlhPrivacyPolicy: true,
-                mlhEmails: false
+                mlhEmails: false,
+                isVerified: false
             });
 
         expect(res.statusCode).toEqual(400);
@@ -124,19 +142,25 @@ describe('POST /user/register', () => {
                 firstName: 'John',
                 lastName: 'Doe',
                 password: 'strongpassword123',
-                role: 'user',
+                role: 'participant',
                 phoneNumber: '+1234567890',
-                dob: '2000-01-01',
+                age: 19,
                 gender: 'male',
-                pronouns: 'he/him',
                 country: 'USA',
                 tShirtSize: 'M',
                 dietaryRestrictions: 'none',
                 school: 'Sample University',
+                major: 'Computer Science',
+                graduationYear: 2027,
+                levelOfStudy: 'College',
                 hackathonsAttended: 5,
+                linkedInUrl: 'https://www.linkedin.com',
+                pronouns: 'her/she',
+                checkIn: false,
                 mlhCodeOfConduct: true,
                 mlhPrivacyPolicy: true,
-                mlhEmails: false
+                mlhEmails: false,
+                isVerified: false,
             });
 
         expect(res.statusCode).toEqual(400);
