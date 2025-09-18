@@ -1,5 +1,4 @@
 const User = require("../user/User");
-const StaffRoles = require('../user/StaffRoles');
 const Team = require('../team/Team');
 const Event = require('../event/Event');
 const EventParticipant = require('../event/EventParticipant');
@@ -23,7 +22,6 @@ HackCategory.hasMany(Prize, { foreignKey: 'categoryId' });
 // add all new Sequelize models here
 const models = {
     User,
-    StaffRoles,
     Team,
     Event,
     EventParticipant,
