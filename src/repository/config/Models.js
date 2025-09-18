@@ -1,5 +1,6 @@
 const User = require("../user/User");
 const StaffRoles = require('../user/StaffRoles');
+const Team = require('../team/Team');
 const Event = require('../event/Event');
 const EventParticipant = require('../event/EventParticipant');
 const HackCategory = require('../event/HackCategory');
@@ -23,6 +24,7 @@ HackCategory.hasMany(Prize, { foreignKey: 'categoryId' });
 const models = {
     User,
     StaffRoles,
+    Team,
     Event,
     EventParticipant,
     HackCategory,
