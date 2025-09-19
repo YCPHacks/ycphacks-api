@@ -1,11 +1,14 @@
-class sponsorTiers{
+class SponsorTier {
     constructor(
+        id,
         tier,
-        lower_threshold
-    ){
+        lowerThreshold
+    ) {
+        this.id = id;
         this.tier = tier;
-        this.lower_threshold = lower_threshold;
+        this.lowerThreshold = lowerThreshold;
     }
+
     validate() {
         const errors = [];
 
@@ -13,10 +16,12 @@ class sponsorTiers{
             errors.push("Missing Tier Name");
         }
 
-        if(!this.lower_threshold) {
+        if(!this.lowerThreshold) {
             errors.push("Missing Tier Threshold");
         }
 
         return errors;
     }
 }
+
+module.exports = SponsorTier

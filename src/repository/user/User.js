@@ -10,14 +10,6 @@ const User = sequelize.define(
             primaryKey: true,
             allowNull: false,
         },
-        email: {
-            type: DataTypes.STRING(100), // Matches varchar(100)
-            validate: {
-                isEmail: true,
-            },
-            allowNull: false,
-            require: true
-        },
         firstName: {
             type: DataTypes.STRING(100), // Matches varchar(100)
             allowNull: false,
@@ -28,23 +20,31 @@ const User = sequelize.define(
             allowNull: false,
             require: true
         },
+        email: {
+            type: DataTypes.STRING(100), // Matches varchar(100)
+            validate: {
+                isEmail: true,
+            },
+            allowNull: false,
+            require: true
+        },
         password: {
             type: DataTypes.STRING,
             allowNull: false,
             require: true
         },
         role: {
-            type: DataTypes.INTEGER,
+            type: DataTypes.ENUM("participant", "staff", "oscar"),
             allowNull: true,
-            default: 1
+            default: "participant"
         },
         phoneNumber: {
             type: DataTypes.STRING(20), // Matches varchar(20)
             allowNull: false,
             require: true
         },
-        dob: {
-            type: DataTypes.DATE, // Matches date type
+        age: {
+            type: DataTypes.INTEGER,
             allowNull: false,
             require: true
         },
@@ -52,10 +52,6 @@ const User = sequelize.define(
             type: DataTypes.STRING(50), // Matches varchar(50)
             allowNull: false,
             require: true
-        },
-        pronouns: {
-            type: DataTypes.STRING,
-            allowNull: true
         },
         country: {
             type: DataTypes.STRING(100), // Matches varchar(100)
@@ -75,32 +71,51 @@ const User = sequelize.define(
             type: DataTypes.STRING(255),
             allowNull: true
         },
+        major: {
+            type: DataTypes.STRING
+        },
+        graduationYear: {
+            type: DataTypes.INTEGER
+        },
+        levelOfStudy: {
+            type: DataTypes.STRING,
+            allowNull: false
+        },
         hackathonsAttended: {
             type: DataTypes.INTEGER, // Matches int
             allowNull: false,
+            defaultValue: 0
+        },
+        pronouns: {
+            type: DataTypes.STRING,
+        },
+        linkedInUrl: {
+            type: DataTypes.STRING,
+        },
+        checkIn: {
+            type: DataTypes.BOOLEAN, // Matches tinyint(1)
+            allowNull: false,
+            defaultValue: false
         },
         mlhCodeOfConduct: {
-            type: DataTypes.TINYINT(1), // Matches tinyint(1)
+            type: DataTypes.BOOLEAN, // Matches tinyint(1)
             allowNull: false,
-            require: true
         },
         mlhPrivacyPolicy: {
-            type: DataTypes.TINYINT(1), // Matches tinyint(1)
+            type: DataTypes.BOOLEAN, // Matches tinyint(1)
             allowNull: false,
-            require: true
-        },
-        isVerified: {
-            type: DataTypes.BOOLEAN,
-            allowNull: false,  // This ensures the field can't be null
-            defaultValue: false  // Sets the default value to false if not provided
         },
         mlhEmails: {
-            type: DataTypes.TINYINT(1), // Matches tinyint(1)
-            allowNull: true,
+            type: DataTypes.BOOLEAN, // Matches tinyint(1)
+            defaultValue: false
         },
+        isVerified: {
+            type: DataTypes.BOOLEAN, // Matches tinyint(1)
+            defaultValue: false
+        }
     },
     {
-        tableName: 'user',
+        tableName: 'User',
         timestamps: false,
     }
 );

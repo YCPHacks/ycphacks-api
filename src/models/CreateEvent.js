@@ -3,12 +3,14 @@ class CreateEvent {
         eventName,
         startDate,
         endDate,
-        canChange
+        canChange,
+        year
     ) {
         this.eventName = eventName
         this.startDate = startDate
         this.endDate = endDate
         this.canChange = canChange
+        this.year = year
     }
 
     // start date must be in the future

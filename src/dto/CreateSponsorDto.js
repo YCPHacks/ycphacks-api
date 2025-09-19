@@ -2,11 +2,11 @@ class SponsorResponseDto {
     constructor(
         sponsorName,
         sponsorWebsite,
-        imageURL,
+        sponsorImageId
     ) {
         this.sponsorName = sponsorName;
         this.sponsorWebsite = sponsorWebsite;
-        this.imageURL = imageURL;
+        this.sponsorImageId = sponsorImageId;
     }
 }
 

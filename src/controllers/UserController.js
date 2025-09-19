@@ -19,23 +19,29 @@ const createUser = async (req, res) => {
         const userData = req.body
         const hashedPassword = await bcrypt.hash(userData.password, SALT_ROUNDS);
         const user = new User(
-            userData.email,
             userData.firstName,
             userData.lastName,
+            userData.email,
             hashedPassword,
             userData.role,
             userData.phoneNumber,
-            userData.dob,
+            userData.age,
             userData.gender,
-            userData.pronouns,
             userData.country,
             userData.tShirtSize,
             userData.dietaryRestrictions,
             userData.school,
+            userData.major,
+            userData.graduationYear,
+            userData.levelOfStudy,
             userData.hackathonsAttended,
+            userData.linkedInUrl,
+            userData.pronouns,
+            userData.checkIn,
             userData.mlhCodeOfConduct,
             userData.mlhPrivacyPolicy,
-            userData.mlhEmails
+            userData.mlhEmails,
+            userData.isVerified
         )
 
         // validate data
@@ -56,23 +62,29 @@ const createUser = async (req, res) => {
 
 //        Converts to plain object for Sequelize
         const userObj = {
-            email: user.email,
             firstName: user.firstName,
             lastName: user.lastName,
+            email: user.email,
             password: user.password,
             role: user.role,
             phoneNumber: user.phoneNumber,
-            dob: user.dob,
+            age: user.age,
             gender: user.gender,
-            pronouns: user.pronouns,
             country: user.country,
             tShirtSize: user.tShirtSize,
             dietaryRestrictions: user.dietaryRestrictions,
             school: user.school,
+            major: user.major,
+            graduationYear: user.graduationYear,
+            levelOfStudy: user.levelOfStudy,
             hackathonsAttended: user.hackathonsAttended,
+            linkedInUrl: user.linkedInUrl,
+            pronouns: user.pronouns,
+            checkIn: user.checkIn,
             mlhCodeOfConduct: user.mlhCodeOfConduct,
             mlhPrivacyPolicy: user.mlhPrivacyPolicy,
-            mlhEmails: user.mlhEmails
+            mlhEmails: user.mlhEmails,
+            isVerified: user.isVerified
         };
 
         // persist user  ONLY IF THE DATA IS VALID
@@ -214,9 +226,7 @@ const loginAdminUser = async (req, res) => {
             user.role,
         )
 
-        const role = await UserRepo.getRoles(user.role)
-
-        if (role === 'staff' || role === 'oscar') {
+        if (user.role === 'staff' || user.role === 'oscar') {
             // Respond with success and token
             res.status(200).json({
                 message: 'Login successful',

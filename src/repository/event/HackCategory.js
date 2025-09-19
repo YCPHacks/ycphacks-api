@@ -1,8 +1,8 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/index');
 
-const Activities = sequelize.define(
-    'Activities',
+const HackCategory = sequelize.define(
+    'HackCategories',
     {
         id: {
             type: DataTypes.INTEGER,
@@ -10,13 +10,8 @@ const Activities = sequelize.define(
             primaryKey: true,
             allowNull: false,
         },
-        activityName: {
+        categoryName: {
             type: DataTypes.STRING(100), // Matches varchar(100)
-            allowNull: false,
-            require: true
-        },
-        activityDate: {
-            type: DataTypes.DATE, // Matches date type
             allowNull: false,
             require: true
         },
@@ -27,9 +22,9 @@ const Activities = sequelize.define(
         },
     },
     {
-        tableName: 'activities',
+        tableName: 'HackCategory',
         timestamps: false
     }
 );
 
-module.exports = Activities;
+module.exports = HackCategory;

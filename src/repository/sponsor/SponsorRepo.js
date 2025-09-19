@@ -1,10 +1,10 @@
 const Sponsor = require("Sponsor");
-const EventSponsor = require("eventSponsor")
-const SponsorTiers = require("sponsorTiers")
+const EventSponsor = require("ycphacks-api/src/repository/sponsor/EventSponsor")
+const SponsorTier = require("ycphacks-api/src/repository/sponsor/SponsorTier")
 const Image = require("../image/Image")
 
 const SponsorRepo = {
-    //sponsor
+    //Sponsor
     async findSponsorById(id){
         return Sponsor.findOne({
             where: { id },
@@ -20,11 +20,11 @@ const SponsorRepo = {
         return Sponsor.create(sponsor);
     },
 
-    //eventSponsor
+    //EventSponsor
     async findEventSponsorsById(id){
         return EventSponsor.findAll({
             where: { id },
-            include: [{model: Sponsor, include: {model: Image}}, {model: SponsorTiers}]
+            include: [{model: Sponsor, include: {model: Image}}, {model: SponsorTier}]
         });
     },
     async findEventSponsorsByEvent(eventId){
@@ -37,16 +37,16 @@ const SponsorRepo = {
         return EventSponsor.create(eventSponsor);
     },
 
-    //sponsorTiers
+    //SponsorTier
     async createSponsorTier(sponsorTier){
-        return SponsorTiers.create(sponsorTier);
+        return SponsorTier.create(sponsorTier);
     },
     async deleteSponsorTierById(id){
-        return SponsorTiers.destroy({
+        return SponsorTier.destroy({
             where: { id }
         });
     },
     async getAllSponsorTiers(){
-        return SponsorTiers.findAll({});
+        return SponsorTier.findAll({});
     }
 }

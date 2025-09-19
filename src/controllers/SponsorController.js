@@ -1,13 +1,14 @@
 const SponsorRepoModel = require('../repository/sponsor/Sponsor');
 const Sponsor = require('../models/Sponsor');
-const EventSponsorRepoModel = require('../repository/sponsor/eventSponsor');
-const EventSponsor = require("../models/eventSponsor");
-const SponsorTiersRepoModel = require("../repository/sponsor/sponsorTiers");
-const SponsorTiers = require("../models/sponsorTiers");
+const EventSponsorRepoModel = require('../repository/sponsor/EventSponsor');
+const EventSponsor = require("../models/EventSponsor");
+const SponsorTierRepoModel = require("../repository/sponsor/SponsorTier");
+const SponsorTier = require("../models/SponsorTier");
+const CreateSponsor = require("../models/CreateSponsor");
 
 
 /**
- * function creates a sponsor entry in table Sponsors
+ * function creates a sponsor entry in table Sponsor
  * Return needs to be defined in dto
  *
  * @param req
@@ -18,10 +19,10 @@ const createSponsor = async (req, res) => {
     try {
         const createSponsorDto = req.body;
 
-        const sponsor = new Sponsor(
-            sponsor_name = createSponsorDto.sponsor_name,
-            sponsor_website = createSponsorDto.sponsor_website,
-            image_id = ""
+        const sponsor = new CreateSponsor(
+            sponsorName = createSponsorDto.sponsorName,
+            sponsorWebsite = createSponsorDto.sponsorWebsite,
+            sponsorImageId = createSponsorDto.sponsorImageId
         )
 
         const validationErrors = sponsor.validate()
@@ -47,7 +48,7 @@ const createSponsor = async (req, res) => {
 }
 
 /**
- * function creates a sponsorship entry in eventSponsors
+ * function creates a sponsorship entry in EventSponsor
  * Return needs to be defined in dto
  *
  * @param req

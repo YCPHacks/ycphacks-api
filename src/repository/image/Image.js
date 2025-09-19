@@ -2,7 +2,7 @@ const { DataTypes } = require('sequelize');
 const sequelize = require('../config');
 
 const Image = sequelize.define(
-    'Sponsor',
+    'Image',
     {
         id : {
             type: DataTypes.INTEGER,
@@ -15,10 +15,10 @@ const Image = sequelize.define(
             allowNull: false
         }
     },
+
     {
-
+        tableName: 'Image'
     }
-
 );
 
 module.exports = Image;
