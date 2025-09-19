@@ -2,24 +2,36 @@ const { DataTypes } = require('sequelize');
 const sequelize = require('../config/index');
 
 const EventParticipant = sequelize.define(
-    'EventParticipants',
+    'EventParticipant',
     {
         eventId: {
             type: DataTypes.INTEGER,
             primaryKey: true,
             allowNull: false,
+            references: {
+                model: 'Event',
+                key: 'id'
+            }
         },
         userId: {
             type: DataTypes.INTEGER,
             allowNull: false,
+            references: {
+                model: 'User',
+                key: 'id'
+            }
         },
         teamId: {
             type: DataTypes.INTEGER,
-            allowNull: false
+            allowNull: false,
+            references: {
+                model: 'Team',
+                key: 'id'
+            }
         }
     },
     {
-        tableName: 'event_participants',
+        tableName: 'EventParticipant',
         timestamps: false,
     }
 );

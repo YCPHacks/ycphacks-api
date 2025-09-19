@@ -2,15 +2,17 @@ class Hardware {
     constructor(
         id,
         hardwareName,
-        quantity,
+        serial,
         whoHasId,
-        description
+        description,
+        functional
     ) {
         this.id = id;
         this.hardwareName = hardwareName;
-        this.quantity = quantity;
+        this.serial = serial;
         this.whoHasId = whoHasId;
         this.description = description;
+        this.functional = functional;
     }
 }
 

@@ -8,7 +8,7 @@ const Sponsor = require('../sponsor/Sponsor');
 const SponsorTiers = require('../sponsor/SponsorTier');
 const EventSponsor = require('../sponsor/EventSponsor');
 const Image = require('../image/Image');
-const Activities = require('../event/Activities');
+const Analytics = require('../analytics/Analytics');
 const Hardware = require('../hardware/Hardware');
 const HardwareImage = require('../hardware/HardwareImage');
 
@@ -31,7 +31,7 @@ const models = {
     SponsorTiers,
     EventSponsor,
     Image,
-    Activities,
+    Analytics,
     Hardware,
     HardwareImage
 };

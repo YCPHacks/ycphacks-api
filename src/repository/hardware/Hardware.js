@@ -15,8 +15,8 @@ const Hardware = sequelize.define(
             allowNull: false,
             require: true
         },
-        quantity: {
-            type: DataTypes.INTEGER,
+        serial: {
+            type: DataTypes.STRING,
             allowNull: false,
         },
         whoHasId: {
@@ -24,11 +24,14 @@ const Hardware = sequelize.define(
             references: {
                 model: 'User',
                 key: 'id'
-            },
-            defaultValue: 0
+            }
         },
         description: {
             type: DataTypes.STRING
+        },
+        functional: {
+            type: DataTypes.BOOLEAN, // Matches tinyint(1)
+            allowNull: false
         }
     }
 )
