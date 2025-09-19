@@ -12,13 +12,6 @@ const Analytics = require('../analytics/Analytics');
 const Hardware = require('../hardware/Hardware');
 const HardwareImage = require('../hardware/HardwareImage');
 
-// Associations
-Prize.belongsTo(Event, { foreignKey: 'eventId', onDelete: 'CASCADE' });
-Prize.belongsTo(HackCategory, { foreignKey: 'categoryId', onDelete: 'SET NULL' });
-
-Event.hasMany(Prize, { foreignKey: 'eventId' });
-HackCategory.hasMany(Prize, { foreignKey: 'categoryId' });
-
 // add all new Sequelize models here
 const models = {
     User,

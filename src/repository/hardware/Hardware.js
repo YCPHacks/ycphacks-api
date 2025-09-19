@@ -33,6 +33,10 @@ const Hardware = sequelize.define(
             type: DataTypes.BOOLEAN, // Matches tinyint(1)
             allowNull: false
         }
+    },
+
+    {
+        tableName: 'Hardware'
     }
 )
 

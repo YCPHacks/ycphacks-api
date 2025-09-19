@@ -19,6 +19,10 @@ const SponsorTier = sequelize.define(
             allowNull: false,
             require: true,
         }
+    },
+
+    {
+        tableName: 'SponsorTier'
     }
 )
 

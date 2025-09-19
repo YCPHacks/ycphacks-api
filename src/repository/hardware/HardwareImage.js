@@ -22,6 +22,10 @@ const HardwareImage = sequelize.define(
                 key: 'id'
             },
         }
+    },
+
+    {
+        tableName: 'HardwareImage'
     }
 )
 

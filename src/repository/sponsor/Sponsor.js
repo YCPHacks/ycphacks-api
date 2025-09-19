@@ -27,6 +27,7 @@ const Sponsor = sequelize.define(
         }
     },
     {
+        tableName: 'Sponsor',
         paranoid: true
     }
 

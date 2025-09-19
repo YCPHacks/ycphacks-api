@@ -28,6 +28,11 @@ const Team = sequelize.define(
         githubLink: {
             type: DataTypes.STRING
         }
+    },
+
+    {
+        tableName: 'Team'
+
     }
 )
 

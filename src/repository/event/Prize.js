@@ -27,7 +27,6 @@ const Prize = sequelize.define(
         },
         categoryId: {
             type: DataTypes.INTEGER,
-            allowNull: false,
             references: {
                 model: 'HackCategory',
                 key: 'id'
@@ -36,6 +35,10 @@ const Prize = sequelize.define(
         placement: {
             type: DataTypes.INTEGER
         }
+    },
+
+    {
+        tableName: 'Prize'
     }
 );
 

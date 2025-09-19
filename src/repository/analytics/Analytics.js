@@ -30,6 +30,10 @@ const Analytics = sequelize.define(
         numOfParticipants: {
             type: DataTypes.INTEGER
         }
+    },
+
+    {
+        tableName: 'Analytics'
     }
 )
 

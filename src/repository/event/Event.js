@@ -39,7 +39,7 @@ const Event = sequelize.define(
         }
     },
     {
-        tableName: 'events',
+        tableName: 'Event',
         timestamps: false,
     }
 )

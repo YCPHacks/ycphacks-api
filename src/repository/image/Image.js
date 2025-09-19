@@ -14,6 +14,10 @@ const Image = sequelize.define(
             type: DataTypes.STRING,
             allowNull: false
         }
+    },
+
+    {
+        tableName: 'Image'
     }
 );
 

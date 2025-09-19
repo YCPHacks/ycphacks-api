@@ -31,6 +31,10 @@ const EventSponsor = sequelize.define(
             type: DataTypes.DOUBLE,
             allowNull: false,
         }
+    },
+
+    {
+        tableName: 'EventSponsor'
     }
 )
 
