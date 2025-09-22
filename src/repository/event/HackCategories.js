@@ -1,30 +1,30 @@
 const { DataTypes } = require('sequelize');
-const sequelize = require('../config/index');
+const { sequelize } = require('../config');
 
-module.exports = (sequelize, DataTypes) => {
-    return sequelize.define(
-        'HackCategory',
-        {
-            id: {
-                type: DataTypes.INTEGER,
-                autoIncrement: true,
-                primaryKey: true,
-                allowNull: false,
-            },
-            categoryName: {
-                type: DataTypes.STRING(100), // Matches varchar(100)
-                allowNull: false,
-                require: true
-            },
-            eventId: {
-                type: DataTypes.INTEGER,
-                allowNull: false,
-                require: true
-            },
+const HackCategories = sequelize.define(
+    'HackCategory',
+    {
+        id: {
+            type: DataTypes.INTEGER,
+            autoIncrement: true,
+            primaryKey: true,
+            allowNull: false,
         },
-        {
-            tableName: 'hack_categories',
-            timestamps: false
-        }
-    );
-};
+        categoryName: {
+            type: DataTypes.STRING(100), // Matches varchar(100)
+            allowNull: false,
+            require: true
+        },
+        eventId: {
+            type: DataTypes.INTEGER,
+            allowNull: false,
+            require: true
+        },
+    },
+    {
+        tableName: 'hack_categories',
+        timestamps: false
+    }
+);
+
+module.exports = HackCategories;

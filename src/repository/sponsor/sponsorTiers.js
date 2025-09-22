@@ -1,29 +1,29 @@
 const {DataTypes} = require("sequelize");
-const sequelize = require('../config');
+const { sequelize } = require('../config');
 
-module.exports = (sequelize, DataTypes) => {
-    return sequelize.define(
-        'SponsorTier',
-        {
-            id: {
-                type: DataTypes.INTEGER,
-                autoIncrement: true,
-                primaryKey: true,
-                allowNull: false
-            },
-            tier: {
-                type: DataTypes.CHAR,
-                allowNull: false,
-                require: true,
-            },
-            lower_threshold: {
-                type: DataTypes.INTEGER,
-                allowNull: false,
-                require: true,
-            }
+const sponsorTiers = sequelize.define(
+    'SponsorTier',
+    {
+        id: {
+            type: DataTypes.INTEGER,
+            autoIncrement: true,
+            primaryKey: true,
+            allowNull: false
         },
-        {
-            tableName: 'SponsorTier'
+        tier: {
+            type: DataTypes.CHAR,
+            allowNull: false,
+            require: true,
+        },
+        lower_threshold: {
+            type: DataTypes.INTEGER,
+            allowNull: false,
+            require: true,
         }
-    );
-};
+    },
+    {
+        tableName: 'SponsorTier'
+    }
+);
+
+module.export = sponsorTiers;

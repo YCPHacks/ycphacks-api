@@ -31,31 +31,5 @@ if (process.env.NODE_ENV === "test") {
     .catch((err) => console.error("❌ Unable to connect to the database:", err));
 }
 
-// Import models
-const Sponsor = require("../sponsor/Sponsor.js")(sequelize, DataTypes);
-const SponsorTier = require("../sponsor/sponsorTiers.js")(sequelize, DataTypes);
-const EventSponsor = require("../sponsor/eventSponsor.js")(sequelize, DataTypes);
-
-// Define associations
-Sponsor.belongsToMany(SponsorTier, {
-  through: EventSponsor,
-  foreignKey: "sponsorId",
-  otherKey: "sponsorTierId",
-  as: "tiers",
-});
-
-SponsorTier.belongsToMany(Sponsor, {
-  through: EventSponsor,
-  foreignKey: "sponsorTierId",
-  otherKey: "sponsorId",
-  as: "sponsors",
-});
-
 // Export everything
-module.exports = {
-  sequelize,
-  Sequelize,
-  Sponsor,
-  SponsorTier,
-  EventSponsor,
-};
+module.exports = { sequelize };

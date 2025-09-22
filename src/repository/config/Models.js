@@ -1,3 +1,6 @@
+const sequelize = require('./index'); // your Sequelize instance
+const { DataTypes } = require('sequelize');
+
 const User = require("../user/User");
 const Event = require("../event/Event");
 const EventParticipants = require('../event/EventParticipants');
@@ -6,9 +9,6 @@ const SponsorTiers = require('../sponsor/sponsorTiers');
 const EventSponsor = require('../sponsor/eventSponsor');
 const Image = require('../image/Image');
 const Activities = require('../event/Activities');
-
-const sequelize = require('./index'); // your Sequelize instance
-const { DataTypes } = require('sequelize');
 
 // add all new Sequelize models here
 const models = {
