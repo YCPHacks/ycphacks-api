@@ -22,3 +22,5 @@ class Sponsor{
         return errors;
     }
 }
+
+module.exports = Sponsor;

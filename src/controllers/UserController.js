@@ -4,7 +4,7 @@ const User = require('../models/User')
 const UserResponseDto = require('../dto/UserResponseDto')
 const { generateToken, validateToken} = require('../util/JWTUtil');
 const bcrypt = require('bcrypt');
-const SALT_ROUNDS = 10;  // Number of salt rounds for bcrypt
+const SALT_ROUNDS = 12;  // Number of salt rounds for bcrypt
 /**
  * This function will create a user based on the data that gets sent in and return
  * the users id, email, first name, and token on success
@@ -118,13 +118,13 @@ const loginUser = async (req, res) => {
         const user = await UserRepo.findByEmail(email);
 
         if (!user) {
-            return res.status(400).json({ message: 'Invalid email or password' });
+            return res.status(400).json({ message: 'Invalid email' });
         }
 
         // Compare the provided password with the stored hashed password
         const isPasswordValid = await bcrypt.compare(password, user.password);
         if (!isPasswordValid) {
-            return res.status(400).json({ message: 'Invalid email or password' });
+            return res.status(400).json({ message: 'Invalid password' });
         }
 
         // Generate JWT token
@@ -193,13 +193,13 @@ const loginAdminUser = async (req, res) => {
         const user = await UserRepo.findByEmail(email);
 
         if (!user) {
-            return res.status(400).json({ message: 'Invalid email or password' });
+            return res.status(400).json({ message: 'Invalid email' });
         }
 
         // Compare the provided password with the stored hashed password
         const isPasswordValid = await bcrypt.compare(password, user.password);
         if (!isPasswordValid) {
-            return res.status(400).json({ message: 'Invalid email or password' });
+            return res.status(400).json({ message: 'Invalid password' });
         }
 
         // Generate JWT token
@@ -212,11 +212,15 @@ const loginAdminUser = async (req, res) => {
             user.lastName,
             token,
             user.role,
-        )
+        );
 
-        const role = await UserRepo.getRoles(user.role)
+        const role = await UserRepo.getRoles(user.role);
 
-        if (role === 'staff' || role === 'oscar') {
+        if(!role){
+            return res.status(403).json({ message: 'Access denied: role not found' });
+        }
+
+        if (role.toLowerCase() === 'staff' || role.toLowerCase() === 'oscar') {
             // Respond with success and token
             res.status(200).json({
                 message: 'Login successful',
