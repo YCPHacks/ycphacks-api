@@ -60,7 +60,7 @@ const createUser = async (req, res) => {
             });
         }
 
-//        Converts to plain object for Sequelize
+        // Converts to plain object for Sequelize
         const userObj = {
             firstName: user.firstName,
             lastName: user.lastName,

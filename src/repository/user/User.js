@@ -88,9 +88,11 @@ const User = sequelize.define(
         },
         pronouns: {
             type: DataTypes.STRING,
+            defaultValue: null
         },
         linkedInUrl: {
             type: DataTypes.STRING,
+            defaultValue: null
         },
         checkIn: {
             type: DataTypes.BOOLEAN, // Matches tinyint(1)
