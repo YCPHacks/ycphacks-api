@@ -1,4 +1,4 @@
-const {DataTypes} = require("sequelize");
+const { DataTypes } = require("sequelize");
 const { sequelize } = require('../config');
 
 const sponsorTiers = sequelize.define(
@@ -22,8 +22,9 @@ const sponsorTiers = sequelize.define(
         }
     },
     {
-        tableName: 'SponsorTier'
+        tableName: 'SponsorTier',
+        timestamps: false
     }
 );
 
-module.export = sponsorTiers;
+module.exports = sponsorTiers;

@@ -1,4 +1,4 @@
-const {DataTypes} = require("sequelize");
+const { DataTypes } = require("sequelize");
 const { sequelize } = require('../config');
 
 const eventSponsor = sequelize.define(
@@ -25,6 +25,10 @@ const eventSponsor = sequelize.define(
             type: DataTypes.DOUBLE,
             allowNull: false
         }
+    },
+    {
+        tableName: 'EventSponsor',
+        timestamps: false
     }
 );
 

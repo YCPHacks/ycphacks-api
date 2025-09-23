@@ -1,4 +1,4 @@
-const { sequelize } = require('./index'); // Sequelize instance
+const { sequelize, DataTypes } = require('./index'); // Sequelize instance
 
 // Import all models (factory-defined)
 const User = require('../user/User');
@@ -19,10 +19,16 @@ const Activities = require('../event/Activities');
 // ==========================
 // Associations
 // ==========================
+console.log('SponsorTier:', SponsorTier instanceof require('sequelize').Model);
+console.log('EventSponsor:', EventSponsor instanceof require('sequelize').Model);
 
-// EventSponsors (only Sponsor side)
-Sponsor.hasMany(EventSponsor, { foreignKey: 'sponsor_id', as: 'eventSponsors' });
-EventSponsor.belongsTo(Sponsor, { foreignKey: 'sponsor_id', as: 'sponsor' });
+// Sponsor → EventSponsor
+Sponsor.hasMany(EventSponsor, { foreignKey: 'sponsorId', as: 'eventSponsors' });
+EventSponsor.belongsTo(Sponsor, { foreignKey: 'sponsorId', as: 'sponsor' });
+
+// EventSponsor → SponsorTier
+SponsorTier.hasMany(EventSponsor, { foreignKey: 'sponsorTierId', as: 'eventSponsors' });
+EventSponsor.belongsTo(SponsorTier, { foreignKey: 'sponsorTierId', as: 'tier' });
 
 // Sponsor images
 Sponsor.belongsTo(Image, { foreignKey: 'sponsor_image_id', targetKey: 'id', as: 'image' });

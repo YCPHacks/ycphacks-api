@@ -1,8 +1,8 @@
 const { DataTypes } = require('sequelize');
 const { sequelize } = require('../config/index.js');
 
-const Sponsors = sequelize.define(
-    'Sponsors',
+const Sponsor = sequelize.define(
+    'Sponsor',
     {
         id : {
             type: DataTypes.INTEGER,
@@ -30,9 +30,9 @@ const Sponsors = sequelize.define(
         }
     },
     {
-        tableName: 'Sponsors',
+        tableName: 'Sponsor',
         paranoid: true
     }
 );
 
-module.exports = Sponsors;
+module.exports = Sponsor;

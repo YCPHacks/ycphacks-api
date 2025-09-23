@@ -1,4 +1,4 @@
-const { Sponsor, SponsorTier, EventSponsor, Image } = require("../config");
+const { Sponsor, SponsorTier, EventSponsor, Image } = require("../config/Models");
 
 const SponsorRepo = {
     //sponsor
@@ -9,11 +9,20 @@ const SponsorRepo = {
             include: [{ model: SponsorTier, as: "tiers", attributes: ["tier"] }]
         });
     },
-    async findAllSponsors(){
-        return Sponsor.findAll({
-                 attributes: ["id", "sponsorName", "sponsorWebsite"],
-                 include: [{ model: SponsorTier, as: "tiers", attributes: ["tier"] }]
-               });
+    async findAllSponsors() {
+      return Sponsor.findAll({
+        attributes: ['id', 'sponsorName', 'sponsorWebsite'],
+        include: [
+          {
+            model: EventSponsor,
+            as: 'eventSponsors',
+            include: [
+              { model: SponsorTier, as: 'tier', attributes: ['tier'] }
+            ]
+          },
+          { model: Image, as: 'image', attributes: ['url'] } // adjust field
+        ]
+      });
     },
     async createSponsor(sponsor){
         return Sponsor.create(sponsor);
