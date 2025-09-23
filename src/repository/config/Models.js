@@ -1,6 +1,7 @@
 const User = require("../user/User");
 const Team = require('../team/Team');
 const Event = require('../event/Event');
+const Activity = require('../event/Activity');
 const EventParticipant = require('../event/EventParticipant');
 const HackCategory = require('../event/HackCategory');
 const Prize = require('../event/Prize');
@@ -17,6 +18,7 @@ const models = {
     User,
     Team,
     Event,
+    Activity,
     EventParticipant,
     HackCategory,
     Prize,
