@@ -22,7 +22,7 @@ const HackCategories = sequelize.define(
         },
     },
     {
-        tableName: 'hack_categories',
+        tableName: 'HackCategory',
         timestamps: false
     }
 );

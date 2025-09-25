@@ -16,7 +16,7 @@ const Image = sequelize.define(
         }
     },
     {
-
+        tableName: 'Image',
     }
 
 );

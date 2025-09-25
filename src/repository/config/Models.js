@@ -19,19 +19,19 @@ const Activities = require('../event/Activities');
 // ==========================
 // Associations
 // ==========================
-console.log('SponsorTier:', SponsorTier instanceof require('sequelize').Model);
-console.log('EventSponsor:', EventSponsor instanceof require('sequelize').Model);
-
-// Sponsor → EventSponsor
-Sponsor.hasMany(EventSponsor, { foreignKey: 'sponsorId', as: 'eventSponsors' });
-EventSponsor.belongsTo(Sponsor, { foreignKey: 'sponsorId', as: 'sponsor' });
-
-// EventSponsor → SponsorTier
-SponsorTier.hasMany(EventSponsor, { foreignKey: 'sponsorTierId', as: 'eventSponsors' });
-EventSponsor.belongsTo(SponsorTier, { foreignKey: 'sponsorTierId', as: 'tier' });
+//console.log('SponsorTier:', SponsorTier instanceof require('sequelize').Model);
+//console.log('EventSponsor:', EventSponsor instanceof require('sequelize').Model);
+//
+//// Sponsor → EventSponsor
+//Sponsor.hasMany(EventSponsor, { foreignKey: 'sponsorId', as: 'eventSponsors' });
+//EventSponsor.belongsTo(Sponsor, { foreignKey: 'sponsorId', as: 'sponsor' });
+//
+//// EventSponsor → SponsorTier
+//SponsorTier.hasMany(EventSponsor, { foreignKey: 'sponsorTierId', as: 'eventSponsors' });
+//EventSponsor.belongsTo(SponsorTier, { foreignKey: 'sponsorTierId', as: 'tier' });
 
 // Sponsor images
-Sponsor.belongsTo(Image, { foreignKey: 'sponsor_image_id', targetKey: 'id', as: 'image' });
+//Sponsor.belongsTo(Image, { foreignKey: 'sponsor_image_id', targetKey: 'id', as: 'image' });
 
 // The rest of the associations are commented out for future use
 

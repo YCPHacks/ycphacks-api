@@ -19,7 +19,7 @@ const EventParticipants = sequelize.define(
         }
     },
     {
-        tableName: 'event_participants',
+        tableName: 'EventParticipant',
         timestamps: false,
     }
 );

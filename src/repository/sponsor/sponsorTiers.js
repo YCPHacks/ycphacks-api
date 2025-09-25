@@ -18,12 +18,11 @@ const sponsorTiers = sequelize.define(
         lower_threshold: {
             type: DataTypes.INTEGER,
             allowNull: false,
-            require: true,
         }
     },
     {
         tableName: 'SponsorTier',
-        timestamps: false
+        timestamps: false,
     }
 );
 
