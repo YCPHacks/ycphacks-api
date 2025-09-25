@@ -17,16 +17,20 @@ const HardwareRepo = {
         const grouped = {};
 
         hardwareList.forEach(item => {
-            const title = item.hardwareName;
-            if(!grouped[title]){
-                grouped[title] = {
-                    id: title.toLowerCase().replace(/\s+/g, "-"),
-                    title: title,
+            const parts = item.hardwareName.split(" ");
+            const groupTitle = parts[0];
+            const subtitle = parts.slice(1).join(" ");
+
+            if(!grouped[groupTitle]){
+                grouped[groupTitle] = {
+                    id: groupTitle.toLowerCase().replace(/\s+/g, "-"),
+                    title: groupTitle,
                     items: []
                 };
             }
-            grouped[title].items.push({
-                name: `${item.hardwareName} ${item.serial}`,
+            grouped[groupTitle].items.push({
+                name: item.hardwareName,
+                subtitle: subtitle,
                 description: item.description || "",
                 image: item.imageUrl || null
             });
