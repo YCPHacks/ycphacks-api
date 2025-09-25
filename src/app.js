@@ -5,6 +5,7 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 const userRoutes = require('./routes/UserRoutes');
 const eventRoutes = require('./routes/EventRoutes');
+const hardwareRoutes = require('./routes/HardwareRoutes');
 const sequelize = require('./repository/config'); 
 const app = express();
 const { authMiddleware } = require('./util/JWTUtil');
@@ -26,6 +27,7 @@ app.use(bodyParser.json());
 // Use your routes
 app.use('/user', userRoutes)
 app.use('/event', eventRoutes)
+app.use('/hardware', hardwareRoutes)
 
 // Test route
 app.get('/test', (req, res) => {
