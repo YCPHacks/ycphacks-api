@@ -15,11 +15,22 @@ const HardwareRepo = {
     async groupHardwareForFrontend() {
         const hardwareList = await Hardware.findAll();
         const grouped = {};
+        let groupTitle = '';
+        let subtitle = '';
+
+        const multiWordFamilies = ["Raspberry Pi"];
 
         hardwareList.forEach(item => {
-            const parts = item.hardwareName.split(" ");
-            const groupTitle = parts[0];
-            const subtitle = parts.slice(1).join(" ");
+            groupTitle = item.hardwareName.split(" ")[0];
+            subtitle = item.hardwareName.split(" ").slice(1).join(" ");
+
+            for(const fam of multiWordFamilies){
+                if(item.hardwareName.startsWith(fam)){
+                    groupTitle = fam;
+                    subtitle = item.hardwareName.replace(fam, "").trim();
+                    break;
+                }
+            }
 
             if(!grouped[groupTitle]){
                 grouped[groupTitle] = {
@@ -29,7 +40,7 @@ const HardwareRepo = {
                 };
             }
             grouped[groupTitle].items.push({
-                name: item.hardwareName,
+                name: groupTitle,
                 subtitle: subtitle,
                 description: item.description || "",
                 image: item.imageUrl || null
