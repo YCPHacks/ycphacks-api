@@ -1,21 +1,11 @@
 const express = require('express')
 const router = express.Router()
 
-const {
-    getAllSponsors,
-    createSponsor,
-    updateSponsor,
-    deleteSponsor,
-    getSponsorData
-} = require('../controllers/SponsorController');
+const EventSponsorController = require('../controllers/EventSponsorController');
 
-router.get("/", getAllSponsors);
-router.get("/:id", getSponsorData);
-
-router.post("/", createSponsor);
-
-router.put("/:id", updateSponsor);
-
-router.delete("/:id", deleteSponsor);
+router.get("/", EventSponsorController.getEventSponsors);
+router.post("/", EventSponsorController.addSponsorToEvent);
+router.put("/:id", EventSponsorController.updateEventSponsor);
+router.delete("/:id", EventSponsorController.removeEventSponsor)
 
 module.exports = router;
