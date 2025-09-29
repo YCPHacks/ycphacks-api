@@ -85,8 +85,9 @@ const getSponsorData = async (req, res) => {
 const getAllSponsors = async (req, res) => {
     try{
         const sponsors = await SponsorRepo.findAllSponsors();
-        console.log(sponsors);
-        return res.status(200).json(sponsors);
+        const plainSponsors = sponsors.map(s => s.toJSON());
+        console.log(plainSponsors);
+        return res.status(200).json(plainSponsors);
     }catch(err){
         console.error(err);
         return res.status(500).json({ message: "Internal Server Error "});

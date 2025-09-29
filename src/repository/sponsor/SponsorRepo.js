@@ -15,12 +15,12 @@ const SponsorRepo = {
         include: [
           {
             model: EventSponsor,
-            as: 'eventSponsors',
+            as: 'EventSponsors',
             include: [
-              { model: SponsorTier, as: 'tier', attributes: ['tier'] }
+              { model: SponsorTier, as: 'SponsorTier', attributes: ['tier'] }
             ]
-          },
-          { model: Image, as: 'image', attributes: ['url'] } // adjust field
+          }
+//          { model: Image, as: 'image', attributes: ['url'] } // adjust field
         ]
       });
     },

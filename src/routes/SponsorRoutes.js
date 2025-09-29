@@ -5,10 +5,12 @@ const {
     getAllSponsors,
     createSponsor,
     updateSponsor,
-    deleteSponsor
+    deleteSponsor,
+    getSponsorData
 } = require('../controllers/SponsorController');
 
-router.get("/all", getAllSponsors);
+router.get("/", getAllSponsors);
+router.get("/:id", getSponsorData);
 
 router.post("/", createSponsor);
 
