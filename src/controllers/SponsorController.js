@@ -87,6 +87,7 @@ const getAllSponsors = async (req, res) => {
         const sponsors = await SponsorRepo.findAllSponsors();
         const plainSponsors = sponsors.map(s => s.toJSON());
         console.log(plainSponsors);
+        console.log(JSON.stringify(sponsors, null, 2));
         return res.status(200).json(plainSponsors);
     }catch(err){
         console.error(err);

@@ -23,7 +23,7 @@ const EventSponsor = sequelize.define(
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
-        model: SponsorTier,   // 🔥 fix: point to SponsorTier
+        model: SponsorTier,
         key: "id",
       },
     },
