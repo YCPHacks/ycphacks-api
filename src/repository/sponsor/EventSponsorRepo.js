@@ -63,6 +63,13 @@ class EventSponsorRepo {
     async removeSponsorFromEvent(eventSponsorId) {
         return await EventSponsor.destroy({ where: { id: eventSponsorId } });
     }
+
+  // Gets Sponsor Tiers
+  async getSponsorTier(){
+    return await SponsorTier.findAll({
+      attributes: ["id", "tier"]
+    });
+  }
 }
 
 module.exports = new EventSponsorRepo();

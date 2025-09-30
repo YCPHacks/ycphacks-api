@@ -20,7 +20,15 @@ class EventSponsorController {
           };
         });
 
-        res.json(sponsors);
+        const tiersSet = new Set();
+        sponsorsRaw.forEach(s => {
+          s.EventSponsors.forEach(es => {
+            if (es.SponsorTier?.tier) tiersSet.add(es.SponsorTier.tier);
+          });
+        });
+        const tiers = Array.from(tiersSet); // array of all tiers
+
+        res.json({sponsors, tiers});
       } catch (err) {
         console.error("EventSponsor fetch error:", err);
         return res.status(500).json({ error: err.message });
@@ -79,6 +87,20 @@ class EventSponsorController {
           console.error(err);
           res.status(500).json({ error: "Failed to remove sponsor from event" });
         }
+    }
+
+    static async getSponsorTiers(req, res){
+      try{
+        const tiers = await EventSponsorRepo.getSponsorTier();
+
+        if(!tiers || tiers.length === 0){
+          return res.status(404).json({ error: "No sponsor tiers found" });
+        }
+
+        res.json(tiers);
+      }catch(err){
+        res.status(500).json({ error: "Failed to fetch sponsor tiers" });
+      }
     }
 }
 
