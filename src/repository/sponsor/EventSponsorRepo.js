@@ -26,8 +26,20 @@ class EventSponsorRepo {
     }
 
 //    Add a sponsor to an event with a tier
-    async addSponsorToEvent(eventId, sponsorId, sponsorTierId){
-        return await EventSponsor.create({ eventId, sponsorId, sponsorTierId });
+    async addSponsorToEvent(eventId, sponsorData){
+        const sponsor = await SponsorRepo.createSponsor({
+          sponsorName: sponsorData.sponsorName,
+          sponsorWebsite: sponsorData.sponsorWebsite,
+          sponsorImageId: sponsorData.image || null
+        });
+
+        const eventSponsor = await EventSponsor.create({
+          eventId,
+          sponsorId: sponsor.id,
+          sponsorTierId: sponsorData.sponsorTierId
+        });
+
+        return { sponsor, eventSponsor };
     }
 
 //  Update Sponsor details + tier

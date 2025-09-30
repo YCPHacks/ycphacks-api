@@ -38,16 +38,16 @@ class EventSponsorController {
 //    Add sponsor to an event
     static async addSponsorToEvent(req, res){
         try {
-          const { eventId } = req.params;
-          const { sponsorId, sponsorTierId } = req.body;
+          const { sponsorName, sponsorWebsite, image, sponsorTierId, eventId } = req.body;
 
-          const newEventSponsor = await EventSponsorRepo.addSponsorToEvent(
-            eventId,
-            sponsorId,
+          const result = await EventSponsorRepo.addSponsorToEvent(eventId, {
+            sponsorName,
+            sponsorWebsite,
+            image,
             sponsorTierId
-          );
+          });
 
-          res.status(201).json(newEventSponsor);
+          res.json({ result });
         } catch (err) {
           console.error(err);
           res.status(500).json({ error: "Failed to add sponsor to event" });
