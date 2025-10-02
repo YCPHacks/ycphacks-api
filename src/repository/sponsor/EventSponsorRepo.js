@@ -43,39 +43,6 @@ class EventSponsorRepo {
     }
 
 //  Update Sponsor details + tier
-    async updateSponsor(req, res) {
-      try {
-        const sponsorId = req.params.id;
-        const { sponsorName, sponsorWebsite, image, sponsorTierId, eventId } = req.body;
-
-        // If sponsorTierId + eventId are provided, update EventSponsor instead
-        if (sponsorTierId && eventId) {
-          const eventSponsor = await EventSponsor.findOne({
-            where: { sponsorId, eventId }
-          });
-
-          if (!eventSponsor) {
-            return res.status(404).json({ message: "EventSponsor not found" });
-          }
-
-          await eventSponsor.update({ sponsorTierId });
-          return res.json(eventSponsor);
-        }
-
-        // Otherwise, update the Sponsor itself
-        const sponsor = await Sponsor.findByPk(sponsorId);
-        if (!sponsor) {
-          return res.status(404).json({ message: "Sponsor not found" });
-        }
-
-        await sponsor.update({ sponsorName, sponsorWebsite, sponsorImageId: image });
-        return res.json(sponsor);
-      } catch (err) {
-        console.error(err);
-        res.status(500).json({ message: "Error updating sponsor" });
-      }
-    }
-
     async updateSponsorBySponsorId(sponsorId, updates) {
       // console.log("Repo Method Called, sponsorId:", sponsorId);
 

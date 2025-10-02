@@ -57,13 +57,13 @@ class EventSponsorController {
 //    Update sponsor's info for this event
     static async updateEventSponsor(req, res){
         try{
-            const { id } = req.params;
+            const sponsorId = req.params.id;
             const updates = req.body;
 
             // console.log("ID: ", id);
             // console.log("Updates: ", updates);
 
-            const updated = await EventSponsorRepo.updateSponsorBySponsorId(id, updates);
+            const updated = await EventSponsorRepo.updateSponsorBySponsorId(sponsorId, updates);
             // console.log("Updated");
 
             res.json(updated);
