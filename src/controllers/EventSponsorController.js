@@ -59,13 +59,14 @@ class EventSponsorController {
         try{
             const { id } = req.params;
             const updates = req.body;
-            const updated = await EventSponsorRepo.updateSponsor(id, updates);
 
-            if(!updated){
-                return res.status(404).json({ error: "EventSponsor not found" });
-            }
+            // console.log("ID: ", id);
+            // console.log("Updates: ", updates);
 
-            res.json(update);
+            const updated = await EventSponsorRepo.updateSponsorBySponsorId(id, updates);
+            // console.log("Updated");
+
+            res.json(updated);
         }catch (err){
             res.status(400).json({ error: err.message });
         }

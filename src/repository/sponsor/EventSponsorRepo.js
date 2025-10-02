@@ -43,45 +43,87 @@ class EventSponsorRepo {
     }
 
 //  Update Sponsor details + tier
-    async updateSponsor(eventSponsorId, updates) {
-        const eventSponsor = await EventSponsor.findByPk(eventSponsorId, {
-          include: [Sponsor, SponsorTier]
-        });
-        if (!eventSponsor) throw new Error("EventSponsor record not found");
+    async updateSponsor(req, res) {
+      try {
+        const sponsorId = req.params.id;
+        const { sponsorName, sponsorWebsite, image, sponsorTierId, eventId } = req.body;
 
-        // Update Sponsor info (name, website, image)
-        if (updates.sponsorName || updates.sponsorWebsite || updates.image) {
-          const sponsor = await Sponsor.findByPk(eventSponsor.sponsorId);
-          if (sponsor) {
-            if (updates.sponsorName) sponsor.sponsorName = updates.sponsorName;
-            if (updates.sponsorWebsite) sponsor.sponsorWebsite = updates.sponsorWebsite;
-            if (updates.image) sponsor.image = updates.image; // assuming image is a URL string
-            await sponsor.save();
+        // If sponsorTierId + eventId are provided, update EventSponsor instead
+        if (sponsorTierId && eventId) {
+          const eventSponsor = await EventSponsor.findOne({
+            where: { sponsorId, eventId }
+          });
+
+          if (!eventSponsor) {
+            return res.status(404).json({ message: "EventSponsor not found" });
           }
+
+          await eventSponsor.update({ sponsorTierId });
+          return res.json(eventSponsor);
         }
 
-        // Update Sponsor Tier
-        if (updates.sponsorTierId) {
-          eventSponsor.sponsorTierId = updates.sponsorTierId;
-          await eventSponsor.save();
+        // Otherwise, update the Sponsor itself
+        const sponsor = await Sponsor.findByPk(sponsorId);
+        if (!sponsor) {
+          return res.status(404).json({ message: "Sponsor not found" });
         }
 
-        return await EventSponsor.findByPk(eventSponsorId, {
-          include: [Sponsor, SponsorTier]
-        });
+        await sponsor.update({ sponsorName, sponsorWebsite, sponsorImageId: image });
+        return res.json(sponsor);
+      } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: "Error updating sponsor" });
+      }
     }
 
-//  Remove sponsor from event
-    async removeSponsorFromEvent(eventSponsorId) {
-        return await EventSponsor.destroy({ where: { id: eventSponsorId } });
+    async updateSponsorBySponsorId(sponsorId, updates) {
+      // console.log("Repo Method Called, sponsorId:", sponsorId);
+
+      const eventSponsor = await EventSponsor.findOne({
+        where: { sponsorId },
+        include: [Sponsor, SponsorTier]
+      });
+      if (!eventSponsor) throw new Error("EventSponsor record not found");
+
+      const sponsor = await Sponsor.findByPk(sponsorId);
+      if (sponsor) {
+        if (updates.sponsorName) sponsor.sponsorName = updates.sponsorName;
+        if (updates.sponsorWebsite) sponsor.sponsorWebsite = updates.sponsorWebsite;
+        if ('image' in updates) sponsor.image = updates.image;
+        await sponsor.save();
+      }
+
+      if ('sponsorTierId' in updates) {
+        eventSponsor.sponsorTierId = updates.sponsorTierId;
+        await eventSponsor.save();
+      }
+
+      // console.log("Data updated");
+
+      const updatedRecord = await EventSponsor.findOne({
+        where: { sponsorId },
+        include: [Sponsor, SponsorTier]
+      });
+
+      // console.log("Updated record: ", JSON.stringify(updatedRecord, null, 2));
+
+      return updatedRecord;
+
     }
 
-  // Gets Sponsor Tiers
-  async getSponsorTier(){
-    return await SponsorTier.findAll({
-      attributes: ["id", "tier"]
-    });
-  }
+
+  //  Remove sponsor from event
+      async removeSponsorFromEvent(eventSponsorId) {
+          return await EventSponsor.destroy({ where: { id: eventSponsorId } });
+      }
+
+    // Gets Sponsor Tiers
+    async getSponsorTier(){
+      return await SponsorTier.findAll({
+        attributes: ["id", "tier"]
+      });
+    }
+  
 }
 
 module.exports = new EventSponsorRepo();
