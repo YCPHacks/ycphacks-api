@@ -1,4 +1,5 @@
 const EventSponsorRepo = require("../repository/sponsor/EventSponsorRepo");
+const SponsorRepo = require("../repository/sponsor/SponsorRepo");
 
 class EventSponsorController {
 //    Get all sponsors for a specific event
@@ -75,15 +76,25 @@ class EventSponsorController {
 //    Remove sponsor from event
     static async removeEventSponsor(req, res) {
         try {
-          const { eventSponsorId } = req.params;
+          const { id: sponsorId } = req.params;
+          const { eventId } = req.query;
 
-          const deleted = await EventSponsorRepo.removeEventSponsor(eventSponsorId);
-
-          if (!deleted) {
-            return res.status(404).json({ error: "EventSponsor not found" });
+          if(!sponsorId || !eventId){
+            return res.status(400).json({ error: "Missing sponsorId or eventId" });
           }
 
-          res.json({ message: "Sponsor removed from event successfully" });
+          const deleted = await EventSponsorRepo.removeSponsorFromEvent(sponsorId, eventId);
+
+          if(deleted > 0){
+            const sponsorDeleted = await SponsorRepo.deleteSponsorById(sponsorId);
+
+            if(sponsorDeleted > 0){
+              return res.status(204).end();
+            }
+            return res.status(204).end();
+          }
+
+          return res.status(404).json({ error: "Sponsor not associated with this event." });
         } catch (err) {
           console.error(err);
           res.status(500).json({ error: "Failed to remove sponsor from event" });

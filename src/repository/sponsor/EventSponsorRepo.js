@@ -80,8 +80,13 @@ class EventSponsorRepo {
 
 
   //  Remove sponsor from event
-      async removeSponsorFromEvent(eventSponsorId) {
-          return await EventSponsor.destroy({ where: { id: eventSponsorId } });
+      async removeSponsorFromEvent(sponsorId, eventId) {
+          return EventSponsor.destroy({ 
+            where: { 
+              sponsorId: sponsorId,
+              eventId: eventId
+            } 
+          });
       }
 
     // Gets Sponsor Tiers
