@@ -1,5 +1,4 @@
 const HardwareRepo = require('../repository/hardware/HardwareRepo');
-const HardwareModel = require('../controllers/HardwareController');
 const Hardware = require('../models/Hardware');
 
 const HardwareController = {
@@ -17,6 +16,15 @@ const HardwareController = {
     async getAllHardware(req, res) {
         const groupedHardware = await HardwareRepo.groupHardwareForFrontend();
         res.json(groupedHardware);
+    },
+
+    async getHardwareAvailability(req, res){
+        try{
+            const availabilityList = await HardwareRepo.getAvailabilityList();
+            res.json(availabilityList);
+        }catch(err){
+            console.error("Error fetching hardware availability list: ", err);
+        }
     }
 }
 

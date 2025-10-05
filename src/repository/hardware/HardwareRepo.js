@@ -49,6 +49,18 @@ const HardwareRepo = {
         return Object.values(grouped);
     },
 
+    async getAvailabilityList(){
+        const hardwareList = await Hardware.findAll({
+            attributes: ['hardwareName', 'serial', 'whoHasId']
+        });
+
+        return hardwareList.map(item => ({
+            name: item.hardwareName,
+            serialNumber: item.serial,
+            whoHasId: item.whoHasId
+        }));
+    },
+
     // Create new hardware entry
     async createHardware(hardware) {
         return await Hardware.create(hardware);
