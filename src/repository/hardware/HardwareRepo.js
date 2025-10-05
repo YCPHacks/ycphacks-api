@@ -54,11 +54,14 @@ const HardwareRepo = {
             attributes: ['hardwareName', 'serial', 'whoHasId']
         });
 
-        return hardwareList.map(item => ({
+        const mappedList =  hardwareList.map(item => ({
             name: item.hardwareName,
             serialNumber: item.serial,
             whoHasId: item.whoHasId
         }));
+
+        console.log("Mapped Availability Data: ", mappedList);
+        return mappedList;
     },
 
     // Create new hardware entry
