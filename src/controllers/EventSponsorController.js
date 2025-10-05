@@ -36,6 +36,28 @@ class EventSponsorController {
       }
     }
 
+    static async getSponsorsByEvent(req, res){
+      try{
+        const eventId = req.params.eventId;
+        const sponsorsRaw = await EventSponsorRepo.getSponsorsByEvent(eventId); 
+
+        const sponsors = sponsorsRaw.map(s => {
+          const eventSponsor = s.EventSponsors[0];
+          return {
+            id: s.id,
+            name: s.sponsorName,
+            website: s.sponsorWebsite,
+            image: s.sponsorImageId || ""
+          };
+        });
+        // console.log("[API] Final mapped data being sent to client:", JSON.stringify(sponsors, null, 2)); // LOG 3
+
+        return res.json(sponsors);
+      }catch(err){
+        console.error("Error in getSponsorsByEvent: ", err);
+      }
+    }
+
 //    Add sponsor to an event
     static async addSponsorToEvent(req, res){
         try {

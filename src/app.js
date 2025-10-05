@@ -24,6 +24,7 @@ app.use(express.json());
 app.use('/user', userRoutes);
 app.use('/event', eventRoutes);
 app.use('/sponsors', sponsorRoutes);
+app.use('/api/eventsponsors', sponsorRoutes); 
 
 // Test route
 app.get('/test', (req, res) => {
