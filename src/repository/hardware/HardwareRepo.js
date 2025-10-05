@@ -60,7 +60,7 @@ const HardwareRepo = {
             whoHasId: item.whoHasId
         }));
 
-        console.log("Mapped Availability Data: ", mappedList);
+        // console.log("Mapped Availability Data: ", mappedList);
         return mappedList;
     },
 
