@@ -46,7 +46,7 @@ const createUser = async (req, res) => {
 
         // validate data
         const validationErrors = user.validate()
-        if (validationErrors.length > 0) {
+        if (Object.keys(validationErrors).length > 0) {
             return res.status(400).json({
                 message: 'Validation errors occurred',
                 errors: validationErrors
@@ -54,9 +54,10 @@ const createUser = async (req, res) => {
         }
 
         const existingUser = await UserRepo.findByEmail(user.email);
-        if(existingUser){
+        if (existingUser){
             return res.status(400).json({
-                message: 'Email is already in use please sign in'
+                message: 'Email is already in use please sign in',
+                errors: { email: 'Email is already registered' }
             });
         }
 

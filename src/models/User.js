@@ -50,35 +50,35 @@ class User {
     }
 
     validate() {
-        const errors = []
+        const errors = {}
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
         // 1. Validate email
         if (!this.email || !emailRegex.test(this.email)) {
-            errors.push('Invalid email format');
+            errors.email = 'Invalid email format';
         }
 
         // 2. Validate firstName and lastName are less than 50 characters
         if (!this.firstName || this.firstName.length > 50) {
-            errors.push('First name must be less than 50 characters');
+            errors.firstName = 'First name must be less than 50 characters';
         }
         if (!this.lastName || this.lastName.length > 50) {
-            errors.push('Last name must be less than 50 characters');
+            errors.lastName = 'Last name must be less than 50 characters';
         }
 
         // 3. Validate that the user is at least 13 years old
         if (this.age < 13) {
-            errors.push('User must be at least 13 years old');
+            errors.age = 'User must be at least 13 years old';
         }
 
         // 4. Validate that the MLH Code of Conduct is accepted
         if (!this.mlhCodeOfConduct) {
-            errors.push('MLH Code of Conduct must be accepted');
+            errors.mlhCodeOfConduct = 'MLH Code of Conduct must be accepted';
         }
 
         // 5. Validate that the MLH Privacy Policy is accepted
         if (!this.mlhPrivacyPolicy) {
-            errors.push('MLH Privacy Policy must be accepted');
+            errors.mlhPrivacyPolicy = 'MLH Privacy Policy must be accepted';
         }
 
         return errors
