@@ -11,79 +11,92 @@ const User = sequelize.define(
             allowNull: false,
         },
         firstName: {
-            type: DataTypes.STRING(100), // Matches varchar(100)
+            type: DataTypes.STRING(50), // Matches varchar(50)
             allowNull: false,
-            require: true
+            validate: {
+                len: [1, 50]
+            }
         },
         lastName: {
-            type: DataTypes.STRING(100), // Matches varchar(100)
+            type: DataTypes.STRING(50), // Matches varchar(50)
             allowNull: false,
-            require: true
+            validate: {
+                len: [1, 50]
+            }
         },
         email: {
             type: DataTypes.STRING(100), // Matches varchar(100)
-            validate: {
-                isEmail: true,
-            },
             allowNull: false,
-            require: true
+            unique: true,
+            validate: {
+                isEmail: true
+            }
         },
         password: {
             type: DataTypes.STRING,
             allowNull: false,
-            require: true
         },
         role: {
             type: DataTypes.ENUM("participant", "staff", "oscar"),
-            allowNull: true,
-            default: "participant"
+            defaultValue: "participant"
         },
         phoneNumber: {
             type: DataTypes.STRING(20), // Matches varchar(20)
             allowNull: false,
-            require: true
+            validate: {
+                len: [1, 20]
+            }
         },
         age: {
             type: DataTypes.INTEGER,
-            allowNull: false,
-            require: true
+            allowNull: false
         },
         gender: {
             type: DataTypes.STRING(50), // Matches varchar(50)
-            allowNull: false,
-            require: true
+            defaultValue: null
         },
         country: {
-            type: DataTypes.STRING(100), // Matches varchar(100)
+            type: DataTypes.STRING(50), // Matches varchar(50)
             allowNull: false,
-            require: true
+            validate: {
+                len: [1, 50]
+            }
         },
         tShirtSize: {
             type: DataTypes.STRING(5), // Matches varchar(5)
             allowNull: false,
-            require: true
+            validate: {
+                len: [1, 5]
+            }
         },
         dietaryRestrictions: {
             type: DataTypes.STRING(255), // Matches varchar(255)
-            allowNull: true,
+            defaultValue: null
         },
         school: {
             type: DataTypes.STRING(255),
-            allowNull: true
+            allowNull: false,
+            validate: {
+                len: [1, 255]
+            }
         },
         major: {
-            type: DataTypes.STRING
+            type: DataTypes.STRING(100),
+            defaultValue: null
         },
         graduationYear: {
-            type: DataTypes.INTEGER
+            type: DataTypes.INTEGER,
+            defaultValue: null
         },
         levelOfStudy: {
-            type: DataTypes.STRING,
-            allowNull: false
+            type: DataTypes.STRING(100),
+            allowNull: false,
+            validate: {
+                len: [1, 100]
+            }
         },
         hackathonsAttended: {
-            type: DataTypes.INTEGER, // Matches int
-            allowNull: false,
+            type: DataTypes.INTEGER,
             defaultValue: 0
         },
         pronouns: {
@@ -118,7 +131,7 @@ const User = sequelize.define(
     },
     {
         tableName: 'User',
-        timestamps: false,
+        timestamps: true
     }
 );
 
