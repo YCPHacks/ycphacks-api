@@ -50,6 +50,8 @@ async function startServer() {
   }
 }
 
-startServer();
-
 module.exports = app;
+
+if(require.main === module){
+  startServer();
+}

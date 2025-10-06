@@ -28,7 +28,7 @@ describe('POST /user/register', () => {
             role: 'user',
             phoneNumber: '+1234567891',
             dob: '2000-01-01',
-            gender: 'male',
+            gender: 'female',
             pronouns: 'her/she',
             country: 'USA',
             tShirtSize: 'M',

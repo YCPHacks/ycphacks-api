@@ -11,7 +11,7 @@ class EventSponsorController {
         const sponsorsRaw = await EventSponsorRepo.getSponsorsByEvent(eventId);
 
         const sponsors = sponsorsRaw.map(s => {
-          const eventSponsor = s.EventSponsors[0]; // might be undefined
+          const eventSponsor = s.EventSponsors?.[0]; // might be undefined
           return {
             id: s.id,
             name: s.sponsorName,
@@ -41,8 +41,10 @@ class EventSponsorController {
         const eventId = req.params.eventId;
         const sponsorsRaw = await EventSponsorRepo.getSponsorsByEvent(eventId); 
 
+        if(!sponsorsRaw) return res.json([]);
+
         const sponsors = sponsorsRaw.map(s => {
-          const eventSponsor = s.EventSponsors[0];
+          const eventSponsor = s.EventSponsors?.[0];
           return {
             id: s.id,
             name: s.sponsorName,
@@ -55,6 +57,7 @@ class EventSponsorController {
         return res.json(sponsors);
       }catch(err){
         console.error("Error in getSponsorsByEvent: ", err);
+        return res.status(500).json({ error: err.message });
       }
     }
 
