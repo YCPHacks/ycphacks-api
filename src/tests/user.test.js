@@ -69,7 +69,7 @@ describe('POST /user/register', () => {
                 graduationYear: 2027,
                 levelOfStudy: 'College',
                 hackathonsAttended: 5,
-                linkedInUrl: 'https://www.linkedin.com',
+                linkedInUrl: 'https://www.linkedin.com/',
                 pronouns: 'her/she',
                 checkIn: false,
                 mlhCodeOfConduct: true,
@@ -114,7 +114,7 @@ describe('POST /user/register', () => {
                 graduationYear: 2027,
                 levelOfStudy: 'College',
                 hackathonsAttended: 5,
-                linkedInUrl: 'https://www.linkedin.com',
+                linkedInUrl: 'https://www.linkedin.com/',
                 pronouns: 'her/she',
                 checkIn: false,
                 mlhCodeOfConduct: true,
@@ -125,7 +125,7 @@ describe('POST /user/register', () => {
 
         expect(res.statusCode).toEqual(400);
         expect(res.body).toHaveProperty('message', 'Validation errors occurred');
-        expect(Object.keys(res.body.errors)).toBeGreaterThan(0);  // There should be validation errors
+        expect(Object.keys(res.body.errors).length).toBeGreaterThan(0);  // There should be validation errors
     });
 
     it('should return 400 if email already exists', async () => {
@@ -154,7 +154,7 @@ describe('POST /user/register', () => {
                 graduationYear: 2027,
                 levelOfStudy: 'College',
                 hackathonsAttended: 5,
-                linkedInUrl: 'https://www.linkedin.com',
+                linkedInUrl: 'https://www.linkedin.com/',
                 pronouns: 'her/she',
                 checkIn: false,
                 mlhCodeOfConduct: true,

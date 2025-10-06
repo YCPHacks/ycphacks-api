@@ -77,44 +77,49 @@ class User {
             errors.phoneNumber = 'Invalid phone number format';
         }
 
-        // 5. Validate levelOfStudy presence
+        // 5. Validate school presence
+        if (!this.school) {
+            errors.school = 'School is required'
+        }
+
+        // 6. Validate levelOfStudy presence
         if (!this.levelOfStudy) {
             errors.levelOfStudy = 'Level of study is required'
         }
 
-        // 6. Validate country is present
+        // 7. Validate country is present
         if (!this.country) {
             errors.country = 'Country is required';
         }
 
-        // 7. Validate that the user is at least 13 years old
+        // 8. Validate that the user is at least 13 years old
         if (this.age < 13) {
             errors.age = 'User must be at least 13 years old';
         }
 
-        // 8. Validate tShirtSize presence
+        // 9. Validate tShirtSize presence
         if (!this.tShirtSize) {
             errors.tShirtSize = 'T-Shirt size is required'
         }
 
-        // 9. Validate graduation year is numeric and in reasonable range
+        // 10. Validate graduation year is numeric and in reasonable range
         const year = new Date().getFullYear();
         if (this.graduationYear && (this.graduationYear < 1900 || this.graduationYear > year + 20)) {
             errors.graduationYear = 'Invalid graduation year';
         }
 
-        // 10. Validate LinkedIn is roughly valid
+        // 11. Validate LinkedIn is roughly valid
         const linkedInRegex = /^https?:\/\/(www\.)?linkedin\.com\/.*$/;
         if (this.linkedInUrl && !linkedInRegex.test(this.linkedInUrl)) {
             errors.linkedInUrl = 'Invalid LinkedIn URL';
         }
 
-        // 11. Validate that the MLH Code of Conduct is accepted
+        // 12. Validate that the MLH Code of Conduct is accepted
         if (!this.mlhCodeOfConduct) {
             errors.mlhCodeOfConduct = 'MLH Code of Conduct must be accepted';
         }
 
-        // 12. Validate that the MLH Privacy Policy is accepted
+        // 13. Validate that the MLH Privacy Policy is accepted
         if (!this.mlhPrivacyPolicy) {
             errors.mlhPrivacyPolicy = 'MLH Privacy Policy must be accepted';
         }
