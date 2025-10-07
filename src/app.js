@@ -36,14 +36,24 @@ app.get('/test', (req, res) => {
 
 // Start the server after syncing the models
 const port = process.env.APP_PORT || 3000;
-sequelize
-    .sync({ alter: true }) // Sync models with the database, alter makes sure that the database is updated with the new changes, but does not delete any data
-    .then(() => {
-        console.log('Database synchronized successfully.');
-        app.listen(port, () => {
-            console.log(`Server running at http://localhost:${port}`);
-        });
-    })
-    .catch((err) => {
-        console.error('Error syncing the database:', err);
+async function startServer() {
+  try {
+    if (process.env.NODE_ENV !== 'test') {
+      // Sync only in non-test environments
+      await sequelize.sync({ alter: true });
+      console.log('✅ Database synchronized successfully.');
+    }
+    app.listen(port, () => {
+      console.log(`Server running at http://localhost:${port}`);
     });
+  } catch (err) {
+    console.error('❌ Error syncing the database:', err);
+    process.exit(1); // optional: stop server if DB fails
+  }
+}
+
+module.exports = app;
+
+if(require.main === module){
+  startServer();
+}

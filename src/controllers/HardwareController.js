@@ -8,14 +8,19 @@ const HardwareController = {
             if(!hardware) return res.status(404).json({ message: "Hardware not found" });
             res.json(hardware);
         }catch(err){
-            console.error(err);
+            console.error("Error fetching grouped hardware list: ", err);
             res.status(500).json({ message: "Failed to fetch hardware" });
         }
     },
 
     async getAllHardware(req, res) {
-        const groupedHardware = await HardwareRepo.groupHardwareForFrontend();
-        res.json(groupedHardware);
+        try {
+            const groupedHardware = await HardwareRepo.groupHardwareForFrontend();
+            res.json(groupedHardware);
+        } catch (err) {
+            console.error("Error fetching grouped hardware list: ", err);
+            res.status(500).json({ error: err.message || "Failed to retrieve grouped hardware." });
+        }
     },
 
     async getHardwareAvailability(req, res){
@@ -24,6 +29,7 @@ const HardwareController = {
             res.json(availabilityList);
         }catch(err){
             console.error("Error fetching hardware availability list: ", err);
+            res.status(500).json({ error: err.message || "Failed to retrieve hardware availability." });
         }
     }
 }
