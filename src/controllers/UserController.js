@@ -5,6 +5,8 @@ const UserResponseDto = require('../dto/UserResponseDto')
 const { generateToken, validateToken} = require('../util/JWTUtil');
 const bcrypt = require('bcrypt');
 const SALT_ROUNDS = 10;  // Number of salt rounds for bcrypt
+const { sendRegistrationConfirmation } = require('../util/emailService');
+
 /**
  * This function will create a user based on the data that gets sent in and return
  * the users id, email, first name, and token on success
@@ -46,7 +48,7 @@ const createUser = async (req, res) => {
 
         // validate data
         const validationErrors = user.validate()
-        if (validationErrors.length > 0) {
+        if (Object.keys(validationErrors).length > 0) {
             return res.status(400).json({
                 message: 'Validation errors occurred',
                 errors: validationErrors
@@ -54,9 +56,10 @@ const createUser = async (req, res) => {
         }
 
         const existingUser = await UserRepo.findByEmail(user.email);
-        if(existingUser){
+        if (existingUser){
             return res.status(400).json({
-                message: 'Email is already in use please sign in'
+                message: 'Email is already in use please sign in',
+                errors: { email: 'Email is already registered' }
             });
         }
 
@@ -93,8 +96,8 @@ const createUser = async (req, res) => {
         // generate JWT
         const token = generateToken({ email: user.email });
 
-        // TODO: fire off verification email
-        // this will need to be added once we have the email from Dr. Babcock
+        // Fire off confirmation email
+        await sendRegistrationConfirmation(user.email, user.firstName);
 
         // create user response dto
         const userResponseDto = new UserResponseDto(
@@ -110,7 +113,7 @@ const createUser = async (req, res) => {
         res.status(201).json({ message: 'Create User successful:', data: userResponseDto });
     } catch (err) {
         // send back any errors (this is where the database errors get thrown)
-        res.status(500).json({ message: 'Error persisting user in database:', error: "Email is already in use please sign in" });
+        res.status(500).json({ message: 'Error persisting user in database:', error: err });
     }
 }
 

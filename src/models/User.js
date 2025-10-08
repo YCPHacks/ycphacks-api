@@ -50,35 +50,78 @@ class User {
     }
 
     validate() {
-        const errors = []
+        const errors = {}
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
         // 1. Validate email
         if (!this.email || !emailRegex.test(this.email)) {
-            errors.push('Invalid email format');
+            errors.email = 'Invalid email format';
         }
 
-        // 2. Validate firstName and lastName are less than 50 characters
+        // 2. Validate password is present and at least 8 characters
+        if (!this.password || this.password.length < 8) {
+            errors.password = 'Password must be at least 8 characters long';
+        }
+
+        // 3. Validate firstName and lastName are less than 50 characters
         if (!this.firstName || this.firstName.length > 50) {
-            errors.push('First name must be less than 50 characters');
+            errors.firstName = 'First name is required and must be less than 50 characters';
         }
         if (!this.lastName || this.lastName.length > 50) {
-            errors.push('Last name must be less than 50 characters');
+            errors.lastName = 'Last name is required and must be less than 50 characters';
         }
 
-        // 3. Validate that the user is at least 13 years old
+        // 4. Validate phoneNumber is roughly valid
+        const phoneRegex = /^[+()\-.\s\d]{7,20}$/;
+        if (this.phoneNumber && !phoneRegex.test(this.phoneNumber)) {
+            errors.phoneNumber = 'Invalid phone number format';
+        }
+
+        // 5. Validate school presence
+        if (!this.school) {
+            errors.school = 'School is required'
+        }
+
+        // 6. Validate levelOfStudy presence
+        if (!this.levelOfStudy) {
+            errors.levelOfStudy = 'Level of study is required'
+        }
+
+        // 7. Validate country presence
+        if (!this.country) {
+            errors.country = 'Country is required';
+        }
+
+        // 8. Validate that the user is at least 13 years old
         if (this.age < 13) {
-            errors.push('User must be at least 13 years old');
+            errors.age = 'User must be at least 13 years old';
         }
 
-        // 4. Validate that the MLH Code of Conduct is accepted
+        // 9. Validate tShirtSize presence
+        if (!this.tShirtSize) {
+            errors.tShirtSize = 'T-Shirt size is required'
+        }
+
+        // 10. Validate graduation year is numeric and in reasonable range
+        const year = new Date().getFullYear();
+        if (this.graduationYear && (this.graduationYear < 1900 || this.graduationYear > year + 20)) {
+            errors.graduationYear = 'Invalid graduation year';
+        }
+
+        // 11. Validate LinkedIn is roughly valid
+        const linkedInRegex = /^https?:\/\/(www\.)?linkedin\.com\/.*$/;
+        if (this.linkedInUrl && !linkedInRegex.test(this.linkedInUrl)) {
+            errors.linkedInUrl = 'Invalid LinkedIn URL';
+        }
+
+        // 12. Validate that the MLH Code of Conduct is accepted
         if (!this.mlhCodeOfConduct) {
-            errors.push('MLH Code of Conduct must be accepted');
+            errors.mlhCodeOfConduct = 'MLH Code of Conduct must be accepted';
         }
 
-        // 5. Validate that the MLH Privacy Policy is accepted
+        // 13. Validate that the MLH Privacy Policy is accepted
         if (!this.mlhPrivacyPolicy) {
-            errors.push('MLH Privacy Policy must be accepted');
+            errors.mlhPrivacyPolicy = 'MLH Privacy Policy must be accepted';
         }
 
         return errors
