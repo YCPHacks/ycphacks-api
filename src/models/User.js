@@ -65,10 +65,10 @@ class User {
 
         // 3. Validate firstName and lastName are less than 50 characters
         if (!this.firstName || this.firstName.length > 50) {
-            errors.firstName = 'First name must be less than 50 characters';
+            errors.firstName = 'First name is required and must be less than 50 characters';
         }
         if (!this.lastName || this.lastName.length > 50) {
-            errors.lastName = 'Last name must be less than 50 characters';
+            errors.lastName = 'Last name is required and must be less than 50 characters';
         }
 
         // 4. Validate phoneNumber is roughly valid
@@ -87,7 +87,7 @@ class User {
             errors.levelOfStudy = 'Level of study is required'
         }
 
-        // 7. Validate country is present
+        // 7. Validate country presence
         if (!this.country) {
             errors.country = 'Country is required';
         }
