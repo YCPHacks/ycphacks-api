@@ -1,6 +1,7 @@
 const request = require('supertest');
 const app = require('../app');  // Import your Express app
 const UserRepo = require('../repository/user/UserRepo');  // Mock User repository
+const { sendRegistrationConfirmation } = require('../util/emailService'); // Adjust path
 const bcrypt = require('bcrypt');
 
 const validUserCreateRequest = {
@@ -31,6 +32,11 @@ const validUserCreateRequest = {
 
 // Mock the UserRepo to avoid actual database interaction
 jest.mock('../repository/user/UserRepo');
+
+// Mock success an actual email isn't sent
+jest.mock('../util/emailService', () => ({
+    sendRegistrationConfirmation: jest.fn().mockResolvedValue(true),
+}));
 
 describe('POST /user/register', () => {
     beforeEach(() => {
