@@ -41,8 +41,21 @@ const User = sequelize.define(
         phoneNumber: {
             type: DataTypes.STRING(20), // Matches varchar(20)
             allowNull: false,
+<<<<<<< Updated upstream
             require: true
+=======
+            validate: {
+                len: [1, 20]
+            }
         },
+<<<<<<< HEAD
+        age: {
+            type: DataTypes.INTEGER,
+            allowNull: false
+>>>>>>> Stashed changes
+        },
+=======
+>>>>>>> sponsors
         gender: {
             type: DataTypes.STRING(50), // Matches varchar(50)
             allowNull: false,
@@ -96,7 +109,15 @@ const User = sequelize.define(
     },
     {
         tableName: 'User',
+<<<<<<< Updated upstream
         timestamps: false,
+=======
+<<<<<<< HEAD
+        timestamps: true
+=======
+        timestamps: false,
+>>>>>>> sponsors
+>>>>>>> Stashed changes
     }
 );
 

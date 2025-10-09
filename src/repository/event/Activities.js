@@ -1,7 +1,15 @@
 const { DataTypes } = require('sequelize');
 const { sequelize } = require('../config');
 
+<<<<<<< Updated upstream:src/repository/event/Activities.js
 const Activities = sequelize.define(
+=======
+<<<<<<< HEAD:src/repository/event/Activity.js
+const Activity = sequelize.define(
+=======
+const Activities = sequelize.define(
+>>>>>>> sponsors:src/repository/event/Activities.js
+>>>>>>> Stashed changes:src/repository/event/Activity.js
     'Activity',
     {
         id: {
@@ -28,8 +36,24 @@ const Activities = sequelize.define(
     },
     {
         tableName: 'Activity',
+<<<<<<< Updated upstream:src/repository/event/Activities.js
         timestamps: false
     }
 );
 
 module.export = Activities;
+=======
+<<<<<<< HEAD:src/repository/event/Activity.js
+        timestamps: false,
+    }
+);
+
+module.exports = Activity;
+=======
+        timestamps: false
+    }
+);
+
+module.export = Activities;
+>>>>>>> sponsors:src/repository/event/Activities.js
+>>>>>>> Stashed changes:src/repository/event/Activity.js

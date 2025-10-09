@@ -16,17 +16,40 @@ const Sponsor = sequelize.define(
             field: 'sponsorName'
         },
         sponsorWebsite: {
+<<<<<<< Updated upstream
             type: DataTypes.STRING,
             allowNull: false,
             field: 'sponsorWebsite'
         },
         sponsorImageId: {
             type: DataTypes.INTEGER,
+=======
+<<<<<<< HEAD
+            type: DataTypes.STRING
+        },
+        sponsorImageId: {
+            type: DataTypes.INTEGER,
+            references: {
+                model: 'Image',
+                key: 'id'
+            }
+=======
+            type: DataTypes.STRING,
+            allowNull: false,
+            field: 'sponsorWebsite'
+        },
+        sponsorImageId: {
+            type: DataTypes.INTEGER,
+>>>>>>> Stashed changes
             field: 'sponsorImageId'
         },
         tierId: {
             type: DataTypes.INTEGER,
             field: 'tierId'
+<<<<<<< Updated upstream
+=======
+>>>>>>> sponsors
+>>>>>>> Stashed changes
         }
     },
     {

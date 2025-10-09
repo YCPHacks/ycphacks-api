@@ -23,4 +23,19 @@ class Sponsor{
     }
 }
 
+<<<<<<< HEAD
+=======
+        if (!this.sponsor_name) {
+            errors.push("Missing Sponsor Name");
+        }
+
+        if(!this.sponsor_website) {
+            errors.push("Missing Sponsor Website");
+        }
+
+        return errors;
+    }
+}
+
+>>>>>>> sponsors
 module.exports = Sponsor;

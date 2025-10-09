@@ -220,15 +220,6 @@ const loginAdminUser = async (req, res) => {
             user.role,
         );
 
-//        const role = await UserRepo.getRoles(user.role);
-        const role = user.role;
-        const roleName = roleMap[role]
-//        console.log('User role from DB:', roleName);
-
-        if(!roleName){
-            return res.status(403).json({ message: 'Access denied: role not found' });
-        }
-
         if (roleName === 'staff' || roleName === 'oscar') {
             // Respond with success and token
             res.status(200).json({
