@@ -54,6 +54,19 @@ describe('POST /user/register', () => {
         const mockUser = {
             ...validUserCreateRequest,
             password: '$2b$10$Xdummyhash',
+            role: 'user',
+            phoneNumber: '+1234567891',
+            dob: '2000-01-01',
+            gender: 'female',
+            pronouns: 'her/she',
+            country: 'USA',
+            tShirtSize: 'M',
+            dietaryRestrictions: 'none',
+            school: 'Sample University',
+            hackathonsAttended: 5,
+            mlhCodeOfConduct: true,
+            mlhPrivacyPolicy: true,
+            mlhEmails: false,
             toJSON: function() { return this; } // Sequelize-like behavior
         };
 

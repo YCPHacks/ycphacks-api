@@ -1,20 +1,25 @@
-const User = require("../user/User");
-const Team = require('../team/Team');
+const { sequelize, DataTypes } = require('./index'); // Sequelize instance
+
+// Import all models (factory-defined)
+const User = require('../user/User');
 const Event = require('../event/Event');
-const Activity = require('../event/Activity');
 const EventParticipant = require('../event/EventParticipant');
-const HackCategory = require('../event/HackCategory');
-const Prize = require('../event/Prize');
 const Sponsor = require('../sponsor/Sponsor');
-const SponsorTiers = require('../sponsor/SponsorTier');
+const SponsorTier = require('../sponsor/SponsorTier');
 const EventSponsor = require('../sponsor/EventSponsor');
-const Image = require('../image/Image');
-const Analytics = require('../analytics/Analytics');
 const Hardware = require('../hardware/Hardware');
 const HardwareImage = require('../hardware/HardwareImage');
+const Team = require('../team/Team');
+const HackCategory = require('../event/HackCategory');
+const Prize = require('../event/Prize');
+const Analytics = require('../analytics/Analytics');
 
-// add all new Sequelize models here
-const models = {
+const Image = require('../image/Image');
+const Activity = require('../event/Activity');
+
+// Export models
+module.exports = {
+    sequelize,
     User,
     Team,
     Event,
@@ -23,11 +28,11 @@ const models = {
     HackCategory,
     Prize,
     Sponsor,
-    SponsorTiers,
+    SponsorTier,
     EventSponsor,
     Image,
     Analytics,
     Hardware,
-    HardwareImage
+    HardwareImage,
+    Team
 };
-module.exports = models;

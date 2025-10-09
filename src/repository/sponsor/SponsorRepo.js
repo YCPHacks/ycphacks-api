@@ -1,23 +1,37 @@
-const Sponsor = require("Sponsor");
-const EventSponsor = require("ycphacks-api/src/repository/sponsor/EventSponsor")
-const SponsorTier = require("ycphacks-api/src/repository/sponsor/SponsorTier")
-const Image = require("../image/Image")
+const { Sponsor, SponsorTier, EventSponsor, Image } = require("../config/Models");
 
 const SponsorRepo = {
     //Sponsor
     async findSponsorById(id){
         return Sponsor.findOne({
             where: { id },
-            include: {model: Image}
+            attributes: ['id', 'sponsorName', 'sponsorWebsite'],
+            include: [{ model: SponsorTier, as: "tiers", attributes: ["tier"] }]
         });
     },
-    async findAllSponsors(){
-        return Sponsor.findAll({
-            include: {model: Image}
-        });
+    async findAllSponsors() {
+      return Sponsor.findAll({
+        attributes: ['id', 'sponsorName', 'sponsorWebsite'],
+        include: [
+          {
+            model: EventSponsor,
+            as: 'EventSponsors',
+            include: [
+              { model: SponsorTier, as: 'SponsorTier', attributes: ['tier'] }
+            ]
+          }
+//          { model: Image, as: 'image', attributes: ['url'] } // adjust field
+        ]
+      });
     },
     async createSponsor(sponsor){
         return Sponsor.create(sponsor);
+    },
+    async updateSponsor(id, updates){
+        return Sponsor.update(updates, {where: {id}});
+    },
+    async deleteSponsorById(id){
+        return Sponsor.destroy({where: {id}});
     },
 
     //EventSponsor
@@ -30,7 +44,7 @@ const SponsorRepo = {
     async findEventSponsorsByEvent(eventId){
         return EventSponsor.findAll({
             where: {event_id: eventId},
-            include: [{model: Sponsor, include: {model: Image}}, {model: SponsorTiers}]
+            include: [{model: Sponsor, include: {model: Image}}, {model: SponsorTier}]
         });
     },
     async createEventSponsor(eventSponsor){
@@ -46,7 +60,9 @@ const SponsorRepo = {
             where: { id }
         });
     },
-    async getAllSponsorTiers(){
+    async getAllSponsorTier(){
         return SponsorTier.findAll({});
     }
 }
+
+module.exports = SponsorRepo;

@@ -1,5 +1,5 @@
 const { DataTypes } = require('sequelize');
-const sequelize = require('../config');
+const { sequelize } = require('../config/index.js');
 
 const Sponsor = sequelize.define(
     'Sponsor',
@@ -13,24 +13,30 @@ const Sponsor = sequelize.define(
         sponsorName: {
             type: DataTypes.STRING,
             allowNull: false,
-            require: true
+            field: 'sponsorName'
         },
         sponsorWebsite: {
-            type: DataTypes.STRING
+            type: DataTypes.STRING,
+            allowNull: false,
+            field: 'sponsorWebsite'
         },
         sponsorImageId: {
             type: DataTypes.INTEGER,
             references: {
                 model: 'Image',
                 key: 'id'
-            }
+            },
+            field: 'sponsorImageId'
+        },
+        tierId: {
+            type: DataTypes.INTEGER,
+            field: 'tierId'
         }
     },
     {
         tableName: 'Sponsor',
         paranoid: true
     }
-
 );
 
 module.exports = Sponsor;

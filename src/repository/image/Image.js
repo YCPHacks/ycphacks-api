@@ -1,5 +1,5 @@
 const { DataTypes } = require('sequelize');
-const sequelize = require('../config');
+const { sequelize } = require('../config');
 
 const Image = sequelize.define(
     'Image',
@@ -15,7 +15,6 @@ const Image = sequelize.define(
             allowNull: false
         }
     },
-
     {
         tableName: 'Image'
     }

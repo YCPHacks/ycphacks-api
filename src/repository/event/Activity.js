@@ -1,5 +1,5 @@
 const { DataTypes } = require('sequelize');
-const sequelize = require('../config/index');
+const { sequelize } = require('../config');
 
 const Activity = sequelize.define(
     'Activity',
@@ -30,7 +30,7 @@ const Activity = sequelize.define(
 
     {
         tableName: 'Activity',
-        timestamps: false,
+        timestamps: false
     }
 );
 

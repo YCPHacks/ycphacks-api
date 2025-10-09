@@ -1,8 +1,8 @@
 const { DataTypes } = require('sequelize');
-const sequelize = require('../config/index');
+const { sequelize } = require('../config');
 
 const HackCategory = sequelize.define(
-    'HackCategories',
+    'HackCategory',
     {
         id: {
             type: DataTypes.INTEGER,

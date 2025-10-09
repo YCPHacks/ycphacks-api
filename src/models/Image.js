@@ -1,10 +1,17 @@
-class Image {
+class Image{
     constructor(
-        id,
         url
-    ) {
-        this.id = id;
+    ){
         this.url = url;
+    }
+
+    validate() {
+        const errors = [];
+        if(!this.url){
+            errors.push("Missing Image URL");
+        }
+
+        return errors;
     }
 }
 

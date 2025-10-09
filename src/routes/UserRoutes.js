@@ -1,5 +1,5 @@
-const express = require('express')
-const router = express.Router()
+const express = require('express');
+const router = express.Router();
 
 const {
     createUser,
@@ -13,7 +13,7 @@ router.post('/register', createUser)
 
 router.post('/login', loginUser)
 
-router.post('/admin-login', loginAdminUser)
+router.post('/admin-login', loginAdminUser);
 
 router.post('/auth', authWithToken)
 

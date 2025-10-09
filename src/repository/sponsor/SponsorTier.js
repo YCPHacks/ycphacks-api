@@ -1,5 +1,6 @@
 const {DataTypes} = require("sequelize");
-const sequelize = require('../config');
+const {sequelize} = require('../config');
+
 const SponsorTier = sequelize.define(
     'SponsorTier',
     {
@@ -17,13 +18,12 @@ const SponsorTier = sequelize.define(
         lowerThreshold: {
             type: DataTypes.INTEGER,
             allowNull: false,
-            require: true,
         }
     },
-
     {
-        tableName: 'SponsorTier'
+        tableName: 'SponsorTier',
+        timestamps: false,
     }
-)
+);
 
 module.exports = SponsorTier;

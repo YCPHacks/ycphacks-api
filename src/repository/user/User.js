@@ -1,5 +1,5 @@
 const { DataTypes } = require('sequelize');
-const sequelize = require('../config/index');
+const { sequelize } = require('../config');
 
 const User = sequelize.define(
     'User',
@@ -43,6 +43,7 @@ const User = sequelize.define(
         phoneNumber: {
             type: DataTypes.STRING(20), // Matches varchar(20)
             allowNull: false,
+            require: true,
             validate: {
                 len: [1, 20]
             }
