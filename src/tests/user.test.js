@@ -1,10 +1,42 @@
 const request = require('supertest');
 const app = require('../app');  // Import your Express app
 const UserRepo = require('../repository/user/UserRepo');  // Mock User repository
+const { sendRegistrationConfirmation } = require('../util/emailService'); // Adjust path
 const bcrypt = require('bcrypt');
+
+const validUserCreateRequest = {
+    firstName: 'Jane',
+    lastName: 'Doe',
+    password: 'strongpassword123!',
+    email: 'test@example.com',
+    role: 'participant',
+    phoneNumber: '+1234567891',
+    age: 20,
+    gender: 'male',
+    country: 'USA',
+    tShirtSize: 'M',
+    dietaryRestrictions: 'none',
+    school: 'Sample University',
+    major: 'Computer Science',
+    graduationYear: 2027,
+    levelOfStudy: 'College',
+    hackathonsAttended: 5,
+    linkedInUrl: 'https://www.linkedin.com/',
+    pronouns: 'she/her',
+    checkIn: false,
+    mlhCodeOfConduct: true,
+    mlhPrivacyPolicy: true,
+    mlhEmails: false,
+    isVerified: false
+};
 
 // Mock the UserRepo to avoid actual database interaction
 jest.mock('../repository/user/UserRepo');
+
+// Mock success an actual email isn't sent
+jest.mock('../util/emailService', () => ({
+    sendRegistrationConfirmation: jest.fn().mockResolvedValue(true),
+}));
 
 describe('POST /user/register', () => {
     beforeEach(() => {
@@ -20,25 +52,7 @@ describe('POST /user/register', () => {
         jest.spyOn(bcrypt, 'hash').mockResolvedValue('$2b$10$Xdummyhash'); // fake hash
 
         const mockUser = {
-            id: 2,
-            email: 'test1@example.com',
-            firstName: 'Jane',
-            lastName: 'Doe',
-            password: '$2b$10$Xdummyhash',
-            role: 'user',
-            phoneNumber: '+1234567891',
-            dob: '2000-01-01',
-            gender: 'male',
-            gender: 'female',
-            pronouns: 'her/she',
-            country: 'USA',
-            tShirtSize: 'M',
-            dietaryRestrictions: 'none',
-            school: 'Sample University',
-            hackathonsAttended: 5,
-            mlhCodeOfConduct: true,
-            mlhPrivacyPolicy: true,
-            mlhEmails: false,
+            ...validUserCreateRequest,
             toJSON: function() { return this; } // Sequelize-like behavior
         };
 
@@ -48,23 +62,7 @@ describe('POST /user/register', () => {
         const res = await request(app)
             .post('/user/register')
             .send({
-                email: 'test1@example.com',
-                firstName: 'Jane',
-                lastName: 'Doe',
-                password: 'strongpassword123!',
-                role: 'user',
-                phoneNumber: '+1234567891',
-                dob: '2000-01-01',
-                gender: 'male',
-                pronouns: 'her/she',
-                country: 'USA',
-                tShirtSize: 'M',
-                dietaryRestrictions: 'none',
-                school: 'Sample University',
-                hackathonsAttended: 5,
-                mlhCodeOfConduct: true,
-                mlhPrivacyPolicy: true,
-                mlhEmails: false
+                ...validUserCreateRequest
             });
 
         // Assert: response checks
@@ -73,71 +71,40 @@ describe('POST /user/register', () => {
         expect(res.body.data).toHaveProperty('token');
 
         // Assert: verify mocks were called correctly
-        expect(UserRepo.findByEmail).toHaveBeenCalledWith('test1@example.com');
+        expect(UserRepo.findByEmail).toHaveBeenCalledWith('test@example.com');
         expect(UserRepo.create).toHaveBeenCalledTimes(1);
         expect(UserRepo.create).toHaveBeenCalledWith(expect.objectContaining({
-            email: 'test1@example.com',
+            email: 'test@example.com',
             firstName: 'Jane',
             lastName: 'Doe',
-            role: 'user'
+            role: 'participant'
         }));
     });
 
-    it('should return 400 if validation fails (invalid email)', async () => {
+    it('returns 400 (invalid email)', async () => {
         const res = await request(app)
             .post('/user/register')
             .send({
-                email: 'invalidemail',  // Invalid email
-                firstName: 'John',
-                lastName: 'Doe',
-                password: 'short',  // Password too short
-                role: 'user',
-                phoneNumber: '+1234567890',
-                dob: '2010-01-01',  // Too young
-                gender: 'male',
-                pronouns: 'he/him',
-                country: 'USA',
-                tShirtSize: 'M',
-                dietaryRestrictions: 'none',
-                school: 'Sample University',
-                hackathonsAttended: 5,
-                mlhCodeOfConduct: true,
-                mlhPrivacyPolicy: true,
-                mlhEmails: false
+                ...validUserCreateRequest,
+                email: 'invalidemail' // Invalid email
             });
 
         expect(res.statusCode).toEqual(400);
         expect(res.body).toHaveProperty('message', 'Validation errors occurred');
-        expect(res.body.errors.length).toBeGreaterThan(0);  // There should be validation errors
+        expect(Object.keys(res.body.errors).length).toEqual(1);  // There should be exactly one validation error
     });
 
-    it('should return 400 if email already exists', async () => {
+    it('returns 400 (email already exists)', async () => {
         // Mock the repository method to simulate a user already existing
         UserRepo.findByEmail.mockResolvedValue({
             id: 1,
-            email: 'test@example.com'
+            email: validUserCreateRequest.email
         });
 
         const res = await request(app)
             .post('/user/register')
             .send({
-                email: 'test@example.com',  // Existing email
-                firstName: 'John',
-                lastName: 'Doe',
-                password: 'strongpassword123',
-                role: 'user',
-                phoneNumber: '+1234567890',
-                dob: '2000-01-01',
-                gender: 'male',
-                pronouns: 'he/him',
-                country: 'USA',
-                tShirtSize: 'M',
-                dietaryRestrictions: 'none',
-                school: 'Sample University',
-                hackathonsAttended: 5,
-                mlhCodeOfConduct: true,
-                mlhPrivacyPolicy: true,
-                mlhEmails: false
+                ...validUserCreateRequest
             });
 
         expect(res.statusCode).toEqual(400);

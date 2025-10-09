@@ -1,5 +1,4 @@
-const User = require('./User');  // Adjust the path based on your folder structure
-const StaffRoles = require('./StaffRoles');  // Adjust the path based on your folder structure
+const { User } = require('../config/Models');  // Adjust the path based on your folder structure
 
 const UserRepo = {
     // Method to create a new user
@@ -13,14 +12,6 @@ const UserRepo = {
             where: { email }
         });
     },
-
-    async getRoles(id) {
-        const role = await StaffRoles.findOne({
-            where: { id }
-        });
-        return role ? role.role : null;
-    },
-
     async getAllUsers() {
         return await User.findAll();
     }

@@ -1,8 +1,8 @@
 const { DataTypes } = require('sequelize');
-const sequelize = require('../config');
+const { sequelize } = require('../config');
 
 const Image = sequelize.define(
-    'Sponsor',
+    'Image',
     {
         id : {
             type: DataTypes.INTEGER,
@@ -16,9 +16,8 @@ const Image = sequelize.define(
         }
     },
     {
-
+        tableName: 'Image'
     }
-
 );
 
 module.exports = Image;

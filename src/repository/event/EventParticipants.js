@@ -1,8 +1,8 @@
 const { DataTypes } = require('sequelize');
-const sequelize = require('../config/index');
+const { sequelize } = require('../config');
 
 const EventParticipants = sequelize.define(
-    'EventParticipants',
+    'EventParticipant',
     {
         eventId: {
             type: DataTypes.INTEGER,
@@ -19,7 +19,7 @@ const EventParticipants = sequelize.define(
         }
     },
     {
-        tableName: 'event_participants',
+        tableName: 'EventParticipant',
         timestamps: false,
     }
 );

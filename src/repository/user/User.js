@@ -1,5 +1,5 @@
 const { DataTypes } = require('sequelize');
-const sequelize = require('../config/index');
+const { sequelize } = require('../config/index');
 
 const User = sequelize.define(
     'User',
@@ -10,98 +10,129 @@ const User = sequelize.define(
             primaryKey: true,
             allowNull: false,
         },
-        email: {
-            type: DataTypes.STRING(100), // Matches varchar(100)
-            validate: {
-                isEmail: true,
-            },
-            allowNull: false,
-            require: true
-        },
         firstName: {
-            type: DataTypes.STRING(100), // Matches varchar(100)
+            type: DataTypes.STRING(50), // Matches varchar(50)
             allowNull: false,
-            require: true
+            validate: {
+                len: [1, 50]
+            }
         },
         lastName: {
+            type: DataTypes.STRING(50), // Matches varchar(50)
+            allowNull: false,
+            validate: {
+                len: [1, 50]
+            }
+        },
+        email: {
             type: DataTypes.STRING(100), // Matches varchar(100)
             allowNull: false,
-            require: true
+            unique: true,
+            validate: {
+                isEmail: true
+            }
         },
         password: {
             type: DataTypes.STRING,
             allowNull: false,
-            require: true
         },
         role: {
-            type: DataTypes.INTEGER,
-            allowNull: true,
-            default: 1
+            type: DataTypes.ENUM("participant", "staff", "oscar"),
+            defaultValue: "participant"
         },
         phoneNumber: {
             type: DataTypes.STRING(20), // Matches varchar(20)
             allowNull: false,
-            require: true
+            require: true,
+            validate: {
+                len: [1, 20]
+            }
         },
-        dob: {
-            type: DataTypes.DATE, // Matches date type
-            allowNull: false,
-            require: true
+        age: {
+            type: DataTypes.INTEGER,
+            allowNull: false
         },
         gender: {
             type: DataTypes.STRING(50), // Matches varchar(50)
-            allowNull: false,
-            require: true
-        },
-        pronouns: {
-            type: DataTypes.STRING,
-            allowNull: true
+            defaultValue: null
         },
         country: {
-            type: DataTypes.STRING(100), // Matches varchar(100)
+            type: DataTypes.STRING(50), // Matches varchar(50)
             allowNull: false,
-            require: true
+            validate: {
+                len: [1, 50]
+            }
         },
         tShirtSize: {
             type: DataTypes.STRING(5), // Matches varchar(5)
             allowNull: false,
-            require: true
+            validate: {
+                len: [1, 5]
+            }
         },
         dietaryRestrictions: {
             type: DataTypes.STRING(255), // Matches varchar(255)
-            allowNull: true,
+            defaultValue: null
         },
         school: {
             type: DataTypes.STRING(255),
-            allowNull: true
+            allowNull: false,
+            validate: {
+                len: [1, 255]
+            }
+        },
+        major: {
+            type: DataTypes.STRING(100),
+            defaultValue: null
+        },
+        graduationYear: {
+            type: DataTypes.INTEGER,
+            defaultValue: null
+        },
+        levelOfStudy: {
+            type: DataTypes.STRING(100),
+            allowNull: false,
+            validate: {
+                len: [1, 100]
+            }
         },
         hackathonsAttended: {
-            type: DataTypes.INTEGER, // Matches int
+            type: DataTypes.INTEGER,
+            defaultValue: 0
+        },
+        pronouns: {
+            type: DataTypes.STRING,
+            defaultValue: null
+        },
+        linkedInUrl: {
+            type: DataTypes.STRING,
+            defaultValue: null
+        },
+        checkIn: {
+            type: DataTypes.BOOLEAN, // Matches tinyint(1)
             allowNull: false,
+            defaultValue: false
         },
         mlhCodeOfConduct: {
-            type: DataTypes.TINYINT(1), // Matches tinyint(1)
+            type: DataTypes.BOOLEAN, // Matches tinyint(1)
             allowNull: false,
-            require: true
         },
         mlhPrivacyPolicy: {
-            type: DataTypes.TINYINT(1), // Matches tinyint(1)
+            type: DataTypes.BOOLEAN, // Matches tinyint(1)
             allowNull: false,
-            require: true
-        },
-        isVerified: {
-            type: DataTypes.BOOLEAN,
-            allowNull: false,  // This ensures the field can't be null
-            defaultValue: false  // Sets the default value to false if not provided
         },
         mlhEmails: {
-            type: DataTypes.TINYINT(1), // Matches tinyint(1)
-            allowNull: true,
+            type: DataTypes.BOOLEAN, // Matches tinyint(1)
+            defaultValue: false
         },
+        isVerified: {
+            type: DataTypes.BOOLEAN, // Matches tinyint(1)
+            defaultValue: false
+        }
     },
     {
-        tableName: 'user',
-        timestamps: false,
+        tableName: 'User',
+        timestamps: true
     }
 );
 

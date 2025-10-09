@@ -1,20 +1,22 @@
-class Sponsor {
+class CreateSponsor {
     constructor(
-        id,
         sponsorName,
         sponsorWebsite,
         sponsorImageId
     ) {
-        this.id = id;
         this.sponsorName = sponsorName;
         this.sponsorWebsite = sponsorWebsite;
         this.sponsorImageId = sponsorImageId;
+    }
+
+    validate() {
+        const errors = [];
 
         if (!this.sponsorName) {
             errors.push("Missing Sponsor Name");
         }
 
-        if(!this.sponsorWebsite) {
+        if (!this.sponsorWebsite) {
             errors.push("Missing Sponsor Website");
         }
 
@@ -22,4 +24,4 @@ class Sponsor {
     }
 }
 
-module.exports = Sponsor;
+module.exports = CreateSponsor;

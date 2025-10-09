@@ -3,137 +3,148 @@ const app = require('../app'); // Assuming this imports the main Express app
 const HardwareRepo = require('../repository/hardware/HardwareRepo');
 
 jest.mock('../repository/config/index', () => {
-    // We mock all Sequelize methods that might be called on app startup to prevent 
-    // real connection attempts and database synchronization.
-    const mockSequelize = {
-        authenticate: jest.fn().mockResolvedValue(), // Prevents connection attempt logs/errors
-        sync: jest.fn().mockResolvedValue(),         // Prevents models from calling createTable
-        close: jest.fn().mockResolvedValue(),        // Mocked for the afterAll cleanup hook
-        define: jest.fn(() => ({
-            // Return a mock object that simulates a Sequelize Model, 
-            // useful if other files immediately call methods on the defined model.
-            findAll: jest.fn(),
-            findByPk: jest.fn(),
-            sync: jest.fn().mockResolvedValue(),
-            bulkCreate: jest.fn().mockResolvedValue(),
-        })),
-    };
-    return mockSequelize;
+    // 1. Create the raw mock object (no changes here)
+    const mockSequelizeInstance = {
+        authenticate: jest.fn().mockResolvedValue(), 
+        sync: jest.fn().mockResolvedValue(), 
+        close: jest.fn().mockResolvedValue(), // This mock is present
+        define: jest.fn(() => ({
+            // Return a mock object that simulates a Sequelize Model, 
+            findAll: jest.fn(),
+            findByPk: jest.fn(),
+            sync: jest.fn().mockResolvedValue(),
+            bulkCreate: jest.fn().mockResolvedValue(),
+            
+            // Added association methods to allow model definitions to run
+            hasMany: jest.fn(),
+            belongsTo: jest.fn(),
+            belongsToMany: jest.fn(),
+        })),
+        // If your models also use DataTypes from the same config import, add it here:
+        DataTypes: require('sequelize').DataTypes,
+    };
+
+    // 2. Wrap the mock instance in an object with the key 'sequelize'
+    return { 
+        sequelize: mockSequelizeInstance 
+    };
 });
 
-// The import below now retrieves the mock object defined above.
-const sequelize = require('../repository/config/index'); 
+// FIX: Rename the import variable from 'sequelize' to 'dbConfig'
+// This holds the exported object: { sequelize: mockInstance }
+const dbConfig = require('../repository/config/index'); 
 
 // Expected output for HardwareRepo.groupHardwareForFrontend (GET /)
 const expectedGroupedHardware = [
-    {
-        id: "raspberry-pi",
-        title: "Raspberry Pi",
-        items: [
-            {
-                name: "Raspberry Pi",
-                subtitle: "4 Model B",
-                description: "4GB RAM",
-                image: "http://example.com/pi4.jpg"
-            },
-            {
-                name: "Raspberry Pi",
-                subtitle: "Zero W",
-                description: "Small, wireless",
-                image: "http://example.com/pizero.jpg"
-            }
-        ]
-    }
+    {
+        id: "raspberry-pi",
+        title: "Raspberry Pi",
+        items: [
+            {
+                name: "Raspberry Pi",
+                subtitle: "4 Model B",
+                description: "4GB RAM",
+                image: "http://example.com/pi4.jpg"
+            },
+            {
+                name: "Raspberry Pi",
+                subtitle: "Zero W",
+                description: "Small, wireless",
+                image: "http://example.com/pizero.jpg"
+            }
+        ]
+    }
 ];
 
 // Expected output for HardwareRepo.getAvailabilityList (GET /availability)
 const expectedAvailability = [
-    { name: "Raspberry Pi 4 Model B", serialNumber: "SN001", whoHasId: null },
-    { name: "Raspberry Pi Zero W", serialNumber: "SN002", whoHasId: 101 },
-    { name: "Arduino Uno", serialNumber: "SN003", whoHasId: null },
+    { name: "Raspberry Pi 4 Model B", serialNumber: "SN001", whoHasId: null },
+    { name: "Raspberry Pi Zero W", serialNumber: "SN002", whoHasId: 101 },
+    { name: "Arduino Uno", serialNumber: "SN003", whoHasId: null },
 ];
 
 jest.mock('../repository/hardware/HardwareRepo', () => ({
-    groupHardwareForFrontend: jest.fn(),
-    getAvailabilityList: jest.fn(),
-    findHardwareById: jest.fn(),
-    findAllHardware: jest.fn(),
-    createHardware: jest.fn(),
-    updateHardware: jest.fn(),
-    deleteHardware: jest.fn(),
+    groupHardwareForFrontend: jest.fn(),
+    getAvailabilityList: jest.fn(),
+    findHardwareById: jest.fn(),
+    findAllHardware: jest.fn(),
+    createHardware: jest.fn(),
+    updateHardware: jest.fn(),
+    deleteHardware: jest.fn(),
 }), { virtual: true });
 
 const HardwareRepoInstance = HardwareRepo;
 
 describe('Hardware Routes', () => {
-    beforeEach(() => {
-        // Reset mock calls before each test
-        jest.clearAllMocks();
-    });
+    beforeEach(() => {
+        // Reset mock calls before each test
+        jest.clearAllMocks();
+    });
 
-    // Test for GET / (HardwareController.getAllHardware)
-    describe('GET /', () => {
-        it('should return 200 and a list of grouped hardware items', async () => {
-            // Mock the function that the controller for '/' should call
-            HardwareRepoInstance.groupHardwareForFrontend.mockResolvedValue(expectedGroupedHardware);
+    // Test for GET / (HardwareController.getAllHardware)
+    describe('GET /', () => {
+        it('should return 200 and a list of grouped hardware items', async () => {
+            // Mock the function that the controller for '/' should call
+            HardwareRepoInstance.groupHardwareForFrontend.mockResolvedValue(expectedGroupedHardware);
 
-            const res = await request(app).get('/hardware');
+            const res = await request(app).get('/hardware');
 
-            expect(res.statusCode).toEqual(200);
-            expect(res.body).toEqual(expectedGroupedHardware);
-            expect(HardwareRepoInstance.groupHardwareForFrontend).toHaveBeenCalledTimes(1);
-        });
+            expect(res.statusCode).toEqual(200);
+            expect(res.body).toEqual(expectedGroupedHardware);
+            expect(HardwareRepoInstance.groupHardwareForFrontend).toHaveBeenCalledTimes(1);
+        });
 
-        it('should return 500 if the repository operation fails', async () => {
-            // Suppress the console error message generated by the controller's catch block
-            const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+        it('should return 500 if the repository operation fails', async () => {
+            // Suppress the console error message generated by the controller's catch block
+            const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
 
-            // Asserting for a 500 status code, which is handled by the fixed HardwareController
-            HardwareRepoInstance.groupHardwareForFrontend.mockRejectedValue(new Error('Database error'));
+            // Asserting for a 500 status code, which is handled by the fixed HardwareController
+            HardwareRepoInstance.groupHardwareForFrontend.mockRejectedValue(new Error('Database error'));
 
-            const res = await request(app).get('/hardware');
+            const res = await request(app).get('/hardware');
 
-            expect(res.statusCode).toEqual(500);
-            expect(res.body).toHaveProperty('error');
-            expect(res.body.error).toContain('Database error');
+            expect(res.statusCode).toEqual(500);
+            expect(res.body).toHaveProperty('error');
+            expect(res.body.error).toContain('Database error');
 
-            // Restore console.error after the test
-            consoleErrorSpy.mockRestore();
-        });
-    });
+            // Restore console.error after the test
+            consoleErrorSpy.mockRestore();
+        });
+    });
 
-    // Test for GET /availability (HardwareController.getHardwareAvailability)
-    describe('GET /availability', () => {
-        it('should return 200 and a list of hardware availability', async () => {
-            // Mock the function that the controller for '/availability' should call
-            HardwareRepoInstance.getAvailabilityList.mockResolvedValue(expectedAvailability);
+    // Test for GET /availability (HardwareController.getHardwareAvailability)
+    describe('GET /availability', () => {
+        it('should return 200 and a list of hardware availability', async () => {
+            // Mock the function that the controller for '/availability' should call
+            HardwareRepoInstance.getAvailabilityList.mockResolvedValue(expectedAvailability);
 
-            const res = await request(app).get('/hardware/availability');
+            const res = await request(app).get('/hardware/availability');
 
-            expect(res.statusCode).toEqual(200);
-            expect(res.body).toEqual(expectedAvailability);
-            expect(HardwareRepoInstance.getAvailabilityList).toHaveBeenCalledTimes(1);
-        });
+            expect(res.statusCode).toEqual(200);
+            expect(res.body).toEqual(expectedAvailability);
+            expect(HardwareRepoInstance.getAvailabilityList).toHaveBeenCalledTimes(1);
+        });
 
-        it('should return 500 if the repository operation fails', async () => {
-            // Suppress the console error message generated by the controller's catch block
-            const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-            
-            // Asserting for a 500 status code, which is handled by the fixed HardwareController
-            HardwareRepoInstance.getAvailabilityList.mockRejectedValue(new Error('Network error'));
+        it('should return 500 if the repository operation fails', async () => {
+            // Suppress the console error message generated by the controller's catch block
+            const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+            
+            // Asserting for a 500 status code, which is handled by the fixed HardwareController
+            HardwareRepoInstance.getAvailabilityList.mockRejectedValue(new Error('Network error'));
 
-            const res = await request(app).get('/hardware/availability');
+            const res = await request(app).get('/hardware/availability');
 
-            expect(res.statusCode).toEqual(500);
-            expect(res.body).toHaveProperty('error');
-            expect(res.body.error).toContain('Network error');
+            expect(res.statusCode).toEqual(500);
+            expect(res.body).toHaveProperty('error');
+            expect(res.body.error).toContain('Network error');
 
-            // Restore console.error after the test
-            consoleErrorSpy.mockRestore();
-        });
-    });
+            // Restore console.error after the test
+            consoleErrorSpy.mockRestore();
+        });
+    });
 });
 
 afterAll(async () => {
-    await sequelize.close(); 
+    // FIX: Access the mock instance via the correct property: dbConfig.sequelize
+    await dbConfig.sequelize.close(); 
 });
