@@ -26,4 +26,4 @@ const SponsorTier = sequelize.define(
     }
 );
 
-module.exports = sponsorTiers;
+module.exports = sponsorTier;
