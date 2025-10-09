@@ -1,5 +1,5 @@
 const {DataTypes} = require("sequelize");
-const sequelize = require('../config');
+const {sequelize} = require('../config');
 
 const SponsorTier = sequelize.define(
     'SponsorTier',
@@ -26,4 +26,4 @@ const SponsorTier = sequelize.define(
     }
 );
 
-module.exports = sponsorTier;
+module.exports = SponsorTier;
