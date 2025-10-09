@@ -15,19 +15,8 @@ const Image = sequelize.define(
             allowNull: false
         }
     },
-<<<<<<< Updated upstream
-    {
-        tableName: 'Image',
-=======
-<<<<<<< HEAD
-
     {
         tableName: 'Image'
-=======
-    {
-        tableName: 'Image',
->>>>>>> sponsors
->>>>>>> Stashed changes
     }
 
 );

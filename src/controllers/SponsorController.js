@@ -1,25 +1,9 @@
-const SponsorRepoModel = require('../repository/sponsor/Sponsor');
-const Sponsor = require('../models/Sponsor');
-<<<<<<< Updated upstream
-=======
-<<<<<<< HEAD
-const EventSponsorRepoModel = require('../repository/sponsor/EventSponsor');
-const EventSponsor = require("../models/EventSponsor");
-const SponsorTierRepoModel = require("../repository/sponsor/SponsorTier");
-const SponsorTier = require("../models/SponsorTier");
-const CreateSponsor = require("../models/CreateSponsor");
-
-=======
->>>>>>> Stashed changes
-const EventSponsorRepoModel = require('../repository/sponsor/eventSponsor');
+const EventSponsorRepoModel = require('../repository/sponsor/EventSponsorRepo');
 const EventSponsor = require("../models/eventSponsor");
 const SponsorTiersRepoModel = require("../repository/sponsor/sponsorTiers");
 const SponsorTiers = require("../models/sponsorTiers");
 const SponsorRepo = require('../repository/sponsor/SponsorRepo');
-<<<<<<< Updated upstream
-=======
->>>>>>> sponsors
->>>>>>> Stashed changes
+
 
 /**
  * function creates a sponsor entry in table Sponsors
@@ -33,25 +17,11 @@ const createSponsor = async (req, res) => {
     try {
         const createSponsorDto = req.body;
 
-<<<<<<< Updated upstream
-=======
-<<<<<<< HEAD
-        const sponsor = new CreateSponsor(
-            sponsorName = createSponsorDto.sponsorName,
-            sponsorWebsite = createSponsorDto.sponsorWebsite,
-            sponsorImageId = createSponsorDto.sponsorImageId
-        )
-=======
->>>>>>> Stashed changes
         const sponsor = await SponsorRepo.createSponsor({
             sponsor_name: createSponsorDto.sponsor_name,
             sponsor_website: createSponsorDto.sponsor_website,
             image_id: createSponsorDto.image_id || null
         });
-<<<<<<< Updated upstream
-=======
->>>>>>> sponsors
->>>>>>> Stashed changes
 
         const validationErrors = sponsor.validate()
         if (validationErrors.length > 0) {

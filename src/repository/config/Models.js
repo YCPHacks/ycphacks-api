@@ -1,41 +1,20 @@
-<<<<<<< Updated upstream
 const { sequelize, DataTypes } = require('./index'); // Sequelize instance
 
 // Import all models (factory-defined)
 const User = require('../user/User');
-=======
-<<<<<<< HEAD
-const User = require("../user/User");
 const Team = require('../team/Team');
->>>>>>> Stashed changes
 const Event = require('../event/Event');
 const EventParticipant = require('../event/EventParticipants');
 const Sponsor = require('../sponsor/Sponsor');
 const SponsorTier = require('../sponsor/sponsorTiers');
 const EventSponsor = require('../sponsor/EventSponsor');
-<<<<<<< Updated upstream
-=======
-=======
-const { sequelize, DataTypes } = require('./index'); // Sequelize instance
-
-// Import all models (factory-defined)
-const User = require('../user/User');
-const Event = require('../event/Event');
-const EventParticipant = require('../event/EventParticipants');
-const Sponsor = require('../sponsor/Sponsor');
-const SponsorTier = require('../sponsor/sponsorTiers');
-const EventSponsor = require('../sponsor/EventSponsor');
->>>>>>> Stashed changes
 //const Hardware = require('../hardware/Hardware');
 //const HardwareImage = require('../hardware/HardwareImage');
 //const Team = require('../team/Team');
 //const HackCategory = require('../hackCategory/HackCategory');
 //const Prize = require('../prize/Prize');
 //const Analytics = require('../analytics/Analytics');
-<<<<<<< Updated upstream
-=======
->>>>>>> sponsors
->>>>>>> Stashed changes
+
 const Image = require('../image/Image');
 const Activities = require('../event/Activities');
 
@@ -76,46 +55,6 @@ const Activities = require('../event/Activities');
 // Team.hasMany(EventParticipant, { foreignKey: 'team_id', as: 'participants' });
 // EventParticipant.belongsTo(Team, { foreignKey: 'team_id', as: 'team' });
 
-<<<<<<< Updated upstream
-=======
-// ==========================
-// Associations
-// ==========================
-//console.log('SponsorTier:', SponsorTier instanceof require('sequelize').Model);
-//console.log('EventSponsor:', EventSponsor instanceof require('sequelize').Model);
-//
-//// Sponsor → EventSponsor
-//Sponsor.hasMany(EventSponsor, { foreignKey: 'sponsorId', as: 'eventSponsors' });
-//EventSponsor.belongsTo(Sponsor, { foreignKey: 'sponsorId', as: 'sponsor' });
-//
-//// EventSponsor → SponsorTier
-//SponsorTier.hasMany(EventSponsor, { foreignKey: 'sponsorTierId', as: 'eventSponsors' });
-//EventSponsor.belongsTo(SponsorTier, { foreignKey: 'sponsorTierId', as: 'tier' });
-
-// Sponsor images
-//Sponsor.belongsTo(Image, { foreignKey: 'sponsor_image_id', targetKey: 'id', as: 'image' });
-
-// The rest of the associations are commented out for future use
-
-// EventSponsors other sides
-// Event.hasMany(EventSponsor, { foreignKey: 'event_id', as: 'eventSponsors' });
-// EventSponsor.belongsTo(Event, { foreignKey: 'event_id', as: 'event' });
-// SponsorTier.hasMany(EventSponsor, { foreignKey: 'sponsor_tier_id', as: 'eventSponsors' });
-// EventSponsor.belongsTo(SponsorTier, { foreignKey: 'sponsor_tier_id', as: 'tier' });
-
-// Hardware / HardwareImage
-// Hardware.hasMany(HardwareImage, { foreignKey: 'hardware_id', as: 'images' });
-// HardwareImage.belongsTo(Hardware, { foreignKey: 'hardware_id', as: 'hardware' });
-
-// EventParticipants
-// User.hasMany(EventParticipant, { foreignKey: 'user_id', as: 'eventParticipants' });
-// EventParticipant.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
-// Event.hasMany(EventParticipant, { foreignKey: 'event_id', as: 'participants' });
-// EventParticipant.belongsTo(Event, { foreignKey: 'event_id', as: 'event' });
-// Team.hasMany(EventParticipant, { foreignKey: 'team_id', as: 'participants' });
-// EventParticipant.belongsTo(Team, { foreignKey: 'team_id', as: 'team' });
-
->>>>>>> Stashed changes
 // Hack Categories / Prizes
 // Event.hasMany(HackCategory, { foreignKey: 'event_id', as: 'categories' });
 // HackCategory.belongsTo(Event, { foreignKey: 'event_id', as: 'event' });
@@ -148,33 +87,19 @@ module.exports = {
     sequelize,
     User,
     Event,
-<<<<<<< Updated upstream
-    EventParticipant,
-=======
-<<<<<<< HEAD
     Activity,
     EventParticipant,
     HackCategory,
     Prize,
-=======
     EventParticipant,
->>>>>>> sponsors
->>>>>>> Stashed changes
     Sponsor,
     SponsorTier,
     EventSponsor,
     Image,
-<<<<<<< Updated upstream
     Activities,
-=======
-<<<<<<< HEAD
     Analytics,
     Hardware,
     HardwareImage
-=======
-    Activities,
->>>>>>> sponsors
->>>>>>> Stashed changes
 };
 
 // Hardware,
