@@ -2,9 +2,10 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const { sequelize } = require('./repository/config'); // <-- destructure the instance
+const { sequelize } = require('./repository/config/index'); // <-- destructure the instance
 const userRoutes = require('./routes/UserRoutes');
 const eventRoutes = require('./routes/EventRoutes');
+const hardwareRoutes = require('./routes/HardwareRoutes');
 const sponsorRoutes = require('./routes/SponsorRoutes');
 const app = express();
 const { authMiddleware } = require('./util/JWTUtil');
@@ -20,9 +21,11 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json());
 
-// Routes
-app.use('/user', userRoutes);
-app.use('/event', eventRoutes);
+// Use your routes
+app.use('/user', userRoutes)
+app.use('/event', eventRoutes)
+app.use('/hardware', hardwareRoutes)
+// Sponsor Routes
 app.use('/sponsors', sponsorRoutes);
 app.use('/api/eventsponsors', sponsorRoutes); 
 
@@ -33,7 +36,6 @@ app.get('/test', (req, res) => {
 
 // Database + server start
 const port = process.env.APP_PORT || 3000;
-
 async function startServer() {
   try {
     if (process.env.NODE_ENV !== 'test') {
