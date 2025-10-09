@@ -1,5 +1,4 @@
 const request = require('supertest');
-const HardwareRepo = require('../repository/hardware/HardwareRepo');
 
 // 1. HARDWARE REPO MOCK (Moved to the top to ensure it's active before app loads)
 // This mock is critical because the real repo methods may be called on startup
@@ -45,6 +44,9 @@ jest.mock('../repository/config/index', () => {
 
 // 3. APPLICATION IMPORT (Must be after all mocks)
 const app = require('../app'); 
+
+// FIX: HardwareRepo MUST be required *after* its mock is defined to ensure the mock is loaded.
+const HardwareRepo = require('../repository/hardware/HardwareRepo');
 
 // FIX: Rename the import variable from 'sequelize' to 'dbConfig'
 // This holds the exported object: { sequelize: mockInstance }
