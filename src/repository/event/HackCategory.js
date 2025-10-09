@@ -2,7 +2,11 @@ const { DataTypes } = require('sequelize');
 const { sequelize } = require('../config');
 
 const HackCategory = sequelize.define(
+<<<<<<< HEAD:src/repository/event/HackCategories.js
     'HackCategory',
+=======
+    'HackCategories',
+>>>>>>> 0a0d17913dcbf798e7818f5af75de29369b7b063:src/repository/event/HackCategory.js
     {
         id: {
             type: DataTypes.INTEGER,

@@ -6,10 +6,11 @@ const createEvent = async (req, res) => {
         const createEventDto = req.body
 
         const event = new CreateEvent(
-            eventName = createEventDto.eventName,
-            startDate = createEventDto.startDate,
-            endDate = createEventDto.endDate,
-            canChange = true,
+            createEventDto.eventName,
+            createEventDto.startDate,
+            createEventDto.endDate,
+            true,
+            new Date().getFullYear()
         )
 
         // validate data and throw error if not valid
@@ -21,14 +22,14 @@ const createEvent = async (req, res) => {
             });
         }
 
-        const psersistedEvent = await EventRepo.create(event)
+        const persistedEvent = await EventRepo.create(event)
 
-        // create sechdule and prizes, these will be empty arrays 
+        // create schedule and prizes, these will be empty arrays
         // but need to be initialized in the database
 
         return res.status(201).json({
             message: 'Event created successfully',
-            event: psersistedEvent
+            event: persistedEvent
         });
     } catch (e) {
         console.error(e);
@@ -152,7 +153,7 @@ const createCategory = async (req, res) => {
             eventId: req.body.eventId
         }
 
-        const createdCategory = await EventRepo.createCategory( category)
+        const createdCategory = await EventRepo.createCategory(category)
 
         if (!createdCategory) {
             return res.status(404).json({

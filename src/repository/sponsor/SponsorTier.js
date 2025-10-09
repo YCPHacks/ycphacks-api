@@ -15,7 +15,7 @@ const SponsorTier = sequelize.define(
             allowNull: false,
             require: true,
         },
-        lower_threshold: {
+        lowerThreshold: {
             type: DataTypes.INTEGER,
             allowNull: false,
         }

@@ -1,7 +1,7 @@
 const { Sponsor, SponsorTier, EventSponsor, Image } = require("../config/Models");
 
 const SponsorRepo = {
-    //sponsor
+    //Sponsor
     async findSponsorById(id){
         return Sponsor.findOne({
             where: { id },
@@ -34,7 +34,7 @@ const SponsorRepo = {
         return Sponsor.destroy({where: {id}});
     },
 
-    //eventSponsor
+    //EventSponsor
     async findEventSponsorsById(id){
         return EventSponsor.findAll({
             where: { id },
@@ -51,7 +51,7 @@ const SponsorRepo = {
         return EventSponsor.create(eventSponsor);
     },
 
-    //sponsorTiers
+    //SponsorTier
     async createSponsorTier(sponsorTier){
         return SponsorTier.create(sponsorTier);
     },
