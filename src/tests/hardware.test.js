@@ -1,8 +1,7 @@
 const request = require('supertest');
 
-// 1. HARDWARE REPO MOCK (Moved to the top to ensure it's active before app loads)
-// This mock is critical because the real repo methods may be called on startup
-// during module association/loading, causing the 'forEach' and 'map' errors.
+// 1. HARDWARE REPO MOCK
+// Removed { virtual: true } as the file exists and the mock should be standard.
 jest.mock('../repository/hardware/HardwareRepo', () => ({
     groupHardwareForFrontend: jest.fn(),
     getAvailabilityList: jest.fn(),
@@ -11,7 +10,7 @@ jest.mock('../repository/hardware/HardwareRepo', () => ({
     createHardware: jest.fn(),
     updateHardware: jest.fn(),
     deleteHardware: jest.fn(),
-}), { virtual: true });
+})); // Removed { virtual: true }
 
 // 2. CONFIG MOCK
 jest.mock('../repository/config/index', () => {
@@ -45,8 +44,8 @@ jest.mock('../repository/config/index', () => {
 // 3. APPLICATION IMPORT (Must be after all mocks)
 const app = require('../app'); 
 
-// FIX: HardwareRepo MUST be required *after* its mock is defined to ensure the mock is loaded.
-const HardwareRepo = require('../repository/hardware/HardwareRepo');
+// FIX: Renaming the repo import to clearly indicate it is the mocked version.
+const HardwareRepoMock = require('../repository/hardware/HardwareRepo');
 
 // FIX: Rename the import variable from 'sequelize' to 'dbConfig'
 // This holds the exported object: { sequelize: mockInstance }
@@ -81,7 +80,7 @@ const expectedAvailability = [
     { name: "Arduino Uno", serialNumber: "SN003", whoHasId: null },
 ];
 
-const HardwareRepoInstance = HardwareRepo;
+const HardwareRepoInstance = HardwareRepoMock;
 
 describe('Hardware Routes', () => {
     beforeEach(() => {
@@ -153,6 +152,6 @@ describe('Hardware Routes', () => {
 });
 
 afterAll(async () => {
-    // FIX: Access the mock instance via the correct property: dbConfig.sequelize
+    // FIX: Access the mock instance via the correct property: dbConfig.sequelize
     await dbConfig.sequelize.close(); 
 });
