@@ -30,11 +30,7 @@ const Activity = sequelize.define(
 
     {
         tableName: 'Activity',
-<<<<<<< HEAD:src/repository/event/Activities.js
         timestamps: false
-=======
-        timestamps: false,
->>>>>>> 0a0d17913dcbf798e7818f5af75de29369b7b063:src/repository/event/Activity.js
     }
 );
 

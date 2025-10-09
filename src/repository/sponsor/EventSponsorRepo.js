@@ -1,7 +1,7 @@
 const EventSponsor = require("./EventSponsor");
 const SponsorRepo = require("./SponsorRepo");
 const Sponsor = require("./Sponsor");
-const SponsorTier = require("./sponsorTiers");
+const SponsorTier = require("./SponsorTier");
 
 class EventSponsorRepo {
 //    Get all sponsors for a given event

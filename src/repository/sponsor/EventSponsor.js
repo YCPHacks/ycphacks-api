@@ -1,7 +1,7 @@
 const { DataTypes } = require("sequelize");
 const { sequelize } = require("../config");
 const Sponsor = require("./Sponsor");
-const SponsorTier = require("./sponsorTiers");
+const SponsorTier = require("./SponsorTier");
 
 const EventSponsor = sequelize.define(
   "EventSponsor",
