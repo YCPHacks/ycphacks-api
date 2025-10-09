@@ -1,7 +1,20 @@
 const request = require('supertest');
-const app = require('../app'); // Assuming this imports the main Express app
 const HardwareRepo = require('../repository/hardware/HardwareRepo');
 
+// 1. HARDWARE REPO MOCK (Moved to the top to ensure it's active before app loads)
+// This mock is critical because the real repo methods may be called on startup
+// during module association/loading, causing the 'forEach' and 'map' errors.
+jest.mock('../repository/hardware/HardwareRepo', () => ({
+    groupHardwareForFrontend: jest.fn(),
+    getAvailabilityList: jest.fn(),
+    findHardwareById: jest.fn(),
+    findAllHardware: jest.fn(),
+    createHardware: jest.fn(),
+    updateHardware: jest.fn(),
+    deleteHardware: jest.fn(),
+}), { virtual: true });
+
+// 2. CONFIG MOCK
 jest.mock('../repository/config/index', () => {
     // 1. Create the raw mock object (no changes here)
     const mockSequelizeInstance = {
@@ -29,6 +42,9 @@ jest.mock('../repository/config/index', () => {
         sequelize: mockSequelizeInstance 
     };
 });
+
+// 3. APPLICATION IMPORT (Must be after all mocks)
+const app = require('../app'); 
 
 // FIX: Rename the import variable from 'sequelize' to 'dbConfig'
 // This holds the exported object: { sequelize: mockInstance }
@@ -62,16 +78,6 @@ const expectedAvailability = [
     { name: "Raspberry Pi Zero W", serialNumber: "SN002", whoHasId: 101 },
     { name: "Arduino Uno", serialNumber: "SN003", whoHasId: null },
 ];
-
-jest.mock('../repository/hardware/HardwareRepo', () => ({
-    groupHardwareForFrontend: jest.fn(),
-    getAvailabilityList: jest.fn(),
-    findHardwareById: jest.fn(),
-    findAllHardware: jest.fn(),
-    createHardware: jest.fn(),
-    updateHardware: jest.fn(),
-    deleteHardware: jest.fn(),
-}), { virtual: true });
 
 const HardwareRepoInstance = HardwareRepo;
 
