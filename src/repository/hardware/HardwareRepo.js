@@ -13,20 +13,25 @@ const HardwareRepo = {
 
     //Group hardware by name
     async groupHardware() {
-        const hardwareList = await Hardware.findAll();
+        const hardwareList = await Hardware.findAll({
+            attributes: [
+                'id', 'hardwareName', 'description', 'serial', 'whoHasId', 
+                // Add other necessary fields like 'functional' or 'imageUrl'
+            ]
+        });
+        
         const grouped = {};
-        let groupTitle = '';
-        let subtitle = '';
-
         const multiWordFamilies = ["Raspberry Pi"];
 
         hardwareList.forEach(item => {
             
-            // Default grouping and subtitle logic
-            groupTitle = item.hardwareName.split(" ")[0];
-            subtitle = item.hardwareName.split(" ").slice(1).join(" ");
+            // Availability calculation (TRUE if someone has it)
+            const isUnavailable = item.whoHasId !== null; 
 
-            // Apply multi-word family logic
+            // Existing grouping logic...
+            let groupTitle = item.hardwareName.split(" ")[0];
+            let subtitle = item.hardwareName.split(" ").slice(1).join(" ");
+            
             for(const fam of multiWordFamilies){
                 if(item.hardwareName.startsWith(fam)){
                     groupTitle = fam;
@@ -43,21 +48,20 @@ const HardwareRepo = {
                 };
             }
             
-            // --- START OF FIX ---
+            // --- FINAL ITEM PUSH FIX ---
             grouped[groupTitle].items.push({
-                // FIX 1: Set 'name' to the unique identifier (the part after the group title)
-                // This is the cleanest fix for client-side logic that expects a partial name.
-                name: subtitle || groupTitle,
-                
-                // FIX 2 (CRITICAL): Include the original, full name for the client to use directly.
-                // We use a new property, `fullName`, that holds the required value.
+                // Ensure the full, unique name is present for client-side mapping
                 fullName: item.hardwareName,
                 
-                subtitle: subtitle, // Keep subtitle for consistency
+                // This is what the client-side logic needs to calculate availability
+                isUnavailable: isUnavailable, 
+                
+                // Keep original naming structure for flexibility
+                name: subtitle || groupTitle,
+                subtitle: subtitle, 
                 description: item.description || "",
-                image: item.imageUrl || null
+                image: item.imageUrl || null 
             });
-            // --- END OF FIX ---
         });
         return Object.values(grouped);
     },
@@ -70,7 +74,8 @@ const HardwareRepo = {
         const mappedList =  hardwareList.map(item => ({
             name: item.hardwareName,
             serialNumber: item.serial,
-            whoHasId: item.whoHasId
+            whoHasId: item.whoHasId,
+            isUnavailable: item.whoHasId !== null
         }));
 
         // console.log("Mapped Availability Data: ", mappedList);
