@@ -15,7 +15,7 @@ const HardwareController = {
 
     async getAllHardware(req, res) {
         try {
-            const groupedHardware = await HardwareRepo.groupHardwareForFrontend();
+            const groupedHardware = await HardwareRepo.groupHardware();
             res.json(groupedHardware);
         } catch (err) {
             console.error("Error fetching grouped hardware list: ", err);
