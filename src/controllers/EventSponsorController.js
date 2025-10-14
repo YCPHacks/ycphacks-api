@@ -49,7 +49,8 @@ class EventSponsorController {
             id: s.id,
             name: s.sponsorName,
             website: s.sponsorWebsite,
-            image: s.sponsorImageId || ""
+            image: s.sponsorImageId || "",
+            sponsorTierId: eventSponsor?.sponsorTierId
           };
         });
 
