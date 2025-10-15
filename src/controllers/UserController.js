@@ -204,12 +204,6 @@ const loginAdminUser = async (req, res) => {
     try {
         const { email, password } = req.body;
 
-        const roleMap = {
-            1: 'participant',
-            2: 'staff',
-            3: 'oscar',
-        };
-
         // Find the user by email
         const user = await UserRepo.findByEmail(email);
 
