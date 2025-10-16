@@ -78,7 +78,6 @@ class EventSponsorController {
             sponsorTierId
           });
 
-          // FIX: Change successful resource creation status to 201
           res.status(201).json({ result });
         } catch (err) {
           console.error(err);
@@ -147,6 +146,38 @@ class EventSponsorController {
         res.status(500).json({ error: "Failed to fetch sponsor tiers" });
       }
     }
+
+    static async addSponsorTier(req, res){
+        console.log("Made it to the Controller file");
+        try{
+            // Add imageWidth and imageHeight after it's set up in DB
+            const { tier, lowerThreshold } = req.body;
+
+            //  || !imageWidth || !imageHeight
+            if (!tier || lowerThreshold === undefined) {
+                return res.status(400).json({ error: "Missing required fields: tier or lowerThreshold." });
+            }
+
+            if (isNaN(Number(lowerThreshold)) || Number(lowerThreshold) < 0) {
+                return res.status(400).json({ error: "lowerThreshold must be a non-negative number." });
+            }
+            // if (isNaN(Number(imageWidth)) || isNaN(Number(imageHeight))) {
+            //     return res.status(400).json({ error: "imageWidth and imageHeight must be numbers." });
+            // }
+
+            console.log("mmmm, sending to repo file now...");
+            
+            const newTier = await EventSponsorRepo.addSponsorTier({
+                tier,
+                lowerThreshold: Number(lowerThreshold),
+            });
+                // imageWidth: Number(imageWidth),
+                // imageHeight: Number(imageHeight)
+            return res.status(201).json(newTier);
+        }catch(err){
+            return res.status(500).json({ error: "Failed to create sponsor tier." });
+        }
+    }
 }
 
 module.exports = EventSponsorController;
