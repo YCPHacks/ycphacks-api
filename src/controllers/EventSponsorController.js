@@ -136,7 +136,7 @@ class EventSponsorController {
 
     static async getSponsorTiers(req, res){
       try{
-        const tiers = await EventSponsorRepo.getSponsorTier();
+        const tiers = await EventSponsorRepo.getSponsorTiers();
 
         if(!tiers || tiers.length === 0){
           return res.status(404).json({ error: "No sponsor tiers found" });

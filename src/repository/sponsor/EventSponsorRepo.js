@@ -90,9 +90,9 @@ class EventSponsorRepo {
       }
 
     // Gets Sponsor Tiers
-    async getSponsorTier(){
+    async getSponsorTiers(){
       return await SponsorTier.findAll({
-        attributes: ["id", "tier"]
+        attributes: ["id", "tier", "lowerThreshold"]
       });
     }
   
