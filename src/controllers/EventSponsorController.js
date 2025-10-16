@@ -148,7 +148,6 @@ class EventSponsorController {
     }
 
     static async addSponsorTier(req, res){
-        console.log("Made it to the Controller file");
         try{
             // Add imageWidth and imageHeight after it's set up in DB
             const { tier, lowerThreshold } = req.body;
@@ -165,7 +164,7 @@ class EventSponsorController {
             //     return res.status(400).json({ error: "imageWidth and imageHeight must be numbers." });
             // }
 
-            console.log("mmmm, sending to repo file now...");
+            // console.log("mmmm, sending to repo file now...");
             
             const newTier = await EventSponsorRepo.addSponsorTier({
                 tier,
@@ -178,6 +177,29 @@ class EventSponsorController {
             return res.status(500).json({ error: "Failed to create sponsor tier." });
         }
     }
+
+    static async removeSponsorTier(req, res) {
+        try {
+          const { id: tierId } = req.params;
+
+          if(!tierId){
+            return res.status(400).json({ error: "Missing tierId" });
+          }
+
+//           console.log("Attempting to delete tier ID:", tierId); 
+          const deletedCount = await EventSponsorRepo.removeSponsorTier(tierId);
+        //   console.log("Rows deleted:", deletedCount);
+
+          if(deletedCount === 0){
+            return res.status(404).json({ error: "Sponsor Tier doesn't exist" });
+          }
+
+          return res.status(204).end();
+        } catch (err) {
+          console.error(err);
+          res.status(500).json({ error: "Failed to remove sponsor tier" });
+        }
+    }
 }
 
 module.exports = EventSponsorController;

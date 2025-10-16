@@ -98,13 +98,20 @@ class EventSponsorRepo {
 
   // Add Sponsor Tiers
   async addSponsorTier(tierData){
-    console.log("Made it to the Repo File");
     return await SponsorTier.create({
       tier: tierData.tier,
       lowerThreshold: tierData.lowerThreshold,
     });
       // imageWidth: tierData.imageWidth,
       // imageHeight: tierData.imageHeight,
+  }
+
+  async removeSponsorTier(tierId){
+    return SponsorTier.destroy({
+      where: {
+        id: tierId
+      }
+    });
   }
   
 }

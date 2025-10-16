@@ -20,6 +20,7 @@ router.delete("/:id",
     EventSponsorController.removeEventSponsor);
 router.get("/tiers", EventSponsorController.getSponsorTiers);
 router.post("/tiers", EventSponsorController.addSponsorTier);
+router.delete("/tiers/:id", EventSponsorController.removeSponsorTier);
 router.get("/by-event/:eventId", EventSponsorController.getSponsorsByEvent); 
 
 module.exports = router;
