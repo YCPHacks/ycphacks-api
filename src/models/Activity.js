@@ -3,11 +3,13 @@ class Activity {
         id,
         activityName,
         activityDate,
+        activityDescription,
         eventId
     ) {
         this.id = id;
         this.activityName = activityName;
-        this.activityDate = activityDate
+        this.activityDate = activityDate;
+        this.activityDescription = activityDescription;
         this.eventId = eventId;
     }
 }

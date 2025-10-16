@@ -82,6 +82,7 @@ const createActivity = async (req, res) => {
         const activity = {
             activityName: req.body.activityName,
             activityDate: req.body.activityDate,
+            activityDescription: req.body.activityDescription,
             eventId: req.body.eventId
         }
 
@@ -130,6 +131,7 @@ const editActivity = async (req, res) => {
             id: req.body.id,
             activityName: req.body.activityName,
             activityDate: req.body.activityDate,
+            activityDescription: req.body.activityDescription,
             eventId: req.body.eventId
         }
 
