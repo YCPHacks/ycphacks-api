@@ -99,7 +99,6 @@ class EventSponsorController {
 
             res.json(updated);
         }catch (err){
-            // FIX: Using 500 for general server/database errors during update
             res.status(500).json({ error: err.message });
         }
     }
@@ -174,6 +173,29 @@ class EventSponsorController {
             return res.status(201).json(newTier);
         }catch(err){
             return res.status(500).json({ error: "Failed to create sponsor tier." });
+        }
+    }
+
+    static async updateSponsorTier(req, res){
+        try {
+            const tierId = req.params.id;
+            const updates = req.body;
+
+            if (!updates.tier || updates.lowerThreshold === undefined || updates.lowerThreshold === null || Number(updates.lowerThreshold) < 0) {
+                return res.status(400).json({ error: "Invalid tier name or non-negative lower threshold required." });
+            }
+
+            const updatedTier = await EventSponsorRepo.updateSponsorTier(tierId, updates);
+
+            res.json(updatedTier);
+        } catch (err) {
+            console.error("Error updating sponsor tier:", err.message);
+            
+            if (err.message.includes("not found")) {
+                return res.status(404).json({ error: err.message });
+            }
+            
+            res.status(500).json({ error: err.message });
         }
     }
 

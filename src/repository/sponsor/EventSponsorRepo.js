@@ -109,6 +109,25 @@ class EventSponsorRepo {
       // imageHeight: tierData.imageHeight,
   }
 
+  async updateSponsorTier(tierId, updates){
+    const tier = await SponsorTier.findByPk(tierId);
+
+    if(!tier){
+      throw new Error(`Sponsor Tier with ID ${tierId} not found.`);
+    }
+
+    if ('tier' in updates && updates.tier !== null) {
+      tier.tier = updates.tier;
+    }
+    
+    if ('lowerThreshold' in updates && updates.lowerThreshold !== null && updates.lowerThreshold !== undefined) {
+      tier.lowerThreshold = Number(updates.lowerThreshold); 
+    }
+
+    await tier.save();
+    return tier;
+  }
+
   async removeSponsorTier(tierId){
     return SponsorTier.destroy({
       where: {
