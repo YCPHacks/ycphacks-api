@@ -93,7 +93,6 @@ class EventSponsorController {
 
             const updated = await EventSponsorRepo.updateSponsorBySponsorId(sponsorId, updates);
             
-            // FIX: Check for resource not found and return 404
             if (!updated) {
                 return res.status(404).json({ error: "Sponsor not found or could not be updated." });
             }

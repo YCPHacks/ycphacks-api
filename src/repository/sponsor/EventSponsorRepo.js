@@ -50,7 +50,7 @@ class EventSponsorRepo {
         where: { sponsorId },
         include: [Sponsor, SponsorTier]
       });
-      if (!eventSponsor) throw new Error("EventSponsor record not found");
+      if (!eventSponsor) throw new Error("Event Sponsor record not found");
 
       const sponsor = await Sponsor.findByPk(sponsorId);
       if (sponsor) {
@@ -92,7 +92,10 @@ class EventSponsorRepo {
     // Gets Sponsor Tiers
     async getSponsorTiers(){
       return await SponsorTier.findAll({
-        attributes: ["id", "tier", "lowerThreshold"]
+        attributes: ["id", "tier", "lowerThreshold"],
+        order: [
+          ['lowerThreshold', 'ASC']
+        ]
       });
     }
 
