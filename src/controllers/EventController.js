@@ -86,7 +86,7 @@ const createActivity = async (req, res) => {
             eventId: req.body.eventId
         }
 
-        const createdActivity = await EventRepo.createActivity( activity)
+        const createdActivity = await EventRepo.createActivity(activity)
 
         if (!createdActivity) {
             return res.status(404).json({
