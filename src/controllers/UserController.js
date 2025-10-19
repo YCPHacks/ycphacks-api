@@ -251,9 +251,12 @@ const getAllUsers = async (req, res) => {
         const userData = users.map(user => ({
             firstName: user.dataValues.firstName,
             lastName: user.dataValues.lastName,
+            age: user.dataValues.age,
+            email: user.dataValues.email,
             phoneNumber: user.dataValues.phoneNumber,
-            hackathonsAttended: user.dataValues.hackathonsAttended,
-            role: user.dataValues.role,
+            school: user.dataValues.school,
+            tShirtSize: user.dataValues.tShirtSize,
+            dietaryRestrictions: user.dataValues.dietaryRestrictions,
         }));
 
         res.status(200).json({ message: 'All users', data: userData });
