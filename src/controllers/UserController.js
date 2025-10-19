@@ -249,6 +249,7 @@ const getAllUsers = async (req, res) => {
 
         const users = await UserRepo.getAllUsers();
         const userData = users.map(user => ({
+            id: user.dataValues.id,
             firstName: user.dataValues.firstName,
             lastName: user.dataValues.lastName,
             age: user.dataValues.age,
@@ -258,6 +259,7 @@ const getAllUsers = async (req, res) => {
             tShirtSize: user.dataValues.tShirtSize,
             dietaryRestrictions: user.dataValues.dietaryRestrictions,
             role: user.dataValues.role,
+            checkIn: user.dataValues.checkIn
         }));
 
         res.status(200).json({ message: 'All users', data: userData });
@@ -267,19 +269,21 @@ const getAllUsers = async (req, res) => {
 }
 
 const updateCheckIn = async (req, res) => {
-    const userId = req.params.userId;
+    const userId = Number(req.params.id);
 
     const { checkIn } = req.body;
-    const newStatus = !!checkIn;
 
-    if(userId === undefined || checkIn === undefined){
+    // console.log(`Received userId: ${userId} (Type: ${typeof userId})`);
+    // console.log(`Received checkIn: ${checkIn} (Type: ${typeof checkIn})`);
+
+    if (isNaN(userId) || typeof checkIn !== 'boolean') {
         return res.status(400).json({
-            error: 'Missing user ID or checkIn status in request.'
+            error: 'Invalid or missing user ID or checkIn status (must be boolean) in request.'
         });
     }
 
     try {
-        const updatedUser = await UserRepository.updateCheckInStatus(
+        const updatedUser = await UserRepo.updateCheckInStatus(
             userId,
             !!checkIn 
         );
