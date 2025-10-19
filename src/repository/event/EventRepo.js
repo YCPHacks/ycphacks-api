@@ -24,6 +24,10 @@ const EventRepo = {
         return Activity.update({ ...newActivity }, { where: { id: newActivity.id }});
     },
 
+    async findActivityById(activityId) {
+      return Activity.findOne({ where: { id: activityId } });
+    },
+
     async getAllActivities(eventId) {
         return Activity.findAll({ where: { eventId: eventId } });
     },
