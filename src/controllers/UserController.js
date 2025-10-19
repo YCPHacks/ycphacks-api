@@ -262,10 +262,44 @@ const getAllUsers = async (req, res) => {
     }
 }
 
+const updateCheckIn = async (req, res) => {
+    const userId = req.params.userId;
+
+    const { checkIn } = req.body;
+    const newStatus = !!checkIn;
+
+    if(userId === undefined || checkIn === undefined){
+        return res.status(400).json({
+            error: 'Missing user ID or checkIn status in request.'
+        });
+    }
+
+    try {
+        const updatedUser = await UserRepository.updateCheckInStatus(
+            userId,
+            !!checkIn 
+        );
+
+        return res.status(200).json({ 
+            message: `User ${userId} checked in successfully.`,
+            user: updatedUser 
+        });
+
+    } catch (error) {
+        if (error.status === 404) {
+            return res.status(404).json({ error: error.message });
+        }
+        
+        console.error('Error updating check-in status:', error);
+        return res.status(500).json({ error: 'Failed to update user check-in status.' });
+    }
+}
+
 module.exports = {
     createUser,
     loginUser,
     authWithToken,
     loginAdminUser,
-    getAllUsers
+    getAllUsers,
+    updateCheckIn
 }
