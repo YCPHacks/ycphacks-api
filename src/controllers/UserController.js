@@ -257,6 +257,7 @@ const getAllUsers = async (req, res) => {
             school: user.dataValues.school,
             tShirtSize: user.dataValues.tShirtSize,
             dietaryRestrictions: user.dataValues.dietaryRestrictions,
+            role: user.dataValues.role,
         }));
 
         res.status(200).json({ message: 'All users', data: userData });
