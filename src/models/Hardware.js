@@ -5,14 +5,18 @@ class Hardware {
         serial,
         whoHasId,
         description,
-        functional
+        functional,
+        createdAt,
+        updatedAt
     ) {
-        this.id = id;
-        this.hardwareName = hardwareName;
-        this.serial = serial;
-        this.whoHasId = whoHasId;
-        this.description = description;
-        this.functional = functional;
+        this.id = id
+        this.hardwareName = hardwareName
+        this.serial = serial
+        this.whoHasId = whoHasId
+        this.description = description
+        this.functional = functional
+        this.createdAt = createdAt
+        this.updatedAt = updatedAt
     }
 }
 
