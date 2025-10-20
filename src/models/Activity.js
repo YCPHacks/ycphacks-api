@@ -23,8 +23,10 @@ class Activity {
         }
 
         // 2. Validate name presence and length
-        if (!this.activityName || this.activityName.length > 255) {
-            errors.activityName = "Name is required and must be less than 256 characters";
+        if (!this.activityName) {
+            errors.activityName = "Name is required";
+        } else if (this.activityName.length > 255) {
+            errors.activityName = "Name must be less than 256 characters";
         }
 
         // 3. Validate date presence, date is in valid format, and date is not in the past

@@ -83,7 +83,7 @@ const getEventById = async (req, res) => {
 const createActivity = async (req, res) => {
     try {
         const activityData = req.body;
-        const convertedDate = to24HourFormat(activityData.activityDate);
+        const convertedDate = activityData.activityDate ? to24HourFormat(activityData.activityDate) : null;
         const activity = new Activity(
             null,
             activityData.activityName,
@@ -168,7 +168,7 @@ const editActivity = async (req, res) => {
         if (!existingActivity) return res.status(404).json({ message: 'Activity not found' });
 
         // Convert date and validate
-        const convertedDate = to24HourFormat(activityData.activityDate);
+        const convertedDate = activityData.activityDate ? to24HourFormat(activityData.activityDate) : null;
         const activity = new Activity(
             activityData.id,
             activityData.activityName,
