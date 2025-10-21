@@ -1,4 +1,4 @@
-const Event = require("./Event")
+const Event = require("../../models/Event")
 const HackCategories = require("./HackCategory")
 
 const EventRepo = {
