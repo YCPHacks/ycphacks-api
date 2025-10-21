@@ -49,7 +49,8 @@ class EventSponsorController {
             id: s.id,
             name: s.sponsorName,
             website: s.sponsorWebsite,
-            image: s.sponsorImageId || ""
+            image: s.sponsorImageId || "",
+            sponsorTierId: eventSponsor?.sponsorTierId
           };
         });
 
@@ -77,7 +78,6 @@ class EventSponsorController {
             sponsorTierId
           });
 
-          // FIX: Change successful resource creation status to 201
           res.status(201).json({ result });
         } catch (err) {
           console.error(err);
@@ -93,14 +93,12 @@ class EventSponsorController {
 
             const updated = await EventSponsorRepo.updateSponsorBySponsorId(sponsorId, updates);
             
-            // FIX: Check for resource not found and return 404
             if (!updated) {
                 return res.status(404).json({ error: "Sponsor not found or could not be updated." });
             }
 
             res.json(updated);
         }catch (err){
-            // FIX: Using 500 for general server/database errors during update
             res.status(500).json({ error: err.message });
         }
     }
@@ -135,7 +133,7 @@ class EventSponsorController {
 
     static async getSponsorTiers(req, res){
       try{
-        const tiers = await EventSponsorRepo.getSponsorTier();
+        const tiers = await EventSponsorRepo.getSponsorTiers();
 
         if(!tiers || tiers.length === 0){
           return res.status(404).json({ error: "No sponsor tiers found" });
@@ -145,6 +143,83 @@ class EventSponsorController {
       }catch(err){
         res.status(500).json({ error: "Failed to fetch sponsor tiers" });
       }
+    }
+
+    static async addSponsorTier(req, res){
+        try{
+            // Add imageWidth and imageHeight after it's set up in DB
+            const { tier, lowerThreshold } = req.body;
+
+            //  || !imageWidth || !imageHeight
+            if (!tier || lowerThreshold === undefined) {
+                return res.status(400).json({ error: "Missing required fields: tier or lowerThreshold." });
+            }
+
+            if (isNaN(Number(lowerThreshold)) || Number(lowerThreshold) < 0) {
+                return res.status(400).json({ error: "lowerThreshold must be a non-negative number." });
+            }
+            // if (isNaN(Number(imageWidth)) || isNaN(Number(imageHeight))) {
+            //     return res.status(400).json({ error: "imageWidth and imageHeight must be numbers." });
+            // }
+
+            // console.log("mmmm, sending to repo file now...");
+            
+            const newTier = await EventSponsorRepo.addSponsorTier({
+                tier,
+                lowerThreshold: Number(lowerThreshold),
+            });
+                // imageWidth: Number(imageWidth),
+                // imageHeight: Number(imageHeight)
+            return res.status(201).json(newTier);
+        }catch(err){
+            return res.status(500).json({ error: "Failed to create sponsor tier." });
+        }
+    }
+
+    static async updateSponsorTier(req, res){
+        try {
+            const tierId = req.params.id;
+            const updates = req.body;
+
+            if (!updates.tier || updates.lowerThreshold === undefined || updates.lowerThreshold === null || Number(updates.lowerThreshold) < 0) {
+                return res.status(400).json({ error: "Invalid tier name or non-negative lower threshold required." });
+            }
+
+            const updatedTier = await EventSponsorRepo.updateSponsorTier(tierId, updates);
+
+            res.json(updatedTier);
+        } catch (err) {
+            console.error("Error updating sponsor tier:", err.message);
+            
+            if (err.message.includes("not found")) {
+                return res.status(404).json({ error: err.message });
+            }
+            
+            res.status(500).json({ error: err.message });
+        }
+    }
+
+    static async removeSponsorTier(req, res) {
+        try {
+          const { id: tierId } = req.params;
+
+          if(!tierId){
+            return res.status(400).json({ error: "Missing tierId" });
+          }
+
+//           console.log("Attempting to delete tier ID:", tierId); 
+          const deletedCount = await EventSponsorRepo.removeSponsorTier(tierId);
+        //   console.log("Rows deleted:", deletedCount);
+
+          if(deletedCount === 0){
+            return res.status(404).json({ error: "Sponsor Tier doesn't exist" });
+          }
+
+          return res.status(204).end();
+        } catch (err) {
+          console.error(err);
+          res.status(500).json({ error: "Failed to remove sponsor tier" });
+        }
     }
 }
 

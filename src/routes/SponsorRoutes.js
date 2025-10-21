@@ -15,6 +15,9 @@ router.delete("/:id",
     checkBodyForSpecialCharacters,
     EventSponsorController.removeEventSponsor);
 router.get("/tiers", EventSponsorController.getSponsorTiers);
+router.put("/tiers/:id", EventSponsorController.updateSponsorTier);
+router.post("/tiers", EventSponsorController.addSponsorTier);
+router.delete("/tiers/:id", EventSponsorController.removeSponsorTier);
 router.get("/by-event/:eventId", EventSponsorController.getSponsorsByEvent); 
 
 module.exports = router;

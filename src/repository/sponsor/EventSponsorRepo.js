@@ -50,7 +50,7 @@ class EventSponsorRepo {
         where: { sponsorId },
         include: [Sponsor, SponsorTier]
       });
-      if (!eventSponsor) throw new Error("EventSponsor record not found");
+      if (!eventSponsor) throw new Error("Event Sponsor record not found");
 
       const sponsor = await Sponsor.findByPk(sponsorId);
       if (sponsor) {
@@ -90,11 +90,51 @@ class EventSponsorRepo {
       }
 
     // Gets Sponsor Tiers
-    async getSponsorTier(){
+    async getSponsorTiers(){
       return await SponsorTier.findAll({
-        attributes: ["id", "tier"]
+        attributes: ["id", "tier", "lowerThreshold"],
+        order: [
+          ['lowerThreshold', 'ASC']
+        ]
       });
     }
+
+  // Add Sponsor Tiers
+  async addSponsorTier(tierData){
+    return await SponsorTier.create({
+      tier: tierData.tier,
+      lowerThreshold: tierData.lowerThreshold,
+    });
+      // imageWidth: tierData.imageWidth,
+      // imageHeight: tierData.imageHeight,
+  }
+
+  async updateSponsorTier(tierId, updates){
+    const tier = await SponsorTier.findByPk(tierId);
+
+    if(!tier){
+      throw new Error(`Sponsor Tier with ID ${tierId} not found.`);
+    }
+
+    if ('tier' in updates && updates.tier !== null) {
+      tier.tier = updates.tier;
+    }
+    
+    if ('lowerThreshold' in updates && updates.lowerThreshold !== null && updates.lowerThreshold !== undefined) {
+      tier.lowerThreshold = Number(updates.lowerThreshold); 
+    }
+
+    await tier.save();
+    return tier;
+  }
+
+  async removeSponsorTier(tierId){
+    return SponsorTier.destroy({
+      where: {
+        id: tierId
+      }
+    });
+  }
   
 }
 
