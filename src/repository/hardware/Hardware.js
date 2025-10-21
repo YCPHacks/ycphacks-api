@@ -4,40 +4,43 @@ const {sequelize} = require('../config/index');
 const Hardware = sequelize.define(
     'Hardware',
     {
-        id: {
+        id : {
             type: DataTypes.INTEGER,
             autoIncrement: true,
             primaryKey: true,
-            allowNull: false,
+            allowNull: false
         },
-        hardwareName: {
-            type: DataTypes.STRING(100), // Matches varchar(100)
+        hardwareName : {
+            type: DataTypes.STRING(100),
             allowNull: false,
             require: true
         },
-        serial: {
-            type: DataTypes.STRING,
+        serial : {
+            type: DataTypes.STRING(255),
             allowNull: false,
+            require: true
         },
-        whoHasId: {
+        whoHasId : {
             type: DataTypes.INTEGER,
-            references: {
-                model: 'User',
-                key: 'id'
-            }
+            allowNull: true
         },
-        description: {
-            type: DataTypes.STRING
+        description : {
+            type: DataTypes.STRING(255),
+            allowNull: true
         },
-        functional: {
-            type: DataTypes.BOOLEAN, // Matches tinyint(1)
+        functional : {
+            type: DataTypes.BOOLEAN,
+            allowNull: false
+        },
+        createdAt : {
+            type: DataTypes.DATE,
+            allowNull: false
+        },
+        updatedAt : {
+            type: DataTypes.DATE,
             allowNull: false
         }
-    },
-
-    {
-        tableName: 'Hardware'
     }
-)
+);
 
 module.exports = Hardware;

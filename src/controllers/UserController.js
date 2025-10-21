@@ -25,7 +25,7 @@ const createUser = async (req, res) => {
             userData.lastName,
             userData.email,
             hashedPassword,
-            userData.role,
+            "participant", // Force participant role initially
             userData.phoneNumber,
             userData.age,
             userData.gender,
@@ -166,11 +166,13 @@ const loginUser = async (req, res) => {
 
 const authWithToken = async (req, res) => {
     try {
-        const token = req.body.token;
+        const tokenObj = req.body.token;
+        const tokenString = tokenObj.token;
 
         // Validate the token
-        const decodedToken = validateToken(token);
-        if (!decodedToken) {
+        const decodedToken = validateToken(tokenString);
+
+        if (decodedToken.error) {
             return res.status(401).json({ message: 'Invalid token' });
         }
 
@@ -186,7 +188,7 @@ const authWithToken = async (req, res) => {
             user.email,
             user.firstName,
             user.lastName,
-            token,
+            tokenString,
             user.role
         )
 
@@ -208,13 +210,13 @@ const loginAdminUser = async (req, res) => {
         const user = await UserRepo.findByEmail(email);
 
         if (!user) {
-            return res.status(400).json({ message: 'Invalid email' });
+            return res.status(400).json({ message: 'Invalid email or password' });
         }
 
         // Compare the provided password with the stored hashed password
         const isPasswordValid = await bcrypt.compare(password, user.password);
         if (!isPasswordValid) {
-            return res.status(400).json({ message: 'Invalid password' });
+            return res.status(400).json({ message: 'Invalid email or password' });
         }
 
         // Generate JWT token
@@ -249,16 +251,57 @@ const getAllUsers = async (req, res) => {
 
         const users = await UserRepo.getAllUsers();
         const userData = users.map(user => ({
+            id: user.dataValues.id,
             firstName: user.dataValues.firstName,
             lastName: user.dataValues.lastName,
+            age: user.dataValues.age,
+            email: user.dataValues.email,
             phoneNumber: user.dataValues.phoneNumber,
-            hackathonsAttended: user.dataValues.hackathonsAttended,
+            school: user.dataValues.school,
+            tShirtSize: user.dataValues.tShirtSize,
+            dietaryRestrictions: user.dataValues.dietaryRestrictions,
             role: user.dataValues.role,
+            checkIn: user.dataValues.checkIn
         }));
 
-        res.status(200).json({ message: 'All users', data: userData });
+        res.status(200).json({ message: 'Successfully fetched all users', data: userData });
     } catch (err) {
         res.status(500).json({ message: 'Error getting all users', error: err.message });
+    }
+}
+
+const updateCheckIn = async (req, res) => {
+    const userId = Number(req.params.id);
+
+    const { checkIn } = req.body;
+
+    // console.log(`Received userId: ${userId} (Type: ${typeof userId})`);
+    // console.log(`Received checkIn: ${checkIn} (Type: ${typeof checkIn})`);
+
+    if (isNaN(userId) || checkIn === undefined || checkIn === null) {
+        return res.status(400).json({
+            error: 'Invalid or missing user ID or checkIn status (must be boolean) in request.'
+        });
+    }
+
+    try {
+        const updatedUser = await UserRepo.updateCheckInStatus(
+            userId,
+            !!checkIn 
+        );
+
+        return res.status(200).json({ 
+            message: `User ${userId} checked in successfully.`,
+            data: updatedUser 
+        });
+
+    } catch (error) {
+        if (error.status === 404) {
+            return res.status(404).json({ error: error.message });
+        }
+        
+        console.error('Error updating check-in status:', error);
+        return res.status(500).json({ error: 'Failed to update user check-in status.' });
     }
 }
 
@@ -267,5 +310,6 @@ module.exports = {
     loginUser,
     authWithToken,
     loginAdminUser,
-    getAllUsers
+    getAllUsers,
+    updateCheckIn
 }

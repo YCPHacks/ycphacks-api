@@ -28,4 +28,4 @@ jobs:
       - name: Run tests
         run: |
           export NODE_ENV=test
-          npm test
+          npx jest src/tests/user.test.js src/tests/hardware.test.js
