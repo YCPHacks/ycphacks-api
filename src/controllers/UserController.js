@@ -264,7 +264,7 @@ const getAllUsers = async (req, res) => {
             checkIn: user.dataValues.checkIn
         }));
 
-        res.status(200).json({ message: 'All users', data: userData });
+        res.status(200).json({ message: 'Successfully fetched all users', data: userData });
     } catch (err) {
         res.status(500).json({ message: 'Error getting all users', error: err.message });
     }
@@ -278,7 +278,7 @@ const updateCheckIn = async (req, res) => {
     // console.log(`Received userId: ${userId} (Type: ${typeof userId})`);
     // console.log(`Received checkIn: ${checkIn} (Type: ${typeof checkIn})`);
 
-    if (isNaN(userId) || typeof checkIn !== 'boolean') {
+    if (isNaN(userId) || checkIn === undefined || checkIn === null) {
         return res.status(400).json({
             error: 'Invalid or missing user ID or checkIn status (must be boolean) in request.'
         });
@@ -292,7 +292,7 @@ const updateCheckIn = async (req, res) => {
 
         return res.status(200).json({ 
             message: `User ${userId} checked in successfully.`,
-            user: updatedUser 
+            data: updatedUser 
         });
 
     } catch (error) {
