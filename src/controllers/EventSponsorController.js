@@ -32,6 +32,7 @@ class EventSponsorController {
             name: s.sponsorName,
             website: s.sponsorWebsite,
             image: s.sponsorImageId || "",
+            amount: s.amount ?? 0,
             tier: eventSponsor?.SponsorTier?.tier || "",
           };
         });
@@ -79,7 +80,7 @@ class EventSponsorController {
 //    Add sponsor to an event
     static async addSponsorToEvent(req, res){
         try {
-          const { sponsorName, sponsorWebsite, image, sponsorTierId, eventId } = req.body;
+          const { sponsorName, sponsorWebsite, image, amount, sponsorTierId, eventId } = req.body;
 
           // FIX: Add validation check to return 400 for missing required fields
           if (!eventId || !sponsorName) {
@@ -90,6 +91,7 @@ class EventSponsorController {
             sponsorName,
             sponsorWebsite,
             image,
+            amount: Number(amount),
             sponsorTierId
           });
 
@@ -104,15 +106,55 @@ class EventSponsorController {
     static async updateEventSponsor(req, res){
         try{
             const sponsorId = req.params.id;
-            const updates = req.body;
-
-            const updated = await EventSponsorRepo.updateSponsorBySponsorId(sponsorId, updates);
+            const { sponsorName, sponsorWebsite, image, amount, sponsorTierId, eventId, ...otherUpdates } = req.body;
             
-            if (!updated) {
-                return res.status(404).json({ error: "Sponsor not found or could not be updated." });
+            // --- 1. Separate Updates for Sponsor (Core) Table ---
+            const sponsorUpdates = {
+                ...(sponsorName !== undefined && { sponsorName }),
+                ...(sponsorWebsite !== undefined && { sponsorWebsite }),
+                ...(image !== undefined && { sponsorImageId: image }),
+                // NEW: Handle amount update
+                ...(amount !== undefined && { amount: Number(amount) }), 
+            };
+
+            // Basic validation for amount
+            if (amount !== undefined && (isNaN(Number(amount)) || Number(amount) < 0)) {
+                return res.status(400).json({ error: "Amount must be a non-negative number." });
             }
 
-            res.json(updated);
+            // --- 2. Separate Updates for EventSponsor (Junction) Table ---
+            const eventSponsorUpdates = {
+                ...(sponsorTierId !== undefined && { sponsorTierId }),
+                // EventId is needed to target the correct EventSponsor record
+                ...(eventId !== undefined && { eventId }), 
+                // Include any other updates that belong to EventSponsor table
+                ...otherUpdates,
+            };
+            
+            // --- 3. Execute Updates ---
+            let updatedSponsor, updatedEventSponsor;
+
+            if (Object.keys(sponsorUpdates).length > 0) {
+                // Update the core Sponsor record
+                updatedSponsor = await SponsorRepo.updateSponsor(sponsorId, sponsorUpdates); 
+            }
+            
+            if (Object.keys(eventSponsorUpdates).length > 0) {
+                // Update the EventSponsor junction record
+                updatedEventSponsor = await EventSponsorRepo.updateEventSponsor(sponsorId, eventSponsorUpdates); 
+            }
+
+            // Check if either update occurred
+            if (!updatedSponsor && !updatedEventSponsor) {
+                return res.status(404).json({ error: "Sponsor not found or no valid fields provided for update." });
+            }
+
+            // Return the result of the combined operations (or simply 200 OK)
+            res.json({ 
+                message: "Sponsor updated successfully",
+                sponsor: updatedSponsor,
+                eventSponsor: updatedEventSponsor
+            });
         }catch (err){
             res.status(500).json({ error: err.message });
         }
@@ -284,24 +326,38 @@ class EventSponsorController {
 
     static async removeSponsorTier(req, res) {
         try {
-          const { id: tierId } = req.params;
+            const { id: tierId } = req.params;
+            let { eventId } = req.query;
 
-          if(!tierId){
-            return res.status(400).json({ error: "Missing tierId" });
-          }
+            if(!tierId){
+                return res.status(400).json({ error: "Missing tierId" });
+            }
 
-//           console.log("Attempting to delete tier ID:", tierId); 
-          const deletedCount = await EventSponsorRepo.removeSponsorTier(tierId);
-        //   console.log("Rows deleted:", deletedCount);
+            if (!eventId) { 
+                // Un-comment when events is implemented
+                // return res.status(400).json({ error: "Missing event ID. Cannot refresh sponsor list." });
+                eventId = 1;
+            }
 
-          if(deletedCount === 0){
-            return res.status(404).json({ error: "Sponsor Tier doesn't exist" });
-          }
+            await EventSponsorRepo.removeSponsorTier(tierId);
 
-          return res.status(204).end();
+            if(eventId){
+                const updateSponsorList = await EventSponsorRepo.getSponsorsByEvent(eventId);
+                const updatedTierList = await EventSponsorRepo.getSponsorTiers();
+
+                return res.json({
+                    message: "Sponsor tier removed and linked sponsors reassigned successfully.",
+                    sponsors: updateSponsorList,
+                    tiers: updatedTierList
+                });
+            }
+            return res.json({ message: "Sponsor tier removed successfully." });
         } catch (err) {
-          console.error(err);
-          res.status(500).json({ error: "Failed to remove sponsor tier" });
+            if (err.message.includes("Cannot delete Sponsor Tier ID")) {
+                    return res.status(400).json({ error: err.message });
+                }
+             console.error(err);
+            res.status(500).json({ error: "Failed to remove sponsor tier" });
         }
     }
 }
