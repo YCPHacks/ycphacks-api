@@ -82,7 +82,6 @@ class EventSponsorController {
         try {
           const { sponsorName, sponsorWebsite, image, amount, sponsorTierId, eventId } = req.body;
 
-          // FIX: Add validation check to return 400 for missing required fields
           if (!eventId || !sponsorName) {
               return res.status(400).json({ error: "Missing required fields: eventId and sponsorName are required." });
           }
@@ -113,7 +112,6 @@ class EventSponsorController {
                 ...(sponsorName !== undefined && { sponsorName }),
                 ...(sponsorWebsite !== undefined && { sponsorWebsite }),
                 ...(image !== undefined && { sponsorImageId: image }),
-                // NEW: Handle amount update
                 ...(amount !== undefined && { amount: Number(amount) }), 
             };
 
@@ -125,9 +123,7 @@ class EventSponsorController {
             // --- 2. Separate Updates for EventSponsor (Junction) Table ---
             const eventSponsorUpdates = {
                 ...(sponsorTierId !== undefined && { sponsorTierId }),
-                // EventId is needed to target the correct EventSponsor record
                 ...(eventId !== undefined && { eventId }), 
-                // Include any other updates that belong to EventSponsor table
                 ...otherUpdates,
             };
             
@@ -140,7 +136,6 @@ class EventSponsorController {
             }
             
             if (Object.keys(eventSponsorUpdates).length > 0) {
-                // Update the EventSponsor junction record
                 updatedEventSponsor = await EventSponsorRepo.updateEventSponsor(sponsorId, eventSponsorUpdates); 
             }
 
@@ -149,7 +144,6 @@ class EventSponsorController {
                 return res.status(404).json({ error: "Sponsor not found or no valid fields provided for update." });
             }
 
-            // Return the result of the combined operations (or simply 200 OK)
             res.json({ 
                 message: "Sponsor updated successfully",
                 sponsor: updatedSponsor,

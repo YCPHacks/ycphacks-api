@@ -62,14 +62,15 @@ class EventSponsorRepo {
     if ('sponsorTierId' in updates) {
       if (!updates.eventId) throw new Error("eventId is required for EventSponsor update.");
       
-      await EventSponsor.upsert({
-        // These fields define the primary key combination for the junction table
-        sponsorId: sponsorId, 
-        eventId: updates.eventId,
-        
-        // This is the data field being updated/inserted
-        sponsorTierId: updates.sponsorTierId 
-      });
+      await EventSponsor.update(
+        { sponsorTierId: updates.sponsorTierId }, // Data fields to update
+        {
+          where: {
+            sponsorId: sponsorId, 
+            eventId: updates.eventId,
+          }
+        }
+      );
     }
 
     // --- 3. Return the updated record (KEEP AS IS) ---
