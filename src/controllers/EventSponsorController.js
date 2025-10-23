@@ -244,13 +244,11 @@ class EventSponsorController {
     static async updateSponsorTier(req, res){
         try {
             const tierId = req.params.id;
-            // Destructure all potential update fields, including the new ones
             let { tier, lowerThreshold, width, height } = req.body;
             
-            // Prepare the updates object to send to the repository
             const updates = {};
 
-            if (!width && !height) {
+            if (!width && !height && tier) {
                 const defaults = setDefaultImageDimensions(tier);
                 width = defaults.imageWidth;
                 height = defaults.imageHeight;
@@ -278,7 +276,7 @@ class EventSponsorController {
                 if (isNaN(Parsedwidth)) {
                     return res.status(400).json({ error: "imageWidth must be a number." });
                 }
-                updates.width = Parsedwidth;
+                updates.imageWidth = Parsedwidth;
             }
 
             // Validate and assign 'imageHeight'
@@ -287,7 +285,7 @@ class EventSponsorController {
                 if (isNaN(Parsedheight)) {
                     return res.status(400).json({ error: "imageHeight must be a number." });
                 }
-                updates.height = Parsedheight;
+                updates.imageHeight = Parsedheight;
             }
 
             // Check if no valid update fields were provided (optional, but good practice)
@@ -296,9 +294,6 @@ class EventSponsorController {
             }
 
             // --- 2. Required Field Check (Revised) ---
-
-            // Check if 'tier' and 'lowerThreshold' are explicitly being set to bad values if they exist in the body
-            // Note: In a PATCH request like this, we only validate the fields that are sent.
             if ((lowerThreshold !== undefined && updates.lowerThreshold === undefined) || (tier !== undefined && updates.tier === undefined)) {
                 // This case is covered by the specific validation checks above
             }
