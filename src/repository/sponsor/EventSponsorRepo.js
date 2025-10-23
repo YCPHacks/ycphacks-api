@@ -62,19 +62,14 @@ class EventSponsorRepo {
     if ('sponsorTierId' in updates) {
       if (!updates.eventId) throw new Error("eventId is required for EventSponsor update.");
       
-      const [rowsAffected] = await EventSponsor.update(
-        { sponsorTierId: updates.sponsorTierId },
-        { 
-          where: { 
-            sponsorId: sponsorId, 
-            eventId: updates.eventId 
-          } 
-        }
-      );
-
-      if (rowsAffected === 0) {
-        console.warn(`EventSponsor junction record not found for sponsorId ${sponsorId} and eventId ${updates.eventId}.`);
-      }
+      await EventSponsor.upsert({
+        // These fields define the primary key combination for the junction table
+        sponsorId: sponsorId, 
+        eventId: updates.eventId,
+        
+        // This is the data field being updated/inserted
+        sponsorTierId: updates.sponsorTierId 
+      });
     }
 
     // --- 3. Return the updated record (KEEP AS IS) ---
@@ -174,7 +169,7 @@ class EventSponsorRepo {
       if (bestTierId === null && lowestTier) {
           bestTierId = lowestTier.id;
       }
-      
+
       if (bestTierId !== null) {
         return EventSponsor.update(
             { sponsorTierId: bestTierId },
