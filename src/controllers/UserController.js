@@ -305,11 +305,51 @@ const updateCheckIn = async (req, res) => {
     }
 }
 
+const updateUser = async (req, res) => {
+    const userId = Number(req.params.id);
+    const updatePayload = req.body;
+
+    const allowedFields = [
+        'firstName', 'lastName', 'age', 'email', 'phoneNumber', 'school', 
+        'tShirtSize', 'dietaryRestrictions', 'role', 'gender', 'country', 
+        'hackathonsAttended', 'pronouns', 'isVerified', 'major', 
+        'graduationYear', 'levelOfStudy', 'linkedInUrl', 'checkIn'
+    ];
+
+    const sanitizedUpdateData = {};
+    for(const key of allowedFields){
+        if(updatePayload.hasOwnProperty(key)){
+            sanitizedUpdateData[key] = updatePayload[key];
+        }
+    }
+
+    if(Object.keys(sanitizedUpdateData).length === 0){
+        return res.status(400).json({ error: "No valid fields provided for update." });
+    }
+
+    try {
+        const [rowsAffected] = await UserRepo.updateUserById(userId, sanitizedUpdateData);
+
+        if (rowsAffected === 0) {
+            return res.status(404).json({ message: "User not found or no changes made." });
+        }
+
+        // Success response
+        return res.status(200).json({ message: "User updated successfully.", data: sanitizedUpdateData });
+
+    } catch (error) {
+        console.error("Controller Error during user update:", error);
+        // Send a generic error or a more specific one if validation failed before the try block
+        return res.status(500).json({ error: "Failed to update user due to a server error." });
+    }
+}
+
 module.exports = {
     createUser,
     loginUser,
     authWithToken,
     loginAdminUser,
     getAllUsers,
-    updateCheckIn
+    updateCheckIn,
+    updateUser
 }
