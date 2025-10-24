@@ -3,6 +3,7 @@ const app = require('../app');  // Import your Express app
 const UserRepo = require('../repository/user/UserRepo');  // Mock User repository
 const { sendRegistrationConfirmation } = require('../util/emailService'); // Adjust path
 const bcrypt = require('bcrypt');
+const { updateUserById } = require('../controllers/UserController');
 
 const MOCK_ADMIN_TOKEN = 'mock-admin-token';
 const mockUsersList = [
@@ -470,5 +471,74 @@ describe('PUT /user/:id/checkin', () => {
         expect(res.statusCode).toEqual(400);
         expect(res.body).toHaveProperty('error', 'Invalid or missing user ID or checkIn status (must be boolean) in request.');
         expect(UserRepo.updateCheckInStatus).not.toHaveBeenCalled();
+    });
+});
+
+describe('PUT /user/:id (updateUserById)', () => {
+    const EXISTING_USER_ID = 123;
+    const NON_EXISTENT_ID = 999;
+    const validUpdatePayload = {
+        firstName: 'Jane',
+        tShirtSize: 'M',
+        school: 'University of Code',
+        role: 'PARTICIPANT'
+    };
+
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
+    it('should return 200 and success message on valid update', async () => {
+        UserRepo.updateUserById.mockResolvedValue([1]);
+
+        const response = await request(app)
+            .put(`/user/${EXISTING_USER_ID}`)
+            .send(validUpdatePayload);
+
+        expect(response.statusCode).toBe(200);
+        expect(response.body.message).toBe('User updated successfully.');
+        expect(response.body.data.firstName).toBe('Jane');
+        expect(UserRepo.updateUserById).toHaveBeenCalledTimes(1);
+
+        expect(UserRepo.updateUserById).toHaveBeenCalledWith(
+            EXISTING_USER_ID,
+            expect.objectContaining(validUpdatePayload)
+        );
+    });
+
+    it('should correctly handle a partial update with only one field', async () => {
+        const partialPayload = { dietaryRestrictions: 'Vegan' };
+        UserRepo.updateUserById.mockResolvedValue([1]);
+
+        const response = await request(app)
+            .put(`/user/${EXISTING_USER_ID}`)
+            .send(partialPayload);
+
+        expect(response.statusCode).toBe(200);
+        expect(response.body.data.dietaryRestrictions).toBe('Vegan');
+        
+        // Ensure only the single field was passed to the repo
+        expect(UserRepo.updateUserById).toHaveBeenCalledWith(
+            EXISTING_USER_ID,
+            partialPayload
+        );
+    });
+
+    it('should correctly handle a partial update with only one field', async () => {
+        const partialPayload = { dietaryRestrictions: 'Vegan' };
+        UserRepo.updateUserById.mockResolvedValue([1]);
+
+        const response = await request(app)
+            .put(`/user/${EXISTING_USER_ID}`)
+            .send(partialPayload);
+
+        expect(response.statusCode).toBe(200);
+        expect(response.body.data.dietaryRestrictions).toBe('Vegan');
+        
+        // Ensure only the single field was passed to the repo
+        expect(UserRepo.updateUserById).toHaveBeenCalledWith(
+            EXISTING_USER_ID,
+            partialPayload
+        );
     });
 });

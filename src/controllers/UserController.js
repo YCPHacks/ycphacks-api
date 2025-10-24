@@ -305,7 +305,7 @@ const updateCheckIn = async (req, res) => {
     }
 }
 
-const updateUser = async (req, res) => {
+const updateUserById = async (req, res) => {
     const userId = Number(req.params.id);
     const updatePayload = req.body;
 
@@ -351,5 +351,5 @@ module.exports = {
     loginAdminUser,
     getAllUsers,
     updateCheckIn,
-    updateUser
+    updateUserById
 }
