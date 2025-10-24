@@ -29,6 +29,19 @@ const UserRepo = {
 
         await user.save();
         return user;
+    },
+
+    async updateUserById(userId, updateData){
+        try{
+            const [rowsAffected] = await User.update(updateData, {
+                where: {
+                    id: userId
+                }
+            });
+            return [rowsAffected];
+        }catch(err){
+            console.error(`Error in repo updating user ${userId}:`, err);
+        }
     }
 };
 
