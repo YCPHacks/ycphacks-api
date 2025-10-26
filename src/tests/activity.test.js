@@ -1,7 +1,6 @@
 const request = require('supertest');
 const app = require('../app');  // Import your Express app
 const EventRepo = require('../repository/event/EventRepo');
-const { to24HourFormat, to12HourFormat} = require("../util/dateUtils");  // Mock User repository
 
 // Mock the EventRepo to avoid actual database interaction
 jest.mock('../repository/event/EventRepo');
@@ -18,7 +17,7 @@ const mockEvent = {
 
 const validActivityCreateRequest = {
     activityName: 'An activity',
-    activityDate: '9999-01-01 12:00:00 PM',
+    activityDate: '9999-01-01T01:00:00Z',
     activityDescription: 'A description about the activity',
     eventId: 1
 };
@@ -57,7 +56,7 @@ describe('POST /activity/', () => {
         expect(EventRepo.createActivity).toHaveBeenCalledTimes(1);
         expect(EventRepo.createActivity).toHaveBeenCalledWith(expect.objectContaining({
             ...validActivityCreateRequest,
-            activityDate: to24HourFormat(validActivityCreateRequest.activityDate)
+            activityDate: validActivityCreateRequest.activityDate
         }));
     });
 
@@ -115,7 +114,7 @@ describe('POST /activity/', () => {
             .post('/event/activity/')
             .send({
                 ...validActivityCreateRequest,
-                activityDate: '9999-01-01 16:00:00' // 24-hour format
+                activityDate: '9999-01-01 01:00:00'
             });
 
         // Assert: response checks
@@ -131,7 +130,7 @@ describe('POST /activity/', () => {
             .post('/event/activity/')
             .send({
                 ...validActivityCreateRequest,
-                activityDate: '2000-01-01 12:00:00 PM'
+                activityDate: '2000-01-01T01:00:00Z'
             });
 
         // Assert: response checks

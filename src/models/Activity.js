@@ -15,7 +15,7 @@ class Activity {
 
     validate(isCreate = true) {
         const errors = {};
-        const dateRegex = /^\d{4}-\d{2}-\d{2} (0[1-9]|1[0-2]):[0-5]\d:[0-5]\d (AM|PM)$/i; // Checks for 'YYYY-MM-DD hh:mm:ss A' format
+        const dateRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$/; // Checks for 'YYYY-MM-DDTHH:mm:ss.sssZ' format
 
         // 1. Validate id
         if (!isCreate && (!this.id || this.id < 0)) {

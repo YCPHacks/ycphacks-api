@@ -119,7 +119,7 @@ const createActivity = async (req, res) => {
         const activityResponseDto = new ActivityResponseDto(
           createdActivity.id,
           createdActivity.activityName,
-          createdActivity.activityDate.toISOString(),
+          createdActivity.activityDate,
           createdActivity.activityDescription,
           createdActivity.eventId
         );
