@@ -25,7 +25,7 @@ const createUser = async (req, res) => {
             userData.lastName,
             userData.email,
             hashedPassword,
-            userData.role,
+            "participant", // Force participant role initially
             userData.phoneNumber,
             userData.age,
             userData.gender,
@@ -166,11 +166,13 @@ const loginUser = async (req, res) => {
 
 const authWithToken = async (req, res) => {
     try {
-        const token = req.body.token;
+        const tokenObj = req.body.token;
+        const tokenString = tokenObj.token;
 
         // Validate the token
-        const decodedToken = validateToken(token);
-        if (!decodedToken) {
+        const decodedToken = validateToken(tokenString);
+
+        if (decodedToken.error) {
             return res.status(401).json({ message: 'Invalid token' });
         }
 
@@ -186,7 +188,7 @@ const authWithToken = async (req, res) => {
             user.email,
             user.firstName,
             user.lastName,
-            token,
+            tokenString,
             user.role
         )
 
@@ -214,13 +216,13 @@ const loginAdminUser = async (req, res) => {
         const user = await UserRepo.findByEmail(email);
 
         if (!user) {
-            return res.status(400).json({ message: 'Invalid email' });
+            return res.status(400).json({ message: 'Invalid email or password' });
         }
 
         // Compare the provided password with the stored hashed password
         const isPasswordValid = await bcrypt.compare(password, user.password);
         if (!isPasswordValid) {
-            return res.status(400).json({ message: 'Invalid password' });
+            return res.status(400).json({ message: 'Invalid email or password' });
         }
 
         // Generate JWT token
