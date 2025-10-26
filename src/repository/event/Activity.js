@@ -18,6 +18,10 @@ const Activity = sequelize.define(
             type: DataTypes.DATE,
             allowNull: false
         },
+        activityDescription: {
+            type: DataTypes.STRING,
+            allowNull: true
+        },
         eventId: {
             type: DataTypes.INTEGER,
             allowNull: false,
@@ -30,7 +34,7 @@ const Activity = sequelize.define(
 
     {
         tableName: 'Activity',
-        timestamps: false
+        timestamps: true
     }
 );
 
