@@ -2,7 +2,6 @@ const EventRepo = require('../repository/event/EventRepo')
 const CreateEvent = require('../models/CreateEvent')
 const Activity = require('../models/Activity');
 const ActivityResponseDto = require('../dto/ActivityResponseDto');
-const { to12HourFormat, to24HourFormat } = require('../util/dateUtils');
 
 const createEvent = async (req, res) => {
     try {
@@ -83,11 +82,10 @@ const getEventById = async (req, res) => {
 const createActivity = async (req, res) => {
     try {
         const activityData = req.body;
-        const convertedDate = activityData.activityDate ? to24HourFormat(activityData.activityDate) : null;
         const activity = new Activity(
             null,
             activityData.activityName,
-            convertedDate,
+            activityData.activityDate,
             activityData.activityDescription,
             activityData.eventId
         );
@@ -121,7 +119,7 @@ const createActivity = async (req, res) => {
         const activityResponseDto = new ActivityResponseDto(
           createdActivity.id,
           createdActivity.activityName,
-          to12HourFormat(createdActivity.activityDate),
+          createdActivity.activityDate.toISOString(),
           createdActivity.activityDescription,
           createdActivity.eventId
         );
@@ -142,10 +140,12 @@ const createActivity = async (req, res) => {
 const getActivitiesForEvent = async (req, res) => {
     try {
         const { id } = req.params;
-        const activities = await EventRepo.getAllActivities(id);
 
-        // Convert date from DB to user-friendly date (i.e., 12-hour format)
-        for (const activity of activities) activity.activityDate = to12HourFormat(activity.activityDate);
+        // Fetch activities and convert dates from DB to user-friendly dates (i.e., 12-hour format
+        const activities = (await EventRepo.getAllActivities(id)).map(activity => {
+            activity.activityDate = activity.activityDate.toISOString();
+            return activity;
+        })
 
         return res.status(200).json({
             message: 'Activities retrieved successfully',
@@ -167,12 +167,10 @@ const editActivity = async (req, res) => {
         const existingActivity = await EventRepo.findActivityById(activityData.id);
         if (!existingActivity) return res.status(404).json({ message: 'Activity not found' });
 
-        // Convert date and validate
-        const convertedDate = activityData.activityDate ? to24HourFormat(activityData.activityDate) : null;
         const activity = new Activity(
             activityData.id,
             activityData.activityName,
-            convertedDate,
+            activityData.activityDate,
             activityData.activityDescription,
             activityData.eventId
         );
@@ -209,7 +207,7 @@ const editActivity = async (req, res) => {
         const activityResponseDto = new ActivityResponseDto(
             updatedActivity.id,
             updatedActivity.activityName,
-            to12HourFormat(updatedActivity.activityDate),
+            updatedActivity.activityDate.toISOString(),
             updatedActivity.activityDescription,
             updatedActivity.eventId
         );
