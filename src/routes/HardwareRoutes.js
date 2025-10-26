@@ -5,6 +5,8 @@ const HardwareController = require('../controllers/HardwareController');
 //GET all hardware items
 router.get("/", HardwareController.getAllHardware);
 
+router.get("/admin", HardwareController.getAllHardwareAdmin);
+
 //GET Availability
 router.get('/availability', HardwareController.getHardwareAvailability);
 
@@ -12,9 +14,12 @@ router.get('/availability', HardwareController.getHardwareAvailability);
 router.get('/:id', HardwareController.getHardwareById);
 
 //POST new hardware
+router.post('/add', HardwareController.createHardware);
 
-//PUT update
+//PUT  hardware update
+router.put('/update/:id', HardwareController.updateHardware);
 
-//DELETE
+//hardware DELETE
+router.delete('/delete/:id', HardwareController.deleteHardware);
 
 module.exports = router;

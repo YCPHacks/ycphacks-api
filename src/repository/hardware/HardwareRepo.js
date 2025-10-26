@@ -1,4 +1,5 @@
 const Hardware = require("./Hardware");
+const {Sponsor, EventSponsor, SponsorTier} = require("../config/Models");
 
 const HardwareRepo = {
     //find one hardware item
@@ -48,21 +49,35 @@ const HardwareRepo = {
         });
         return Object.values(grouped);
     },
-
+    async findAllHardwareAdmin() {
+        return Hardware.findAll({
+            attributes: ['hardwareName','serial', 'functional', 'description', 'whoHasId']
+        });
+        const mappedListAdmin =  hardwareList.map(item => ({
+            name: item.hardwareName,
+            serialNumber: item.serial,
+            functional: item.functional,
+            description: item.description,
+            available: item.description,
+            whoHasId: item.whoHasId
+        }));
+        return mappedListAdmin
+    },
     async getAvailabilityList(){
         const hardwareList = await Hardware.findAll({
-            attributes: ['hardwareName', 'serial', 'whoHasId']
+            attributes: ['hardwareName', 'serial']
         });
 
         const mappedList =  hardwareList.map(item => ({
             name: item.hardwareName,
             serialNumber: item.serial,
-            whoHasId: item.whoHasId
+            //whoHasId: item.whoHasId
         }));
 
         // console.log("Mapped Availability Data: ", mappedList);
         return mappedList;
     },
+
 
     // Create new hardware entry
     async createHardware(hardware) {
