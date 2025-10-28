@@ -44,4 +44,4 @@ const Event = sequelize.define(
     }
 )
 
-module.export = Event;
+module.exports = Event;

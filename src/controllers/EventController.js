@@ -172,23 +172,10 @@ const createCategory = async (req, res) => {
         });
     }
 }
-const getCategoriesForEvent = async (req, res) => {
 
-    const { id } = req.params;
 
-    try {
-        const categories = await EventRepo.getAllCategories(id)
-        return res.status(200).json({
-            message: 'categories retrieved successfully',
-            categories: categories
-        });
-    } catch (e) {
-        console.error(e);
-        return res.status(500).json({
-            message: 'Internal Server Error'
-        });
-    }
-}
+
+
 
 const editCategory = async (req, res) => {
     try {
@@ -232,6 +219,67 @@ const updateEvent = async (req, res) => {
     }
 }
 
+const getCategoriesForEvent = async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const categories = await EventRepo.getAllCategories(id)
+        return res.status(200).json({
+            message: 'categories retrieved successfully',
+            categories: categories
+        });
+    } catch (e) {
+        console.error(e);
+        return res.status(500).json({
+            message: 'Internal Server Error'
+        });
+    }
+}
+
+
+const getPrizesForCategory = async (req, res) => {
+    try {
+        const { categoryId } = req.params;
+        const prizes = await EventRepo.getPrizesForCategory(categoryId);
+
+        if (!prizes) {
+            return res.status(404).json({ message: 'Category not found or no prizes' });
+        }
+        return res.status(200).json({
+            message: 'Prizes retrieved successfully',
+            prizes: prizes
+        });
+    } catch (e) {
+        console.error(e);
+        return res.status(500).json({ message: 'Internal Server Error' });
+    }
+};
+
+
+const addPrizeToCategory = async (req, res) => {
+    try {
+        const { categoryId, prizeName, placement } = req.body;
+
+        const createdPrize = await EventRepo.addPrizeToCategory(categoryId, { prizeName, placement });
+
+        if (!createdPrize) {
+            return res.status(404).json({ message: 'Category not found' });
+        }
+
+        return res.status(200).json({
+            message: 'Prize added successfully',
+            prize: createdPrize
+        });
+    } catch (e) {
+        console.error(e);
+        return res.status(500).json({ message: 'Internal Server Error' });
+    }
+};
+
+
+
+
+
 module.exports = {
     createEvent,
     getAllEvents,
@@ -242,5 +290,7 @@ module.exports = {
     getCategoriesForEvent,
     editCategory,
     editActivity,
-    updateEvent
+    updateEvent,
+    addPrizeToCategory,
+    getPrizesForCategory
 }
