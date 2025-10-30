@@ -4,14 +4,22 @@ const Activity = require("./Activity");
 
 
 const EventRepo = {
-    async create(event) {
+    async createEvent(event) {
         return Event.create(event)
     },
-    async findById(id) {
-        return Event.findOne({
-            where: { id }
-        })
+
+    async updateEvent(event) {
+        return Event.update({ ...event }, { where: { id: event.id } })
     },
+
+    async findEventById(eventId) {
+        return Event.findOne({ where: { id: eventId } })
+    },
+
+    async deleteEvent(eventId) {
+        return Event.destroy({ where: { id: eventId } })
+    },
+
     async getAll() {
         return Event.findAll()
     },
@@ -53,14 +61,6 @@ const EventRepo = {
             {...category},
             {
                 where: { id: category.id }
-            }
-        )
-    },
-    async updateEvent(event) {
-        return Event.update(
-            {...event},
-            {
-                where: { id: event.id }
             }
         )
     }

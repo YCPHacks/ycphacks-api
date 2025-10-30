@@ -28,7 +28,7 @@ describe('POST /activity/', () => {
         EventRepo.createActivity.mockReset();
         EventRepo.findActivityById.mockReset();
         jest.restoreAllMocks();
-        EventRepo.findById.mockResolvedValue(mockEvent);
+        EventRepo.findEventById.mockResolvedValue(mockEvent);
     });
 
     it('creates a new activity and return 201', async () => {
