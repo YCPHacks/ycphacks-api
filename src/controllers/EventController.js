@@ -1,66 +1,92 @@
 const EventRepo = require('../repository/event/EventRepo')
-const CreateEvent = require('../models/CreateEvent')
+const Event = require('../models/Event')
+const EventResponseDto = require('../dto/EventResponseDto')
 const Activity = require('../models/Activity');
 const ActivityResponseDto = require('../dto/ActivityResponseDto');
 
 const createEvent = async (req, res) => {
     try {
-        const createEventDto = req.body
+        const eventData = req.body
 
-        const event = new CreateEvent(
-            createEventDto.eventName,
-            createEventDto.startDate,
-            createEventDto.endDate,
+        const event = new Event(
+            null,
+            eventData.eventName,
+            eventData.startDate,
+            eventData.endDate,
             true,
-            new Date().getFullYear()
+            new Date().getFullYear(),
+            true
         )
 
         // validate data and throw error if not valid
         const validationErrors = event.validate()
-        if (validationErrors.length > 0) {
+        if (Object.keys(validationErrors).length > 0) {
             return res.status(400).json({
                 message: 'Validation errors occurred',
                 errors: validationErrors
             });
         }
 
-        const persistedEvent = await EventRepo.create(event)
+        if (event.isActive && (await EventRepo.findActiveEvent())) {
+            return res.status(400).json({
+                message: "This event can't be active because another event is set as active",
+                errors: { isActive: 'Another event is already active' }
+            });
+        }
 
-        // create schedule and prizes, these will be empty arrays
-        // but need to be initialized in the database
+        // Convert to plain object for Sequelize
+        const eventObj = {
+            eventName: event.eventName,
+            startDate: event.startDate,
+            endDate: event.endDate,
+            canChange: event.canChange,
+            year: event.year,
+            isActive: event.isActive
+        }
+
+        const createdEvent = await EventRepo.createEvent(eventObj)
+
+        if (!createdEvent) {
+            return res.status(400).json({
+                message: 'There was an error creating the event'
+            })
+        }
+
+        // Create event response DTO
+        const eventResponseDto = new EventResponseDto(...createdEvent)
 
         return res.status(201).json({
             message: 'Event created successfully',
-            event: persistedEvent
+            event: eventResponseDto
         });
     } catch (e) {
-        console.error(e);
         return res.status(500).json({
-            message: 'Internal Server Error'
+            message: 'Internal Server Error',
+            error: e.message || e
         });
     }
 }
 
 const getAllEvents = async (req, res) => {
     try {
-        const events = await EventRepo.getAll()
+        const events = await EventRepo.getAllEvents()
         return res.status(200).json({
             message: 'Events retrieved successfully',
             events: events
         });
     } catch (e) {
-        console.error(e);
         return res.status(500).json({
-            message: 'Internal Server Error'
+            message: 'Internal Server Error',
+            error: e.message || e
         });
     }
 }
 
 const getEventById = async (req, res) => {
-    const { id } = req.params; // Extract the ID from the URL
-
     try {
-        const event = await EventRepo.findById(id)
+        const { id } = req.params;
+
+        const event = await EventRepo.findEventById(id)
 
         if (!event) {
             return res.status(404).json({
@@ -74,7 +100,133 @@ const getEventById = async (req, res) => {
         }
     } catch (e){
         return res.status(500).json({
-            message: 'Internal Server Error'
+            message: 'Internal Server Error',
+            error: e.message || e
+        });
+    }
+}
+
+const getActiveEvent = async (req, res) => {
+    try {
+        const event = await EventRepo.findActiveEvent()
+
+        if (!event) {
+            return res.status(404).json({
+                message: 'There is no active event'
+            });
+        } else {
+            return res.status(200).json({
+                message: 'Active Event retrieved successfully',
+                event: event
+            });
+        }
+    } catch (e){
+        return res.status(500).json({
+            message: 'Internal Server Error',
+            error: e.message || e
+        });
+    }
+}
+
+const editEvent = async (req, res) => {
+    try {
+        const eventData = req.body;
+
+        // Check existence of edit
+        const existingEvent = await EventRepo.findEventById(eventData.id);
+        if (!existingEvent) return res.status(404).json({ message: 'Event not found' });
+
+        const event = new Event(...eventData);
+
+        // Validate data
+        const validationErrors = event.validate(false);
+        if (Object.keys(validationErrors).length > 0) {
+            return res.status(400).json({
+                message: 'Validation errors occurred',
+                errors: validationErrors
+            });
+        }
+
+        if (event.isActive && !existingEvent.isActive && (await EventRepo.findActiveEvent())) {
+            return res.status(400).json({
+                message: "This event can't be active because another event is set as active",
+                errors: { isActive: 'Another event is already active' }
+            });
+        }
+
+        // Convert to plain object for Sequelize
+        const eventObj = {
+            id: event.id,
+            eventName: event.eventName,
+            startDate: event.startDate,
+            endDate: event.endDate,
+            canChange: event.canChange,
+            year: event.year,
+            isActive: event.isActive
+        }
+
+        const [rowsUpdated] = await EventRepo.updateEvent(eventObj)
+
+        if (rowsUpdated <= 0) {
+            return res.status(404).json({
+                message: "Event could not be updated"
+            });
+        }
+
+        const updatedEvent = await EventRepo.findEventById(eventObj.id);
+
+        // Create event response DTO
+        const eventResponseDto = new EventResponseDto(...updatedEvent)
+
+        return res.status(200).json({
+            message: 'Event updated successfully',
+            activity: eventResponseDto
+        });
+    } catch (e) {
+        return res.status(500).json({
+            message: 'Error updating event',
+            error: e.message || e
+        });
+    }
+}
+
+const deleteEvent = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        // Check that the event id was provided
+        if (!id) {
+            return res.status(400).json({
+                message: 'Event ID is required'
+            });
+        }
+
+        // Check if the event exists
+        const existingEvent = await EventRepo.findEventById(id);
+        if (!existingEvent) {
+            return res.status(404).json({
+                message: 'Event not found'
+            });
+        }
+
+        // Delete event
+        const rowsDeleted = await EventRepo.deleteEvent(id);
+
+        // Check to make sure the event was deleted
+        if (rowsDeleted <= 0) {
+            return res.status(404).json({
+                message: 'Event could not be deleted (not found or already removed)'
+            });
+        }
+
+        return res.status(200).json({
+            message: 'Event deleted successfully',
+            deletedId: id
+        });
+    } catch (e) {
+        return res.status(500).json({
+            message: 'Error deleting event',
+            error: e.message || e
         });
     }
 }

@@ -16,12 +16,16 @@ const EventRepo = {
         return Event.findOne({ where: { id: eventId } })
     },
 
-    async deleteEvent(eventId) {
-        return Event.destroy({ where: { id: eventId } })
+    async findActiveEvent() {
+        return Event.findOne({ where: { isActive: true } })
     },
 
-    async getAll() {
+    async getAllEvents() {
         return Event.findAll()
+    },
+
+    async deleteEvent(eventId) {
+        return Event.destroy({ where: { id: eventId } })
     },
 
     async createActivity(activity) {
