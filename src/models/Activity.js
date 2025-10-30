@@ -33,7 +33,7 @@ class Activity {
         if (!this.activityDate) {
             errors.activityDate = "Date is required";
         } else if (!dateRegex.test(this.activityDate)) {
-            errors.activityDate = "Invalid date format (expecting: YYYY-MM-DD hh:mm:ss AM/PM)";
+            errors.activityDate = "Invalid date format";
         } else if (Date.parse(this.activityDate) <= new Date()) {
             errors.activityDate = "Date cannot be in the past"
         }
