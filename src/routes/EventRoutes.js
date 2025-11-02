@@ -18,8 +18,8 @@ const {
 
 router.post('/create', createEvent)
 router.get('/all', getAllEvents)
+router.get('/active', getActiveEvent)
 router.get('/:id', getEventById)
-router.get('/active/:id', getActiveEvent)
 router.put('/update', editEvent)
 router.delete('/delete/:id', deleteEvent)
 router.post('/activity/', createActivity)

@@ -95,7 +95,6 @@ const getEventById = async (req, res) => {
         const { id } = req.params;
 
         const event = await EventRepo.findEventById(id)
-
         if (!event) {
             return res.status(404).json({
                 message: 'Event not found'
@@ -124,7 +123,7 @@ const getActiveEvent = async (req, res) => {
             });
         } else {
             return res.status(200).json({
-                message: 'Active Event retrieved successfully',
+                message: 'Active event retrieved successfully',
                 event: event
             });
         }
@@ -144,7 +143,15 @@ const editEvent = async (req, res) => {
         const existingEvent = await EventRepo.findEventById(eventData.id);
         if (!existingEvent) return res.status(404).json({ message: 'Event not found' });
 
-        const event = new Event(...eventData);
+        const event = new Event(
+            eventData.id,
+            eventData.eventName,
+            eventData.startDate,
+            eventData.endDate,
+            eventData.canChange,
+            eventData.year,
+            eventData.isActive
+        );
 
         // Validate data
         const validationErrors = event.validate(false);
