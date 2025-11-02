@@ -51,10 +51,10 @@ class Event {
             errors.endDate = "Date cannot be before the start date"
         }
 
-        // 5. Validate year presence and that the year makes sense
+        // 5. Validate year presence and validity
         if (!this.year) {
             errors.year = 'Year is required'
-        } else if (this.year !== this.startDate.getFullYear() && this.year !== this.endDate.getFullYear()) {
+        } else if (this.year !== new Date(this.startDate).getFullYear() && this.year !== new Date(this.endDate).getFullYear()) {
             errors.year = 'Year must be the year of the start date or end date'
         }
 

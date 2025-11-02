@@ -9,10 +9,11 @@ jest.mock('../repository/event/EventRepo');
 const mockEvent = {
     id: 1,
     eventName: 'An event',
-    startDate: '9999-01-01 12:00:00',
-    endDate: '9999-01-03 12:00:00',
+    startDate: '9999-01-01T12:00:00Z',
+    endDate: '9999-01-03T12:00:00Z',
     canChange: false,
-    year: 2025
+    year: 9999,
+    isActive: false
 }
 
 const validActivityCreateRequest = {
@@ -121,7 +122,7 @@ describe('POST /activity/', () => {
         expect(res.statusCode).toEqual(400);
         expect(res.body).toHaveProperty('message', 'Validation errors occurred');
         expect(Object.keys(res.body.errors).length).toEqual(1);  // There should be exactly one validation error
-        expect(res.body.errors.activityDate).toEqual('Invalid date format (expecting: YYYY-MM-DD hh:mm:ss AM/PM)');
+        expect(res.body.errors.activityDate).toEqual('Invalid date format');
     });
 
     it('returns 400 (date in past)', async () => {

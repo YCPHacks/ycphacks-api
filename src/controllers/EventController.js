@@ -13,13 +13,13 @@ const createEvent = async (req, res) => {
             eventData.eventName,
             eventData.startDate,
             eventData.endDate,
-            true,
-            new Date().getFullYear(),
-            true
+            eventData.canChange,
+            eventData.year,
+            eventData.isActive
         )
 
         // validate data and throw error if not valid
-        const validationErrors = event.validate()
+        const validationErrors = event.validate(true)
         if (Object.keys(validationErrors).length > 0) {
             return res.status(400).json({
                 message: 'Validation errors occurred',
@@ -53,7 +53,15 @@ const createEvent = async (req, res) => {
         }
 
         // Create event response DTO
-        const eventResponseDto = new EventResponseDto(...createdEvent)
+        const eventResponseDto = new EventResponseDto(
+            createdEvent.id,
+            createdEvent.eventName,
+            createdEvent.startDate,
+            createdEvent.endDate,
+            createdEvent.canChange,
+            createdEvent.year,
+            createdEvent.isActive
+        )
 
         return res.status(201).json({
             message: 'Event created successfully',
@@ -176,7 +184,15 @@ const editEvent = async (req, res) => {
         const updatedEvent = await EventRepo.findEventById(eventObj.id);
 
         // Create event response DTO
-        const eventResponseDto = new EventResponseDto(...updatedEvent)
+        const eventResponseDto = new EventResponseDto(
+            updatedEvent.id,
+            updatedEvent.eventName,
+            updatedEvent.startDate,
+            updatedEvent.endDate,
+            updatedEvent.canChange,
+            updatedEvent.year,
+            updatedEvent.isActive
+        )
 
         return res.status(200).json({
             message: 'Event updated successfully',
@@ -467,11 +483,13 @@ module.exports = {
     createEvent,
     getAllEvents,
     getEventById,
+    getActiveEvent,
+    editEvent,
+    deleteEvent,
     createActivity,
     getActivitiesForEvent,
     createCategory,
     getCategoriesForEvent,
     editCategory,
-    editActivity,
-    updateEvent
+    editActivity
 }
