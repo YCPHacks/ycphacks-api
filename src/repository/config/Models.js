@@ -23,7 +23,7 @@ EventParticipant.belongsTo(Team, { foreignKey: 'teamId' });
 Team.belongsTo(Event, { foreignKey: 'eventId' });
 Event.hasMany(Team, { foreignKey: 'eventId' });
 
-EventParticipant.belongsTo(User, { foreignKey: 'userId' });
+EventParticipant.belongsTo(User, { foreignKey: 'userId', as: 'userDetails' });
 User.hasMany(EventParticipant, { foreignKey: 'userId' });
 
 // Export models

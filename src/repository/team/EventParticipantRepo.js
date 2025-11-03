@@ -7,7 +7,11 @@ class EventParticipantRepo {
     static async findParticipantsByTeamId(teamId){
         return EventParticipant.findAll({
             where: { teamId: teamId },
-            include: [{ model: User, attributes: ['id', 'firstName', 'lastName'] }]
+            include: [{ 
+                model: User, 
+                as: 'userDetails',
+                attributes: ['id', 'firstName', 'lastName']
+            }],
         });
     }
     static async findUnassignedParticipants(eventId) {
@@ -18,8 +22,12 @@ class EventParticipantRepo {
                     [Op.is]: null
                 }
             },
-            include: [{ model: User }],
-            attributes: ['userId', 'teamId']
+            include: [{ 
+                model: User, 
+                as: 'userDetails',
+                attributes: ['id', 'firstName', 'lastName', 'email'] 
+            }],
+            raw: false
         });
     }
     static async assignToTeam(userId, eventId, teamId){
@@ -33,6 +41,11 @@ class EventParticipantRepo {
             }
         );
         return rowsUpdated > 0;
+    }
+    async getTeams(){
+        return await Team.findAll({
+            attributes: ["id", "eventId", "teamName", "presentationLink", "githubLink", "projectName", "projectDescription"]
+        });
     }
 }
 

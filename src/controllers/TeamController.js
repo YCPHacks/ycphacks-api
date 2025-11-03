@@ -62,8 +62,8 @@ class TeamController {
                 const participants = await EventParticipantsRepo.findParticipantsByTeamId(teamId);
 
                 const formattedParticipants = participants.map(p => ({
-                    id: p.userId,
-                    name: `${p.User.firstName} ${p.User.lastName}`
+                    id: p.userDetails.id,
+                    name: `${p.userDetails.firstName} ${p.userDetails.lastName}`
                 }));
                 
                 return {
@@ -84,27 +84,6 @@ class TeamController {
         }catch(err){
             console.error("Backend Error in getAllTeams:", err);
             res.status(500).json({ message: 'Error getting all teams', error:err.message });
-        }
-    }
-
-    static async getUnassignedParticipants(req, res) {
-        try {
-            const eventId = req.query.eventId || 1; 
-
-            const participants = await EventParticipantsRepo.findUnassignedParticipants(eventId);
-
-            const formattedParticipants = participants.map(p => ({
-                id: p.userId,
-                firstName: p.User.firstName,
-                lastName: p.User.lastName,
-                email: p.User.email,
-                teamId: p.teamId
-            }));
-
-            res.status(200).json({ message: 'Successfully fetched unassigned participants', data: formattedParticipants });
-        } catch (err) {
-            console.error("Backend Error in getUnassignedParticipants:", err);
-            res.status(500).json({ message: 'Error getting unassigned participants', error: err.message });
         }
     }
 }

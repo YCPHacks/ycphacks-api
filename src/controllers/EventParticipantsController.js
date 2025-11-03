@@ -1,23 +1,24 @@
-const EventParticipantsRepo = require('../repository/team/EventParticipantsRepo');
+const EventParticipantsRepo = require('../repository/team/EventParticipantRepo');
 
 class EventParticipantController{
-    static async getUnassignedParticipants(req, res){
-        const eventId = req.params.eventId || 1; 
-
+    static async getUnassignedParticipants(req, res) {
         try {
-            const unassignedUsers = await EventParticipantsRepo.findUnassignedParticipants(eventId);
+            const eventId = req.query.eventId || 1; 
 
-            res.status(200).json({ 
-                message: 'Successfully fetched unassigned participants.', 
-                data: unassignedUsers 
-            });
+            const participants = await EventParticipantsRepo.findUnassignedParticipants(eventId);
 
-        } catch (error) {
-            console.error("Error fetching unassigned participants:", error);
-            res.status(500).json({ 
-                message: 'Failed to fetch unassigned participants.', 
-                error: error.message 
-            });
+            const formattedParticipants = participants.map(p => ({
+                id: p.userId,
+                firstName: p.userDetails?.firstName,
+                lastName: p.userDetails?.lastName,
+                email: p.userDetails?.email,
+                teamId: p.teamId
+            }));
+
+            res.status(200).json({ message: 'Successfully fetched unassigned participants', data: formattedParticipants });
+        } catch (err) {
+            console.error("Backend Error in getUnassignedParticipants:", err);
+            res.status(500).json({ message: 'Error getting unassigned participants', error: err.message });
         }
     }
     static async assignParticipant(req, res) {

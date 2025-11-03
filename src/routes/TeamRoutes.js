@@ -2,9 +2,10 @@ const express = require('express');
 const router = express.Router();
 
 const TeamController = require('../controllers/TeamController');
+const EventParticipantController = require('../controllers/EventParticipantsController');
 
 router.post('/create', TeamController.createTeam);
 router.get('/all', TeamController.getAllTeams);
-router.get('/unassignedParticipants', TeamController.getUnassignedParticipants);
+router.get('/unassignedParticipants', EventParticipantController.getUnassignedParticipants);
 
 module.exports = router;
