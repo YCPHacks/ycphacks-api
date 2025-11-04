@@ -1,6 +1,6 @@
 const checkBodyForSpecialCharacters = (req, res, next) => {
     // Blocks characters often used in attacks ($, %, #, <, >, etc.)
-    const specialCharRegex = /[^a-zA-Z0-9\s-',.]/g;
+    const specialCharRegex = /[^a-zA-Z0-9\s-',\.:/\?&_=()@]/g
 
     for (const key in req.body) {
         const value = req.body[key];

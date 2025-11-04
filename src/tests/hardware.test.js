@@ -3,7 +3,7 @@ const request = require('supertest');
 // 1. HARDWARE REPO MOCK
 // Removed { virtual: true } as the file exists and the mock should be standard.
 jest.mock('../repository/hardware/HardwareRepo', () => ({
-    groupHardwareForFrontend: jest.fn(),
+    groupHardware: jest.fn(),
     getAvailabilityList: jest.fn(),
     findHardwareById: jest.fn(),
     findAllHardware: jest.fn(),
@@ -51,7 +51,7 @@ const HardwareRepoMock = require('../repository/hardware/HardwareRepo');
 // This holds the exported object: { sequelize: mockInstance }
 const dbConfig = require('../repository/config/index'); 
 
-// Expected output for HardwareRepo.groupHardwareForFrontend (GET /)
+// Expected output for HardwareRepo.groupHardware (GET /)
 const expectedGroupedHardware = [
     {
         id: "raspberry-pi",
@@ -92,13 +92,13 @@ describe('Hardware Routes', () => {
     describe('GET /', () => {
         it('should return 200 and a list of grouped hardware items', async () => {
             // Mock the function that the controller for '/' should call
-            HardwareRepoInstance.groupHardwareForFrontend.mockResolvedValue(expectedGroupedHardware);
+            HardwareRepoInstance.groupHardware.mockResolvedValue(expectedGroupedHardware);
 
             const res = await request(app).get('/hardware');
 
             expect(res.statusCode).toEqual(200);
             expect(res.body).toEqual(expectedGroupedHardware);
-            expect(HardwareRepoInstance.groupHardwareForFrontend).toHaveBeenCalledTimes(1);
+            expect(HardwareRepoInstance.groupHardware).toHaveBeenCalledTimes(1);
         });
 
         it('should return 500 if the repository operation fails', async () => {
@@ -106,7 +106,7 @@ describe('Hardware Routes', () => {
             const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
 
             // Asserting for a 500 status code, which is handled by the fixed HardwareController
-            HardwareRepoInstance.groupHardwareForFrontend.mockRejectedValue(new Error('Database error'));
+            HardwareRepoInstance.groupHardware.mockRejectedValue(new Error('Database error'));
 
             const res = await request(app).get('/hardware');
 
