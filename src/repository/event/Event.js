@@ -42,6 +42,6 @@ const Event = sequelize.define(
         tableName: 'Event',
         timestamps: false,
     }
-)
+);
 
-module.export = Event;
+module.exports = Event;

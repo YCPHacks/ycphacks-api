@@ -1,5 +1,5 @@
 const { DataTypes } = require('sequelize');
-const { sequelize } = require('../config');
+const { sequelize } = require('../config/index');
 
 const Activity = sequelize.define(
     'Activity',
@@ -18,6 +18,10 @@ const Activity = sequelize.define(
             type: DataTypes.DATE,
             allowNull: false
         },
+        activityDescription: {
+            type: DataTypes.STRING,
+            allowNull: true
+        },
         eventId: {
             type: DataTypes.INTEGER,
             allowNull: false,
@@ -25,12 +29,12 @@ const Activity = sequelize.define(
                 model: 'Event',
                 key: 'id'
             }
-        },
+        }
     },
 
     {
         tableName: 'Activity',
-        timestamps: false
+        timestamps: true
     }
 );
 

@@ -1,5 +1,7 @@
 const EventRepo = require('../repository/event/EventRepo')
 const CreateEvent = require('../models/CreateEvent')
+const Activity = require('../models/Activity');
+const ActivityResponseDto = require('../dto/ActivityResponseDto');
 
 const createEvent = async (req, res) => {
     try {
@@ -79,68 +81,145 @@ const getEventById = async (req, res) => {
 
 const createActivity = async (req, res) => {
     try {
-        const activity = {
-            activityName: req.body.activityName,
-            activityDate: req.body.activityDate,
-            eventId: req.body.eventId
+        const activityData = req.body;
+        const activity = new Activity(
+            null,
+            activityData.activityName,
+            activityData.activityDate,
+            activityData.activityDescription,
+            activityData.eventId
+        );
+
+        // Validate data
+        const validationErrors = activity.validate(true);
+        if (Object.keys(validationErrors).length > 0) {
+            return res.status(400).json({
+                message: 'Validation errors occurred',
+                errors: validationErrors
+            });
         }
 
-        const createdActivity = await EventRepo.createActivity( activity)
+        // Convert to plain object for Sequelize
+        const activityObj = {
+            activityName: activity.activityName,
+            activityDate: activity.activityDate,
+            activityDescription: activity.activityDescription,
+            eventId: activity.eventId
+        }
+
+        const createdActivity = await EventRepo.createActivity(activityObj)
 
         if (!createdActivity) {
             return res.status(404).json({
                 message: 'Event not found'
             });
-        } else {
-            return res.status(201).json({
-                message: 'Activity created successfully',
-                activity: createdActivity
-            });
         }
+
+        // Create activity response DTO
+        const activityResponseDto = new ActivityResponseDto(
+          createdActivity.id,
+          createdActivity.activityName,
+          createdActivity.activityDate,
+          createdActivity.activityDescription,
+          createdActivity.eventId
+        );
+
+        return res.status(201).json({
+            message: 'Activity created successfully',
+            activity: activityResponseDto
+        });
     } catch (e) {
-        console.log(e)
         return res.status(500).json({
-            message: e
+            message: 'Error creating activity',
+            error: e.message || e
         });
     }
 }
 
 
 const getActivitiesForEvent = async (req, res) => {
-
-    const { id } = req.params;
-
     try {
-        const activities = await EventRepo.getAllActivities(id)
+        const { id } = req.params;
+
+        // Fetch activities and convert dates from DB to user-friendly dates (i.e., 12-hour format
+        const activities = (await EventRepo.getAllActivities(id)).map(activity => {
+            activity.activityDate = activity.activityDate.toISOString();
+            return activity;
+        })
+
         return res.status(200).json({
             message: 'Activities retrieved successfully',
             activities: activities
         });
     } catch (e) {
-        console.error(e);
         return res.status(500).json({
-            message: 'Internal Server Error'
+            message: 'Internal Server Error',
+            error: e.message || e
         });
     }
 }
 
 const editActivity = async (req, res) => {
     try {
-        const activity = {
-            id: req.body.id,
-            activityName: req.body.activityName,
-            activityDate: req.body.activityDate,
-            eventId: req.body.eventId
+        const activityData = req.body;
+
+        // Check existence of activity
+        const existingActivity = await EventRepo.findActivityById(activityData.id);
+        if (!existingActivity) return res.status(404).json({ message: 'Activity not found' });
+
+        const activity = new Activity(
+            activityData.id,
+            activityData.activityName,
+            activityData.activityDate,
+            activityData.activityDescription,
+            activityData.eventId
+        );
+
+        // Validate data
+        const validationErrors = activity.validate(false);
+        if (Object.keys(validationErrors).length > 0) {
+            return res.status(400).json({
+                message: 'Validation errors occurred',
+                errors: validationErrors
+            });
         }
 
-        const updatedActivity = await EventRepo.updateActivity(activity)
+        // Convert to plain object for Sequelize
+        const activityObj = {
+            id: activity.id,
+            activityName: activity.activityName,
+            activityDate: activity.activityDate,
+            activityDescription: activity.activityDescription,
+            eventId: activity.eventId
+        }
+
+        const [rowsUpdated] = await EventRepo.updateActivity(activityObj)
+
+        if (rowsUpdated <= 0) {
+            return res.status(404).json({
+                message: "Activity could not be updated (event not found)"
+            });
+        }
+
+        const updatedActivity = await EventRepo.findActivityById(activityObj.id);
+
+        // Create activity response DTO
+        const activityResponseDto = new ActivityResponseDto(
+            updatedActivity.id,
+            updatedActivity.activityName,
+            updatedActivity.activityDate.toISOString(),
+            updatedActivity.activityDescription,
+            updatedActivity.eventId
+        );
+
         return res.status(200).json({
             message: 'Activity updated successfully',
+            activity: activityResponseDto
         });
     } catch (e) {
-        console.error(e);
         return res.status(500).json({
-            message: 'Internal Server Error'
+            message: 'Error updating activity',
+            error: e.message || e
         });
     }
 }
