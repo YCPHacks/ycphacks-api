@@ -12,6 +12,7 @@ class EventParticipantController{
                 firstName: p.userDetails?.firstName,
                 lastName: p.userDetails?.lastName,
                 email: p.userDetails?.email,
+                checkIn: p.userDetails?.checkIn,
                 teamId: p.teamId
             }));
 

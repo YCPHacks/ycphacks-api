@@ -6,8 +6,9 @@ const EventParticipantsRepo = require('../repository/team/EventParticipantRepo')
 
 class TeamController {
     static async createTeam(req, res) {
+        const { participantIds, ...teamData } = req.body;
+
         try{
-            const teamData = req.body
             const team = new Team(
                 teamData.eventId,
                 teamData.teamName,
@@ -37,6 +38,19 @@ class TeamController {
             const persistedTeam = await TeamRepo.create(teamObj);
 
             const teamDataValues = persistedTeam.dataValues || persistedTeam;
+            const newTeamId = teamDataValues.id;
+
+            if(participantIds && participantIds.length > 0 && newTeamId){
+                const assignmentPromises = participantIds.map(userId =>
+                    EventParticipantsRepo.assignToTeam(
+                        userId,
+                        team.eventId,
+                        newTeamId
+                    )
+                );
+                // Executes all assignment updates concurrently
+                await Promise.all(assignmentPromises);
+            }
 
             const responseDto = new TeamDto(
                 teamDataValues.eventId,

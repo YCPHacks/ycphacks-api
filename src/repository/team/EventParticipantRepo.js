@@ -25,7 +25,10 @@ class EventParticipantRepo {
             include: [{ 
                 model: User, 
                 as: 'userDetails',
-                attributes: ['id', 'firstName', 'lastName', 'email'] 
+                attributes: ['id', 'firstName', 'lastName', 'email', 'checkIn'] ,
+                where: {
+                    checkIn: 1
+                }
             }],
             raw: false
         });
