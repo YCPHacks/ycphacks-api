@@ -100,6 +100,50 @@ class TeamController {
             res.status(500).json({ message: 'Error getting all teams', error:err.message });
         }
     }
+
+    static async updateTeam(req, res){
+        const teamId = req.params.id;
+
+        const {
+            teamName,
+            projectName,
+            projectDescription,
+            presentationLink,
+            githubLink,
+            participantIds
+        } = req.body;
+
+        if(!teamId || !teamName || !Array.isArray(participantIds) || participantIds.length < 1){
+            return res.status(400).json({ message: "Invalid input: Team ID, name, and minimum participants are required." });
+        }
+
+        try{
+            const teamData = {
+                teamName, 
+                projectName, 
+                projectDescription, 
+                presentationLink, 
+                githubLink
+            };
+
+            const updatedTeam = await TeamRepo.update(teamId, teamData);
+
+            if (!updatedTeam) {
+                return res.status(404).json({ message: "Team not found." });
+            }
+            
+            await EventParticipantsRepo.synchronizeTeamMembers(teamId, participantIds);
+        
+            return res.status(200).json({ 
+                message: "Team and participants updated successfully.", 
+                data: updatedTeam 
+            });
+
+        } catch (error) {
+            console.error("Error updating team:", error);
+            return res.status(500).json({ message: "Failed to update team due to a server error." });
+        }
+    }
 }
 
 module.exports = TeamController;

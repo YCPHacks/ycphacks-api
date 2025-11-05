@@ -50,6 +50,46 @@ class EventParticipantRepo {
             attributes: ["id", "eventId", "teamName", "presentationLink", "githubLink", "projectName", "projectDescription"]
         });
     }
+    static async synchronizeTeamMembers(teamId, desiredParticipantIds, eventId=1){
+        const currentMembersRecords = await EventParticipant.findAll({
+            attributes: ['userId'],
+            where: { teamId: teamId, eventId: eventId },
+            raw: true
+        });
+
+        const currentMemberIds = currentMembersRecords.map(r => r.userId);
+
+        const membersToAssign = desiredParticipantIds.filter(id => !currentMemberIds.includes(id));
+
+        if (membersToAssign.length > 0) {
+            await EventParticipant.update(
+                { teamId: teamId },
+                {
+                    where: {
+                        userId: { [Op.in]: membersToAssign },
+                        eventId: eventId,
+                    }
+                }
+            );
+        }
+
+        const membersToUnassign = currentMemberIds.filter(id => !desiredParticipantIds.includes(id));
+
+        if (membersToUnassign.length > 0) {
+            await EventParticipant.update(
+                { teamId: null },
+                {
+                    where: {
+                        userId: { [Op.in]: membersToUnassign },
+                        eventId: eventId,
+                        teamId: teamId, 
+                    }
+                }
+            );
+        }
+
+        return true;
+    }
 }
 
 module.exports = EventParticipantRepo;
