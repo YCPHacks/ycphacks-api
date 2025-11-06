@@ -144,6 +144,30 @@ class TeamController {
             return res.status(500).json({ message: "Failed to update team due to a server error." });
         }
     }
+    static async deleteTeam(req, res) {
+        const teamId = req.params.id;
+
+        try {
+            const success = await TeamRepo.delete(teamId); 
+
+            if (success === 0) {
+                return res.status(404).json({ message: "Team not found." });
+            }
+            
+            const updatedTeamList = await TeamRepo.getAllTeams();
+            const updatedUnassignedList = await EventParticipantsRepo.findParticipantsByTeamId(null);
+
+            // Success response
+            return res.status(200).json({ 
+                message: `Team ID ${teamId} successfully deleted. All participants are now unassigned.`,
+                teams: updatedTeamList, 
+                unassignedUsers: updatedUnassignedList 
+            });
+        } catch (error) {
+            console.error("Error deleting team:", error);
+            return res.status(500).json({ message: "Failed to delete team due to a server error." });
+        }
+    }
 }
 
 module.exports = TeamController;

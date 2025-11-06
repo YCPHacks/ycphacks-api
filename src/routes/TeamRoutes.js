@@ -8,5 +8,6 @@ router.post('/create', TeamController.createTeam);
 router.get('/all', TeamController.getAllTeams);
 router.get('/unassignedParticipants', EventParticipantController.getUnassignedParticipants);
 router.put('/:id', TeamController.updateTeam);
+router.delete('/:id', TeamController.deleteTeam);
 
 module.exports = router;

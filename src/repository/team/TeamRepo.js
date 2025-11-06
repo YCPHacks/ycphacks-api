@@ -26,6 +26,9 @@ const TeamRepo = {
             }
         );
         return rowsUpdated;
+    },
+    async delete(teamId){
+        return Team.destroy({where: {id: teamId}});
     }
 }
 
