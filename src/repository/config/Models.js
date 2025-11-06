@@ -79,6 +79,12 @@ HackCategory.belongsTo(Event, {
     onDelete: 'CASCADE',
 });
 
+Team.hasMany(EventParticipant, { foreignKey: 'teamId' });
+EventParticipant.belongsTo(Team, { foreignKey: 'teamId' });
+
+EventParticipant.belongsTo(User, { foreignKey: 'userId', as: 'userDetails' });
+User.hasMany(EventParticipant, { foreignKey: 'userId' });
+
 // Export models
 module.exports = {
     sequelize,
@@ -95,6 +101,5 @@ module.exports = {
     Image,
     Analytics,
     Hardware,
-    HardwareImage,
-    Team
+    HardwareImage
 };

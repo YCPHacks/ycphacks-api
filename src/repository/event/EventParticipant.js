@@ -15,6 +15,7 @@ const EventParticipant = sequelize.define(
         },
         userId: {
             type: DataTypes.INTEGER,
+            primaryKey: true,
             allowNull: false,
             references: {
                 model: 'User',
@@ -23,11 +24,13 @@ const EventParticipant = sequelize.define(
         },
         teamId: {
             type: DataTypes.INTEGER,
-            allowNull: false,
+            allowNull: true,
             references: {
                 model: 'Team',
                 key: 'id'
-            }
+            },
+            onDelete: 'SET NULL',
+            onUpdate: 'CASCADE'
         }
     },
     {
