@@ -22,6 +22,12 @@ const Team = sequelize.define(
             type: DataTypes.STRING(100), // matches varchar(100)
             allowNull: false,
         },
+        projectName: {
+            type: DataTypes.STRING(100)
+        },
+        projectDescription: {
+            type: DataTypes.STRING
+        },
         presentationLink: {
             type: DataTypes.STRING,
         },
@@ -34,6 +40,6 @@ const Team = sequelize.define(
         tableName: 'Team'
 
     }
-)
+);
 
 module.exports = Team;

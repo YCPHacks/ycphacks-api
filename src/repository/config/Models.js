@@ -17,6 +17,15 @@ const Analytics = require('../analytics/Analytics');
 const Image = require('../image/Image');
 const Activity = require('../event/Activity');
 
+Team.hasMany(EventParticipant, { foreignKey: 'teamId' });
+EventParticipant.belongsTo(Team, { foreignKey: 'teamId' });
+
+Team.belongsTo(Event, { foreignKey: 'eventId' });
+Event.hasMany(Team, { foreignKey: 'eventId' });
+
+EventParticipant.belongsTo(User, { foreignKey: 'userId', as: 'userDetails' });
+User.hasMany(EventParticipant, { foreignKey: 'userId' });
+
 // Export models
 module.exports = {
     sequelize,
@@ -33,6 +42,5 @@ module.exports = {
     Image,
     Analytics,
     Hardware,
-    HardwareImage,
-    Team
+    HardwareImage
 };

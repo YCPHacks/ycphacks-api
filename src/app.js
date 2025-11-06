@@ -7,6 +7,7 @@ const userRoutes = require('./routes/UserRoutes');
 const eventRoutes = require('./routes/EventRoutes');
 const hardwareRoutes = require('./routes/HardwareRoutes');
 const sponsorRoutes = require('./routes/SponsorRoutes');
+const teamRoutes = require('./routes/TeamRoutes');
 const app = express();
 const { authMiddleware } = require('./util/JWTUtil');
 
@@ -25,6 +26,7 @@ app.use(express.json());
 app.use('/user', userRoutes)
 app.use('/event', eventRoutes)
 app.use('/hardware', hardwareRoutes)
+app.use('/teams', teamRoutes);
 // Sponsor Routes
 app.use('/sponsors', sponsorRoutes);
 app.use('/api/eventsponsors', sponsorRoutes); 
