@@ -14,7 +14,6 @@ const createEvent = async (req, res) => {
             eventData.startDate,
             eventData.endDate,
             eventData.canChange,
-            eventData.year,
             eventData.isActive
         )
 
@@ -40,7 +39,6 @@ const createEvent = async (req, res) => {
             startDate: event.startDate,
             endDate: event.endDate,
             canChange: event.canChange,
-            year: event.year,
             isActive: event.isActive
         }
 
@@ -59,7 +57,6 @@ const createEvent = async (req, res) => {
             createdEvent.startDate,
             createdEvent.endDate,
             createdEvent.canChange,
-            createdEvent.year,
             createdEvent.isActive
         )
 
@@ -149,7 +146,6 @@ const editEvent = async (req, res) => {
             eventData.startDate,
             eventData.endDate,
             eventData.canChange,
-            eventData.year,
             eventData.isActive
         );
 
@@ -176,7 +172,6 @@ const editEvent = async (req, res) => {
             startDate: event.startDate,
             endDate: event.endDate,
             canChange: event.canChange,
-            year: event.year,
             isActive: event.isActive
         }
 
@@ -197,7 +192,6 @@ const editEvent = async (req, res) => {
             updatedEvent.startDate,
             updatedEvent.endDate,
             updatedEvent.canChange,
-            updatedEvent.year,
             updatedEvent.isActive
         )
 

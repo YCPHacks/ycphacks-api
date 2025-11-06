@@ -10,7 +10,6 @@ const validEventCreateRequest = {
     startDate: '9999-01-01T12:00:00Z',
     endDate: '9999-01-03T12:00:00Z',
     canChange: false,
-    year: 9999,
     isActive: false
 };
 
@@ -165,51 +164,21 @@ describe('POST /create', () => {
     });
 
     it('returns 400 (end date before start date)', async () => {
+        let newDate = new Date(validEventCreateRequest.startDate)
+        newDate = new Date(newDate.setDate(newDate.getDate() - 1));
+
         // Act: send the HTTP request
         const res = await request(app)
             .post('/event/create')
             .send({
                 ...validEventCreateRequest,
-                endDate: new Date(validEventCreateRequest.startDate).getDate() - 1
+                endDate: newDate.toISOString()
             });
-        console.log(new Date(validEventCreateRequest.startDate).getDate())
 
         // Assert: response checks
         expect(res.statusCode).toEqual(400);
         expect(res.body).toHaveProperty('message', 'Validation errors occurred');
         expect(Object.keys(res.body.errors).length).toEqual(1);  // There should be exactly one validation error
         expect(res.body.errors.endDate).toEqual('Date cannot be before the start date');
-    });
-
-    it('returns 400 (no year)', async () => {
-        // Act: send the HTTP request
-        const res = await request(app)
-            .post('/event/create')
-            .send({
-                ...validEventCreateRequest,
-                year: null
-            });
-
-        // Assert: response checks
-        expect(res.statusCode).toEqual(400);
-        expect(res.body).toHaveProperty('message', 'Validation errors occurred');
-        expect(Object.keys(res.body.errors).length).toEqual(1);  // There should be exactly one validation error
-        expect(res.body.errors.year).toEqual('Year is required');
-    });
-
-    it('returns 400 (year not valid)', async () => {
-        // Act: send the HTTP request
-        const res = await request(app)
-            .post('/event/create')
-            .send({
-                ...validEventCreateRequest,
-                year: new Date(validEventCreateRequest.startDate).getFullYear() - 1
-            });
-
-        // Assert: response checks
-        expect(res.statusCode).toEqual(400);
-        expect(res.body).toHaveProperty('message', 'Validation errors occurred');
-        expect(Object.keys(res.body.errors).length).toEqual(1);  // There should be exactly one validation error
-        expect(res.body.errors.year).toEqual('Year must be the year of the start date or end date');
     });
 });

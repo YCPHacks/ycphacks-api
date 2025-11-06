@@ -5,7 +5,6 @@ class Event {
         startDate,
         endDate,
         canChange,
-        year,
         isActive
     ) {
         this.id = id
@@ -13,7 +12,6 @@ class Event {
         this.startDate = startDate
         this.endDate = endDate
         this.canChange = canChange
-        this.year = year
         this.isActive = isActive
     }
 
@@ -49,13 +47,6 @@ class Event {
             errors.endDate = "Invalid date format";
         } else if (this.startDate && Date.parse(this.endDate) <= Date.parse(this.startDate)) {
             errors.endDate = "Date cannot be before the start date"
-        }
-
-        // 5. Validate year presence and validity
-        if (!this.year) {
-            errors.year = 'Year is required'
-        } else if (this.year !== new Date(this.startDate).getFullYear() && this.year !== new Date(this.endDate).getFullYear()) {
-            errors.year = 'Year must be the year of the start date or end date'
         }
 
         return errors;
