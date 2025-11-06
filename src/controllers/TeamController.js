@@ -6,8 +6,9 @@ const EventParticipantsRepo = require('../repository/team/EventParticipantRepo')
 
 class TeamController {
     static async createTeam(req, res) {
+        const { participantIds, ...teamData } = req.body;
+
         try{
-            const teamData = req.body
             const team = new Team(
                 teamData.eventId,
                 teamData.teamName,
@@ -37,6 +38,19 @@ class TeamController {
             const persistedTeam = await TeamRepo.create(teamObj);
 
             const teamDataValues = persistedTeam.dataValues || persistedTeam;
+            const newTeamId = teamDataValues.id;
+
+            if(participantIds && participantIds.length > 0 && newTeamId){
+                const assignmentPromises = participantIds.map(userId =>
+                    EventParticipantsRepo.assignToTeam(
+                        userId,
+                        team.eventId,
+                        newTeamId
+                    )
+                );
+                // Executes all assignment updates concurrently
+                await Promise.all(assignmentPromises);
+            }
 
             const responseDto = new TeamDto(
                 teamDataValues.eventId,
@@ -84,6 +98,74 @@ class TeamController {
         }catch(err){
             console.error("Backend Error in getAllTeams:", err);
             res.status(500).json({ message: 'Error getting all teams', error:err.message });
+        }
+    }
+
+    static async updateTeam(req, res){
+        const teamId = req.params.id;
+
+        const {
+            teamName,
+            projectName,
+            projectDescription,
+            presentationLink,
+            githubLink,
+            participantIds
+        } = req.body;
+
+        if(!teamId || !teamName || !Array.isArray(participantIds) || participantIds.length < 1){
+            return res.status(400).json({ message: "Invalid input: Team ID, name, and minimum participants are required." });
+        }
+
+        try{
+            const teamData = {
+                teamName, 
+                projectName, 
+                projectDescription, 
+                presentationLink, 
+                githubLink
+            };
+
+            const updatedTeam = await TeamRepo.update(teamId, teamData);
+
+            if (!updatedTeam) {
+                return res.status(404).json({ message: "Team not found." });
+            }
+            
+            await EventParticipantsRepo.synchronizeTeamMembers(teamId, participantIds);
+        
+            return res.status(200).json({ 
+                message: "Team and participants updated successfully.", 
+                data: updatedTeam 
+            });
+
+        } catch (error) {
+            console.error("Error updating team:", error);
+            return res.status(500).json({ message: "Failed to update team due to a server error." });
+        }
+    }
+    static async deleteTeam(req, res) {
+        const teamId = req.params.id;
+
+        try {
+            const success = await TeamRepo.delete(teamId); 
+
+            if (success === 0) {
+                return res.status(404).json({ message: "Team not found." });
+            }
+            
+            const updatedTeamList = await TeamRepo.getAllTeams();
+            const updatedUnassignedList = await EventParticipantsRepo.findParticipantsByTeamId(null);
+
+            // Success response
+            return res.status(200).json({ 
+                message: `Team ID ${teamId} successfully deleted. All participants are now unassigned.`,
+                teams: updatedTeamList, 
+                unassignedUsers: updatedUnassignedList 
+            });
+        } catch (error) {
+            console.error("Error deleting team:", error);
+            return res.status(500).json({ message: "Failed to delete team due to a server error." });
         }
     }
 }

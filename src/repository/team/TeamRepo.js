@@ -13,6 +13,22 @@ const TeamRepo = {
     },
     async getAllTeams(){
         return await Team.findAll();
+    },
+    async update(teamId, teamData){
+        if(teamData.id){
+            delete teamData.id;
+        }
+
+        const [rowsUpdated] = await Team.update(
+            teamData,
+            {
+                where: {id: teamId}
+            }
+        );
+        return rowsUpdated;
+    },
+    async delete(teamId){
+        return Team.destroy({where: {id: teamId}});
     }
 }
 
