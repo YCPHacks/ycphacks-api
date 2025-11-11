@@ -40,7 +40,8 @@ class EventParticipantRepo {
                 where: { 
                     userId: userId, 
                     eventId: eventId 
-                } 
+                },
+                individualHooks: true
             }
         );
         return rowsUpdated > 0;
@@ -68,7 +69,8 @@ class EventParticipantRepo {
                     where: {
                         userId: { [Op.in]: membersToAssign },
                         eventId: eventId,
-                    }
+                    },
+                    individualHooks: true
                 }
             );
         }
@@ -83,7 +85,8 @@ class EventParticipantRepo {
                         userId: { [Op.in]: membersToUnassign },
                         eventId: eventId,
                         teamId: teamId, 
-                    }
+                    },
+                    individualHooks: true
                 }
             );
         }
