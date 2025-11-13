@@ -17,6 +17,74 @@ const Analytics = require('../analytics/Analytics');
 const Image = require('../image/Image');
 const Activity = require('../event/Activity');
 
+/* EVENT ASSOCIATIONS */
+
+// Event <---> EventParticipant
+Event.hasMany(EventParticipant, {
+    foreignKey: 'eventId',
+    onDelete: 'CASCADE',
+});
+EventParticipant.belongsTo(Event, {
+    foreignKey: 'eventId',
+    onDelete: 'CASCADE',
+});
+
+// Event <---> EventSponsor
+Event.hasMany(EventSponsor, {
+    foreignKey: 'eventId',
+    onDelete: 'CASCADE',
+});
+EventSponsor.belongsTo(Event, {
+    foreignKey: 'eventId',
+    onDelete: 'CASCADE',
+});
+
+// Event <---> Activity
+Event.hasMany(Activity, {
+    foreignKey: 'eventId',
+    onDelete: 'CASCADE',
+});
+Activity.belongsTo(Event, {
+    foreignKey: 'eventId',
+    onDelete: 'CASCADE',
+});
+
+// Event <---> Prize
+Event.hasMany(Prize, {
+    foreignKey: 'eventId',
+    onDelete: 'CASCADE',
+});
+Prize.belongsTo(Event, {
+    foreignKey: 'eventId',
+    onDelete: 'CASCADE',
+});
+
+// Event <---> Team
+Event.hasMany(Team, {
+    foreignKey: 'eventId',
+    onDelete: 'CASCADE',
+});
+Team.belongsTo(Event, {
+    foreignKey: 'eventId',
+    onDelete: 'CASCADE',
+});
+
+// Event <---> HackCategory
+Event.hasMany(HackCategory, {
+    foreignKey: 'eventId',
+    onDelete: 'CASCADE',
+});
+HackCategory.belongsTo(Event, {
+    foreignKey: 'eventId',
+    onDelete: 'CASCADE',
+});
+
+Team.hasMany(EventParticipant, { foreignKey: 'teamId' });
+EventParticipant.belongsTo(Team, { foreignKey: 'teamId' });
+
+EventParticipant.belongsTo(User, { foreignKey: 'userId', as: 'userDetails' });
+User.hasMany(EventParticipant, { foreignKey: 'userId' });
+
 // Export models
 module.exports = {
     sequelize,
@@ -33,6 +101,5 @@ module.exports = {
     Image,
     Analytics,
     Hardware,
-    HardwareImage,
-    Team
+    HardwareImage
 };
