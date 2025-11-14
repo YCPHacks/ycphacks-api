@@ -261,7 +261,8 @@ const getAllUsers = async (req, res) => {
             tShirtSize: user.dataValues.tShirtSize,
             dietaryRestrictions: user.dataValues.dietaryRestrictions,
             role: user.dataValues.role,
-            checkIn: user.dataValues.checkIn
+            checkIn: user.dataValues.checkIn,
+            isBanned: user.dataValues.isBanned
         }));
 
         res.status(200).json({ message: 'Successfully fetched all users', data: userData });
@@ -313,7 +314,7 @@ const updateUserById = async (req, res) => {
         'firstName', 'lastName', 'age', 'email', 'phoneNumber', 'school', 
         'tShirtSize', 'dietaryRestrictions', 'role', 'gender', 'country', 
         'hackathonsAttended', 'pronouns', 'isVerified', 'major', 
-        'graduationYear', 'levelOfStudy', 'linkedInUrl', 'checkIn'
+        'graduationYear', 'levelOfStudy', 'linkedInUrl', 'checkIn', 'isBanned'
     ];
 
     const sanitizedUpdateData = {};
