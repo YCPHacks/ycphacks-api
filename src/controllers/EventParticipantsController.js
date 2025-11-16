@@ -72,6 +72,28 @@ class EventParticipantController{
             });
         }
     }
+    static async getUserTeamStatus(req, res){
+        const userId = req.params.userId;
+        const eventId = req.query.eventId;
+
+        if(!userId || !eventId){
+            return res.status(400).json({ message: 'Missing user ID or event ID' });
+        }
+
+        try{
+            const participant = await EventParticipantsRepo.findParticipantsByUserIdAndEventId(userId, eventId);
+
+            const teamId = participant ? participant.teamId : null;
+
+            return res.status(200).json({
+                teamId: teamId,
+                message: 'Successfully retrieved user team status'
+            });
+        }catch(err){
+            console.error("Error fetching user team status:", err);
+            return res.status(500).json({ message: 'Server error retrieving team status' });
+        }
+    }
 }
 
 module.exports = EventParticipantController;

@@ -17,6 +17,23 @@ class EventParticipantRepo {
             }],
         });
     }
+    static async findParticipantsByUserIdAndEventId(userId, eventId){
+        const participant = await EventParticipant.findOne({
+            attributes: ['teamId'], 
+            where: { userId: userId, eventId: eventId },
+            
+            include: [{ 
+                model: User, 
+                as: 'userDetails',
+                attributes: [],
+                where: {
+                    isBanned: { [Op.not]: true }
+                }
+            }],
+        });
+
+        return participant;
+    }
     static async findUnassignedParticipants(eventId) {
         return EventParticipant.findAll({
             where: {

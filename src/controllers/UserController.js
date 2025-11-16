@@ -168,8 +168,13 @@ const loginUser = async (req, res) => {
 const authWithToken = async (req, res) => {
     try {
         const tokenObj = req.body.token;
-        const tokenString = tokenObj.token;
+        const tokenString = (typeof tokenObj === 'object' && tokenObj !== null) ? tokenObj.token : tokenObj;
 
+        // Ensure we actually have a string before proceeding
+        if (!tokenString || typeof tokenString !== 'string') {
+            return res.status(401).json({ message: 'Missing or malformed token in request body' });
+        }
+        
         // Validate the token
         const decodedToken = validateToken(tokenString);
 
