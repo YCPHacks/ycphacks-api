@@ -63,6 +63,27 @@ const EventRepo = {
                 where: { id: event.id }
             }
         )
+    },
+    async isSubmissionPeriodOpen(eventId) {
+        try {
+            const event = await Event.findByPk(eventId, {
+                attributes: ['endDate']
+            });
+
+            if (!event || !event.endDate) {
+                console.warn(`Event ID ${eventId} not found or missing end date.`);
+                return false;
+            }
+
+            const endDate = new Date(event.endDate);
+            const now = new Date();
+
+            return now < endDate;
+
+        } catch (error) {
+            console.error(`Error checking submission period for event ${eventId}:`, error);
+            return false; 
+        }
     }
 }
 
