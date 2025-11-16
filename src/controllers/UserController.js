@@ -6,6 +6,7 @@ const { generateToken, validateToken} = require('../util/JWTUtil');
 const bcrypt = require('bcrypt');
 const SALT_ROUNDS = 10;  // Number of salt rounds for bcrypt
 const { sendRegistrationConfirmation } = require('../util/emailService');
+const EventParticipantRepo = require('../repository/team/EventParticipantRepo');
 
 /**
  * This function will create a user based on the data that gets sent in and return
@@ -333,6 +334,15 @@ const updateUserById = async (req, res) => {
 
         if (rowsAffected === 0) {
             return res.status(404).json({ message: "User not found or no changes made." });
+        }
+
+        if(sanitizedUpdateData.hasOwnProperty('isBanned')){
+            const isBannedStatus = sanitizedUpdateData.isBanned;
+
+            if(isBannedStatus === true || isBannedStatus === 1){
+                const eventId = 1;
+                await EventParticipantRepo.assignToTeam(userId, eventId, null);
+            }
         }
 
         // Success response

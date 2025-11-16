@@ -10,7 +10,10 @@ class EventParticipantRepo {
             include: [{ 
                 model: User, 
                 as: 'userDetails',
-                attributes: ['id', 'firstName', 'lastName']
+                attributes: ['id', 'firstName', 'lastName', 'isBanned'],
+                where: {
+                    isBanned: { [Op.not]: true }
+                }
             }],
         });
     }
@@ -25,9 +28,10 @@ class EventParticipantRepo {
             include: [{ 
                 model: User, 
                 as: 'userDetails',
-                attributes: ['id', 'firstName', 'lastName', 'email', 'checkIn'] ,
+                attributes: ['id', 'firstName', 'lastName', 'email', 'checkIn', 'isBanned'] ,
                 where: {
-                    checkIn: 1
+                    checkIn: 1,
+                    isBanned: {[Op.not]: true}
                 }
             }],
             raw: false

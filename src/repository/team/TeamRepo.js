@@ -11,6 +11,9 @@ const TeamRepo = {
             where: {teamName}
         });
     },
+    async findById(teamId){
+        return await Team.findByPk(teamId);
+    },
     async getAllTeams(){
         return await Team.findAll();
     },
