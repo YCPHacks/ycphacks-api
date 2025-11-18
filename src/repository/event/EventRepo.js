@@ -9,7 +9,7 @@ const EventRepo = {
     },
 
     async updateEvent(event) {
-        return Event.update({ ...event }, { where: { id: event.id } })
+        return Event.update({ ...event }, { where: { id: event.id }, individualHooks: true })
     },
 
     async findEventById(eventId) {
@@ -25,7 +25,7 @@ const EventRepo = {
     },
 
     async deleteEvent(eventId) {
-        return Event.destroy({ where: { id: eventId } })
+        return Event.destroy({ where: { id: eventId }, individualHooks: true })
     },
 
     async createActivity(activity) {
@@ -33,7 +33,11 @@ const EventRepo = {
     },
 
     async updateActivity(newActivity) {
-        return Activity.update({ ...newActivity }, { where: { id: newActivity.id }});
+        return Activity.update({ ...newActivity }, { where: { id: newActivity.id }, individualHooks: true });
+    },
+
+    async deleteActivity(activityId) {
+      return Activity.destroy({ where: { id: activityId } })
     },
 
     async findActivityById(activityId) {
@@ -46,7 +50,8 @@ const EventRepo = {
 
     async createCategory( category) {
         const event = await Event.findOne({
-            where: { id: category.eventId }
+            where: { id: category.eventId },
+            individualHooks: true
         })
         if (!event) {
             return null
@@ -64,9 +69,39 @@ const EventRepo = {
         return HackCategories.update(
             {...category},
             {
-                where: { id: category.id }
+                where: { id: category.id },
+                individualHooks: true
             }
         )
+    },
+    async updateEvent(event) {
+        return Event.update(
+            {...event},
+            {
+                where: { id: event.id }
+            }
+        )
+    },
+    async isSubmissionPeriodOpen(eventId) {
+        try {
+            const event = await Event.findByPk(eventId, {
+                attributes: ['endDate']
+            });
+
+            if (!event || !event.endDate) {
+                console.warn(`Event ID ${eventId} not found or missing end date.`);
+                return false;
+            }
+
+            const endDate = new Date(event.endDate);
+            const now = new Date();
+
+            return now < endDate;
+
+        } catch (error) {
+            console.error(`Error checking submission period for event ${eventId}:`, error);
+            return false; 
+        }
     }
 }
 

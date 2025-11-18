@@ -10,9 +10,29 @@ class EventParticipantRepo {
             include: [{ 
                 model: User, 
                 as: 'userDetails',
-                attributes: ['id', 'firstName', 'lastName']
+                attributes: ['id', 'firstName', 'lastName', 'isBanned'],
+                where: {
+                    isBanned: { [Op.not]: true }
+                }
             }],
         });
+    }
+    static async findParticipantsByUserIdAndEventId(userId, eventId){
+        const participant = await EventParticipant.findOne({
+            attributes: ['teamId'], 
+            where: { userId: userId, eventId: eventId },
+            
+            include: [{ 
+                model: User, 
+                as: 'userDetails',
+                attributes: [],
+                where: {
+                    isBanned: { [Op.not]: true }
+                }
+            }],
+        });
+
+        return participant;
     }
     static async findUnassignedParticipants(eventId) {
         return EventParticipant.findAll({
@@ -25,9 +45,10 @@ class EventParticipantRepo {
             include: [{ 
                 model: User, 
                 as: 'userDetails',
-                attributes: ['id', 'firstName', 'lastName', 'email', 'checkIn'] ,
+                attributes: ['id', 'firstName', 'lastName', 'email', 'checkIn', 'isBanned'] ,
                 where: {
-                    checkIn: 1
+                    checkIn: 1,
+                    isBanned: {[Op.not]: true}
                 }
             }],
             raw: false
@@ -40,7 +61,8 @@ class EventParticipantRepo {
                 where: { 
                     userId: userId, 
                     eventId: eventId 
-                } 
+                },
+                individualHooks: true
             }
         );
         return rowsUpdated > 0;
@@ -68,7 +90,8 @@ class EventParticipantRepo {
                     where: {
                         userId: { [Op.in]: membersToAssign },
                         eventId: eventId,
-                    }
+                    },
+                    individualHooks: true
                 }
             );
         }
@@ -83,7 +106,8 @@ class EventParticipantRepo {
                         userId: { [Op.in]: membersToUnassign },
                         eventId: eventId,
                         teamId: teamId, 
-                    }
+                    },
+                    individualHooks: true
                 }
             );
         }
