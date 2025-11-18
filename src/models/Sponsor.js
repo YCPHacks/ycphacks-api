@@ -3,12 +3,14 @@ class Sponsor {
         id,
         sponsorName,
         sponsorWebsite,
-        sponsorImageId
+        sponsorImageId,
+        amount
     ) {
         this.id = id;
         this.sponsorName = sponsorName;
         this.sponsorWebsite = sponsorWebsite;
         this.sponsorImageId = sponsorImageId;
+        this.amount = amount;
 
         if (!this.sponsorName) {
             errors.push("Missing Sponsor Name");

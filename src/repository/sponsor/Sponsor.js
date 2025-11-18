@@ -28,9 +28,11 @@ const Sponsor = sequelize.define(
             },
             field: 'sponsorImageId'
         },
-        tierId: {
+        amount: {
             type: DataTypes.INTEGER,
-            field: 'tierId'
+            field: 'amount',
+            allowNull: false,
+            required: true
         }
     },
     {

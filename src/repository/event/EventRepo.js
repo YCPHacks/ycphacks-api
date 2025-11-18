@@ -4,16 +4,28 @@ const Activity = require("./Activity");
 
 
 const EventRepo = {
-    async create(event) {
+    async createEvent(event) {
         return Event.create(event)
     },
-    async findById(id) {
-        return Event.findOne({
-            where: { id }
-        })
+
+    async updateEvent(event) {
+        return Event.update({ ...event }, { where: { id: event.id }, individualHooks: true })
     },
-    async getAll() {
+
+    async findEventById(eventId) {
+        return Event.findOne({ where: { id: eventId } })
+    },
+
+    async findActiveEvent() {
+        return Event.findOne({ where: { isActive: true } })
+    },
+
+    async getAllEvents() {
         return Event.findAll()
+    },
+
+    async deleteEvent(eventId) {
+        return Event.destroy({ where: { id: eventId }, individualHooks: true })
     },
 
     async createActivity(activity) {
@@ -21,7 +33,7 @@ const EventRepo = {
     },
 
     async updateActivity(newActivity) {
-        return Activity.update({ ...newActivity }, { where: { id: newActivity.id }});
+        return Activity.update({ ...newActivity }, { where: { id: newActivity.id }, individualHooks: true });
     },
 
     async deleteActivity(activityId) {
@@ -38,7 +50,8 @@ const EventRepo = {
 
     async createCategory( category) {
         const event = await Event.findOne({
-            where: { id: category.eventId }
+            where: { id: category.eventId },
+            individualHooks: true
         })
         if (!event) {
             return null
@@ -56,15 +69,8 @@ const EventRepo = {
         return HackCategories.update(
             {...category},
             {
-                where: { id: category.id }
-            }
-        )
-    },
-    async updateEvent(event) {
-        return Event.update(
-            {...event},
-            {
-                where: { id: event.id }
+                where: { id: category.id },
+                individualHooks: true
             }
         )
     }

@@ -206,12 +206,6 @@ const loginAdminUser = async (req, res) => {
     try {
         const { email, password } = req.body;
 
-        const roleMap = {
-            1: 'participant',
-            2: 'staff',
-            3: 'oscar',
-        };
-
         // Find the user by email
         const user = await UserRepo.findByEmail(email);
 
@@ -257,16 +251,96 @@ const getAllUsers = async (req, res) => {
 
         const users = await UserRepo.getAllUsers();
         const userData = users.map(user => ({
+            id: user.dataValues.id,
             firstName: user.dataValues.firstName,
             lastName: user.dataValues.lastName,
+            age: user.dataValues.age,
+            email: user.dataValues.email,
             phoneNumber: user.dataValues.phoneNumber,
-            hackathonsAttended: user.dataValues.hackathonsAttended,
+            school: user.dataValues.school,
+            tShirtSize: user.dataValues.tShirtSize,
+            dietaryRestrictions: user.dataValues.dietaryRestrictions,
             role: user.dataValues.role,
+            checkIn: user.dataValues.checkIn
         }));
 
-        res.status(200).json({ message: 'All users', data: userData });
+        res.status(200).json({ message: 'Successfully fetched all users', data: userData });
     } catch (err) {
         res.status(500).json({ message: 'Error getting all users', error: err.message });
+    }
+}
+
+const updateCheckIn = async (req, res) => {
+    const userId = Number(req.params.id);
+
+    const { checkIn } = req.body;
+
+    // console.log(`Received userId: ${userId} (Type: ${typeof userId})`);
+    // console.log(`Received checkIn: ${checkIn} (Type: ${typeof checkIn})`);
+
+    if (isNaN(userId) || checkIn === undefined || checkIn === null) {
+        return res.status(400).json({
+            error: 'Invalid or missing user ID or checkIn status (must be boolean) in request.'
+        });
+    }
+
+    try {
+        const updatedUser = await UserRepo.updateCheckInStatus(
+            userId,
+            !!checkIn 
+        );
+
+        return res.status(200).json({ 
+            message: `User ${userId} checked in successfully.`,
+            data: updatedUser 
+        });
+
+    } catch (error) {
+        if (error.status === 404) {
+            return res.status(404).json({ error: error.message });
+        }
+        
+        console.error('Error updating check-in status:', error);
+        return res.status(500).json({ error: 'Failed to update user check-in status.' });
+    }
+}
+
+const updateUserById = async (req, res) => {
+    const userId = Number(req.params.id);
+    const updatePayload = req.body;
+
+    const allowedFields = [
+        'firstName', 'lastName', 'age', 'email', 'phoneNumber', 'school', 
+        'tShirtSize', 'dietaryRestrictions', 'role', 'gender', 'country', 
+        'hackathonsAttended', 'pronouns', 'isVerified', 'major', 
+        'graduationYear', 'levelOfStudy', 'linkedInUrl', 'checkIn'
+    ];
+
+    const sanitizedUpdateData = {};
+    for(const key of allowedFields){
+        if(updatePayload.hasOwnProperty(key)){
+            sanitizedUpdateData[key] = updatePayload[key];
+        }
+    }
+
+    if(Object.keys(sanitizedUpdateData).length === 0){
+        return res.status(400).json({ error: "No valid fields provided for update." });
+    }
+
+    try {
+        const [rowsAffected] = await UserRepo.updateUserById(userId, sanitizedUpdateData);
+
+        if (rowsAffected === 0) {
+            return res.status(404).json({ message: "User not found or no changes made." });
+        }
+
+        // Success response
+        return res.status(200).json({ message: "User updated successfully.", data: sanitizedUpdateData });
+
+    } catch (error) {
+        console.error("Controller Error during user update:", error);
+        // Send a generic error or a more specific one if validation failed before the try block
+        return res.status(500).json({ error: "Failed to update user due to a server error." });
     }
 }
 
@@ -275,5 +349,7 @@ module.exports = {
     loginUser,
     authWithToken,
     loginAdminUser,
-    getAllUsers
+    getAllUsers,
+    updateCheckIn,
+    updateUserById
 }

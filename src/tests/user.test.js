@@ -3,6 +3,96 @@ const app = require('../app');  // Import your Express app
 const UserRepo = require('../repository/user/UserRepo');  // Mock User repository
 const { sendRegistrationConfirmation } = require('../util/emailService'); // Adjust path
 const bcrypt = require('bcrypt');
+const { updateUserById } = require('../controllers/UserController');
+
+const MOCK_ADMIN_TOKEN = 'mock-admin-token';
+const mockUsersList = [
+    {
+        firstName: 'Alex',
+        lastName: 'Johnson',
+        email: 'alex.johnson@example.com',
+        password: 'secureHash123', // Must be present
+        phoneNumber: '555-0101',
+        age: 22,
+        country: 'United States',
+        tShirtSize: 'M',
+        school: 'State University of Technology',
+        levelOfStudy: 'Undergraduate',
+        checkIn: true,
+        mlhCodeOfConduct: true,
+        mlhPrivacyPolicy: true,
+
+        role: 'participant', // Default value
+        gender: 'Male',
+        hackathonsAttended: 2,
+    },
+    {
+        firstName: 'Sarah',
+        lastName: 'Lee',
+        email: 'sarah.lee.staff@example.com',
+        password: 'anotherSecureHash456',
+        phoneNumber: '555-0102',
+        age: 28,
+        country: 'Canada',
+        tShirtSize: 'L',
+        school: 'Tech Institute',
+        levelOfStudy: 'Graduate',
+        checkIn: false,
+        mlhCodeOfConduct: true,
+        mlhPrivacyPolicy: true,
+
+        role: 'staff', // Specific role
+        gender: 'Female',
+        major: 'Computer Science',
+        graduationYear: 2020,
+        hackathonsAttended: 8,
+        pronouns: 'she/her',
+        linkedInUrl: 'https://linkedin.com/in/sarahlee',
+        mlhEmails: true,
+        isVerified: true,
+    },
+    {
+        firstName: 'Oscar',
+        lastName: 'Admin',
+        email: 'oscar.admin@example.com',
+        password: 'adminHash789',
+        phoneNumber: '555-0103',
+        age: 40,
+        country: 'United Kingdom',
+        tShirtSize: 'XL',
+        school: 'Administrative Academy',
+        levelOfStudy: 'N/A',
+        checkIn: true,
+        mlhCodeOfConduct: true,
+        mlhPrivacyPolicy: true,
+
+        role: 'oscar', // Specific role
+        gender: null,
+        dietaryRestrictions: 'Vegan',
+        major: null,
+        pronouns: null,
+        mlhEmails: false,
+    },
+];
+
+const filterUserPublicFields = (user) => {
+    // Only include the fields that are expected to be public/returned by the API
+    const publicFields = [
+        'firstName', 'lastName', 'email', 'phoneNumber', 'age', 
+        'tShirtSize', 'school', 'checkIn', 'role', 'dietaryRestrictions'
+    ]; 
+    
+    const publicUserData = {};
+    for (const field of publicFields) {
+        if (user.hasOwnProperty(field)) {
+            publicUserData[field] = user[field];
+        }
+    }
+    return publicUserData;
+};
+
+// This is the list the GET /user/all test will use for assertion
+const mockUsersPublicList = mockUsersList.map(filterUserPublicFields);
 
 const validUserCreateRequest = {
     firstName: 'Jane',
@@ -254,5 +344,187 @@ describe('POST /user/register', () => {
         expect(Object.keys(res.body.errors).length).toEqual(2);  // There should be exactly two validation errors
         expect(res.body.errors.mlhCodeOfConduct).toEqual('MLH Code of Conduct must be accepted');
         expect(res.body.errors.mlhPrivacyPolicy).toEqual('MLH Privacy Policy must be accepted');
+    });
+});
+
+describe('GET /user/all', () => {
+    const createSequelizeMock = (data) => ({
+        ...data,
+        toJSON: () => filterUserPublicFields(data),
+        dataValues: data 
+    });
+
+    const createSequelizeMockList = (list) => list.map(user => createSequelizeMock(user));
+
+    beforeEach(() => {
+        UserRepo.getAllUsers.mockClear();
+    });
+
+    it('should return all users and a 200 status code', async() => {
+        // Mock the repository to return the full mock data wrapped in Sequelize objects
+        UserRepo.getAllUsers.mockResolvedValue(createSequelizeMockList(mockUsersList)); 
+
+        const res = await request(app)
+            .get('/user/all')
+            .set('Authorization', `Bearer ${MOCK_ADMIN_TOKEN}`);
+        
+            expect(res.statusCode).toEqual(200);
+            expect(res.body).toHaveProperty('message', 'Successfully fetched all users');
+            // ASSERTION FIX: Compare the received data to the EXPECTED public list
+            expect(res.body.data).toEqual(mockUsersPublicList);
+            expect(UserRepo.getAllUsers).toHaveBeenCalledTimes(1);
+    });
+
+    it('should return an empty array if no users are found', async () => {
+        UserRepo.getAllUsers.mockResolvedValue([]);
+
+        const res = await request(app)
+            .get('/user/all')
+            .set('Authorization', `Bearer ${MOCK_ADMIN_TOKEN}`);
+
+        expect(res.statusCode).toEqual(200);
+        expect(res.body.data).toEqual([]);
+    });
+
+    it('should handle repository errors gracefully with a 500 status', async () => {
+        const error = new Error('Database connection failed');
+        UserRepo.getAllUsers.mockRejectedValue(error);
+
+        const res = await request(app)
+            .get('/user/all')
+            .set('Authorization', `Bearer ${MOCK_ADMIN_TOKEN}`);
+
+        expect(res.statusCode).toEqual(500);
+        expect(res.body).toHaveProperty('message');
+        expect(res.body.message).toContain('Error getting all users');
+    });
+});
+
+describe('PUT /user/:id/checkin', () => {
+    const createSequelizeMock = (data) => ({
+        ...data,
+        toJSON: () => data,
+        dataValues: data 
+    });
+
+    const userId = 101;
+    
+    beforeEach(() => {
+        UserRepo.updateCheckInStatus.mockClear();
+    });
+
+    it('should update checkIn status to true and return 200 status', async () => {
+        const updatedUserPlain = { ...mockUsersList[0], id: userId, checkIn: true };
+        const updatedUser = createSequelizeMock(updatedUserPlain);
+
+        UserRepo.updateCheckInStatus.mockResolvedValue(updatedUser);
+
+        const res = await request(app)
+            .put(`/user/${userId}/checkin`)
+            .send({ checkIn: true }) 
+            .set('Authorization', `Bearer ${MOCK_ADMIN_TOKEN}`);
+
+        expect(res.statusCode).toEqual(200);
+        expect(res.body).toHaveProperty('message', `User ${userId} checked in successfully.`); 
+        expect(res.body.data.checkIn).toBe(true); 
+        expect(UserRepo.updateCheckInStatus).toHaveBeenCalledWith(userId, true);
+    });
+
+    it('should return 404 if the user ID is not found', async () => {
+        const nonExistentId = 999;
+        
+        const notFoundError = new Error(`User with ID ${nonExistentId} not found.`);
+        notFoundError.status = 404; 
+        UserRepo.updateCheckInStatus.mockRejectedValue(notFoundError);
+
+        const res = await request(app)
+            .put(`/user/${nonExistentId}/checkin`)
+            .send({ checkIn: true }) 
+            .set('Authorization', `Bearer ${MOCK_ADMIN_TOKEN}`);
+
+        expect(res.statusCode).toEqual(404);
+        expect(res.body).toHaveProperty('error');
+        expect(res.body.error).toContain(`User with ID ${nonExistentId} not found.`);
+        expect(UserRepo.updateCheckInStatus).toHaveBeenCalledWith(nonExistentId, true);
+    });
+
+    it('should return 400 if checkIn is missing from the request body', async () => {
+        const res = await request(app)
+            .put(`/user/${userId}/checkin`)
+            .send({})
+            .set('Authorization', `Bearer ${MOCK_ADMIN_TOKEN}`);
+
+        expect(res.statusCode).toEqual(400);
+        expect(res.body).toHaveProperty('error', 'Invalid or missing user ID or checkIn status (must be boolean) in request.');
+        expect(UserRepo.updateCheckInStatus).not.toHaveBeenCalled();
+    });
+});
+
+describe('PUT /user/:id (updateUserById)', () => {
+    const EXISTING_USER_ID = 123;
+    const NON_EXISTENT_ID = 999;
+    const validUpdatePayload = {
+        firstName: 'Jane',
+        tShirtSize: 'M',
+        school: 'University of Code',
+        role: 'PARTICIPANT'
+    };
+
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
+    it('should return 200 and success message on valid update', async () => {
+        UserRepo.updateUserById.mockResolvedValue([1]);
+
+        const response = await request(app)
+            .put(`/user/${EXISTING_USER_ID}`)
+            .send(validUpdatePayload);
+
+        expect(response.statusCode).toBe(200);
+        expect(response.body.message).toBe('User updated successfully.');
+        expect(response.body.data.firstName).toBe('Jane');
+        expect(UserRepo.updateUserById).toHaveBeenCalledTimes(1);
+
+        expect(UserRepo.updateUserById).toHaveBeenCalledWith(
+            EXISTING_USER_ID,
+            expect.objectContaining(validUpdatePayload)
+        );
+    });
+
+    it('should correctly handle a partial update with only one field', async () => {
+        const partialPayload = { dietaryRestrictions: 'Vegan' };
+        UserRepo.updateUserById.mockResolvedValue([1]);
+
+        const response = await request(app)
+            .put(`/user/${EXISTING_USER_ID}`)
+            .send(partialPayload);
+
+        expect(response.statusCode).toBe(200);
+        expect(response.body.data.dietaryRestrictions).toBe('Vegan');
+        
+        // Ensure only the single field was passed to the repo
+        expect(UserRepo.updateUserById).toHaveBeenCalledWith(
+            EXISTING_USER_ID,
+            partialPayload
+        );
+    });
+
+    it('should correctly handle a partial update with only one field', async () => {
+        const partialPayload = { dietaryRestrictions: 'Vegan' };
+        UserRepo.updateUserById.mockResolvedValue([1]);
+
+        const response = await request(app)
+            .put(`/user/${EXISTING_USER_ID}`)
+            .send(partialPayload);
+
+        expect(response.statusCode).toBe(200);
+        expect(response.body.data.dietaryRestrictions).toBe('Vegan');
+        
+        // Ensure only the single field was passed to the repo
+        expect(UserRepo.updateUserById).toHaveBeenCalledWith(
+            EXISTING_USER_ID,
+            partialPayload
+        );
     });
 });

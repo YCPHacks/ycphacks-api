@@ -5,171 +5,164 @@ const EventRepo = require('../repository/event/EventRepo');
 // Mock the EventRepo to avoid actual database interaction
 jest.mock('../repository/event/EventRepo');
 
-// Mock event so we have one in memory
-const mockEvent = {
-    id: 1,
+const validEventCreateRequest = {
     eventName: 'An event',
     startDate: '9999-01-01T12:00:00Z',
     endDate: '9999-01-03T12:00:00Z',
     canChange: false,
-    year: 9999,
     isActive: false
-}
-
-const validActivityCreateRequest = {
-    activityName: 'An activity',
-    activityDate: '9999-01-01T01:00:00Z',
-    activityDescription: 'A description about the activity',
-    eventId: 1
 };
 
-describe('POST /activity/', () => {
+describe('POST /create', () => {
     beforeEach(() => {
         // Reset mock calls before each test
-        EventRepo.createActivity.mockReset();
-        EventRepo.findActivityById.mockReset();
+        EventRepo.createEvent.mockReset();
+        EventRepo.findEventById.mockReset();
+        EventRepo.findActiveEvent.mockReset();
         jest.restoreAllMocks();
-        EventRepo.findEventById.mockResolvedValue(mockEvent);
     });
 
-    it('creates a new activity and return 201', async () => {
-        EventRepo.findActivityById.mockResolvedValue(null); // no existing activity
+    it('creates a new event and return 201', async () => {
+        EventRepo.findEventById.mockResolvedValue(null); // no existing event
+        EventRepo.findActiveEvent.mockResolvedValue(null); // no existing active event
 
-        const mockActivity = {
-            ...validActivityCreateRequest,
+        const mockEvent = {
+            ...validEventCreateRequest,
             toJSON: function() { return this; } // Sequelize-like behavior
         };
 
-        EventRepo.createActivity.mockResolvedValue(mockActivity);
+        EventRepo.createEvent.mockResolvedValue(mockEvent);
 
         // Act: send the HTTP request
         const res = await request(app)
-            .post('/event/activity/')
+            .post('/event/create')
             .send({
-                ...validActivityCreateRequest
+                ...validEventCreateRequest
             });
 
         // Assert: response checks
         expect(res.statusCode).toEqual(201);
-        expect(res.body).toHaveProperty('message', 'Activity created successfully');
+        expect(res.body).toHaveProperty('message', 'Event created successfully');
 
         // Assert: verify mocks were called correctly
-        expect(EventRepo.createActivity).toHaveBeenCalledTimes(1);
-        expect(EventRepo.createActivity).toHaveBeenCalledWith(expect.objectContaining({
-            ...validActivityCreateRequest,
-            activityDate: validActivityCreateRequest.activityDate
+        expect(EventRepo.createEvent).toHaveBeenCalledTimes(1);
+        expect(EventRepo.createEvent).toHaveBeenCalledWith(expect.objectContaining({
+            ...validEventCreateRequest
         }));
     });
 
     it('returns 400 (no name)', async () => {
         // Act: send the HTTP request
         const res = await request(app)
-            .post('/event/activity/')
+            .post('/event/create')
             .send({
-                ...validActivityCreateRequest,
-                activityName: ''
+                ...validEventCreateRequest,
+                eventName: ''
             });
 
         // Assert: response checks
         expect(res.statusCode).toEqual(400);
         expect(res.body).toHaveProperty('message', 'Validation errors occurred');
         expect(Object.keys(res.body.errors).length).toEqual(1);  // There should be exactly one validation error
-        expect(res.body.errors.activityName).toEqual('Name is required');
+        expect(res.body.errors.eventName).toEqual('Name is required');
     });
 
     it('returns 400 (name too long)', async () => {
         // Act: send the HTTP request
         const res = await request(app)
-            .post('/event/activity/')
+            .post('/event/create')
             .send({
-                ...validActivityCreateRequest,
-                activityName: 'a'.repeat(256)
+                ...validEventCreateRequest,
+                eventName: 'a'.repeat(101)
             });
 
         // Assert: response checks
         expect(res.statusCode).toEqual(400);
         expect(res.body).toHaveProperty('message', 'Validation errors occurred');
         expect(Object.keys(res.body.errors).length).toEqual(1);  // There should be exactly one validation error
-        expect(res.body.errors.activityName).toEqual('Name must be less than 256 characters');
+        expect(res.body.errors.eventName).toEqual('Name cannot be more than 100 characters');
     });
 
-    it('returns 400 (no date)', async () => {
+    it('returns 400 (no start date)', async () => {
         // Act: send the HTTP request
         const res = await request(app)
-            .post('/event/activity/')
+            .post('/event/create')
             .send({
-                ...validActivityCreateRequest,
-                activityDate: null
+                ...validEventCreateRequest,
+                startDate: null
             });
 
         // Assert: response checks
         expect(res.statusCode).toEqual(400);
         expect(res.body).toHaveProperty('message', 'Validation errors occurred');
         expect(Object.keys(res.body.errors).length).toEqual(1);  // There should be exactly one validation error
-        expect(res.body.errors.activityDate).toEqual('Date is required');
+        expect(res.body.errors.startDate).toEqual('Date is required');
     });
 
-    it('returns 400 (invalid date)', async () => {
+    it('returns 400 (invalid start date)', async () => {
         // Act: send the HTTP request
         const res = await request(app)
-            .post('/event/activity/')
+            .post('/event/create')
             .send({
-                ...validActivityCreateRequest,
-                activityDate: '9999-01-01 01:00:00'
+                ...validEventCreateRequest,
+                startDate: '9999-01-01 01:00:00' // Incorrect format
             });
 
         // Assert: response checks
         expect(res.statusCode).toEqual(400);
         expect(res.body).toHaveProperty('message', 'Validation errors occurred');
         expect(Object.keys(res.body.errors).length).toEqual(1);  // There should be exactly one validation error
-        expect(res.body.errors.activityDate).toEqual('Invalid date format');
+        expect(res.body.errors.startDate).toEqual('Invalid date format');
     });
 
-    it('returns 400 (date in past)', async () => {
+    it('returns 400 (no end date)', async () => {
         // Act: send the HTTP request
         const res = await request(app)
-            .post('/event/activity/')
+            .post('/event/create')
             .send({
-                ...validActivityCreateRequest,
-                activityDate: '2000-01-01T01:00:00Z'
+                ...validEventCreateRequest,
+                endDate: null
             });
 
         // Assert: response checks
         expect(res.statusCode).toEqual(400);
         expect(res.body).toHaveProperty('message', 'Validation errors occurred');
         expect(Object.keys(res.body.errors).length).toEqual(1);  // There should be exactly one validation error
-        expect(res.body.errors.activityDate).toEqual('Date cannot be in the past');
+        expect(res.body.errors.endDate).toEqual('Date is required');
     });
 
-    it('returns 400 (description too long)', async () => {
+    it('returns 400 (invalid end date)', async () => {
         // Act: send the HTTP request
         const res = await request(app)
-            .post('/event/activity/')
+            .post('/event/create')
             .send({
-                ...validActivityCreateRequest,
-                activityDescription: 'a'.repeat(256)
+                ...validEventCreateRequest,
+                endDate: '9999-01-01 01:00:00' // Incorrect format
             });
 
         // Assert: response checks
         expect(res.statusCode).toEqual(400);
         expect(res.body).toHaveProperty('message', 'Validation errors occurred');
         expect(Object.keys(res.body.errors).length).toEqual(1);  // There should be exactly one validation error
-        expect(res.body.errors.activityDescription).toEqual('Description must be less than 256 characters');
+        expect(res.body.errors.endDate).toEqual('Invalid date format');
     });
 
-    it('returns 400 (no event id)', async () => {
+    it('returns 400 (end date before start date)', async () => {
+        let newDate = new Date(validEventCreateRequest.startDate)
+        newDate = new Date(newDate.setDate(newDate.getDate() - 1));
+
         // Act: send the HTTP request
         const res = await request(app)
-            .post('/event/activity/')
+            .post('/event/create')
             .send({
-                ...validActivityCreateRequest,
-                eventId: 0
+                ...validEventCreateRequest,
+                endDate: newDate.toISOString()
             });
 
         // Assert: response checks
         expect(res.statusCode).toEqual(400);
         expect(res.body).toHaveProperty('message', 'Validation errors occurred');
         expect(Object.keys(res.body.errors).length).toEqual(1);  // There should be exactly one validation error
-        expect(res.body.errors.eventId).toEqual('Event ID is required');
+        expect(res.body.errors.endDate).toEqual('Date cannot be before the start date');
     });
 });

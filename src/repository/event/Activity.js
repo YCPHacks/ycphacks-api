@@ -1,5 +1,5 @@
 const { DataTypes } = require('sequelize');
-const { sequelize } = require('../config');
+const { sequelize } = require('../config/index');
 
 const Activity = sequelize.define(
     'Activity',
@@ -29,7 +29,7 @@ const Activity = sequelize.define(
                 model: 'Event',
                 key: 'id'
             }
-        },
+        }
     },
 
     {

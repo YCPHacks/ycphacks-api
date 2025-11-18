@@ -6,7 +6,7 @@ const {
     loginUser,
     loginAdminUser,
     authWithToken,
-    getAllUsers
+    getAllUsers, updateCheckIn, updateUserById
 } = require('../controllers/UserController')
 
 router.post('/register', createUser)
@@ -18,5 +18,9 @@ router.post('/admin-login', loginAdminUser);
 router.post('/auth', authWithToken)
 
 router.get('/all', getAllUsers)
+
+router.put('/:id/checkin', updateCheckIn);
+
+router.put('/:id', updateUserById);
 
 module.exports = router;

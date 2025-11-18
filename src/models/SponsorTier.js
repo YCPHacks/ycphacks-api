@@ -2,11 +2,15 @@ class SponsorTier {
     constructor(
         id,
         tier,
-        lowerThreshold
+        lowerThreshold,
+        width,
+        height
     ) {
         this.id = id;
         this.tier = tier;
         this.lowerThreshold = lowerThreshold;
+        this.width = width;
+        this.height = height;
     }
 
     validate() {
