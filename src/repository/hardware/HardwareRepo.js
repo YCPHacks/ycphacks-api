@@ -1,6 +1,6 @@
 const Hardware = require("./Hardware");
 const { Sponsor, EventSponsor, SponsorTier } = require("../config/Models");
-const HardwareImage = require('../../models/HardwareImage');
+const HardwareImage = require('./HardwareImage');
 
 const HardwareRepo = {
     async findHardwareById(id) {
@@ -79,7 +79,8 @@ const HardwareRepo = {
 
     async findAllHardwareAdmin() {
         return Hardware.findAll({
-            attributes: ['hardwareName','serial', 'functional', 'description' ]
+            attributes: ['id', 'hardwareName', 'serial', 'functional', 'description'],
+            include: [{ model: HardwareImage, as: 'images', attributes: ['id', 'imageUrl', 'hardwareId'] }]
         });
     },
     async getAvailabilityList(){

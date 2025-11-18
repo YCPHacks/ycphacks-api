@@ -45,7 +45,7 @@ const HardwareController = {
             try {
                 console.log("Incoming hardware body:", req.body);
                 const newHardware = await HardwareRepo.createHardware({
-                    hardwareName: req.body.name,
+                    hardwareName: req.body.hardwareName,
                     serial: req.body.serial,
                     functional: req.body.functional,
                     description: req.body.description,
