@@ -128,6 +128,11 @@ const User = sequelize.define(
         isVerified: {
             type: DataTypes.BOOLEAN, // Matches tinyint(1)
             defaultValue: false
+        },
+        isBanned: {
+            type: DataTypes.BOOLEAN,
+            allowNull: false,
+            defaultValue: false
         }
     },
     {

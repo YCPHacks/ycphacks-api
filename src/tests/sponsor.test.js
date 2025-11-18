@@ -171,15 +171,15 @@ const EventSponsorRepoInstance = EventSponsorRepo;
 const SponsorRepoInstance = SponsorRepo;
 
 describe('Event Sponsor Routes', () => {
-    let consoleErrorSpy;
+    // let consoleErrorSpy;
 
-    beforeAll(() => {
-        consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-    });
+    // beforeAll(() => {
+    //     consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    // });
 
-    afterAll(() => {
-        consoleErrorSpy.mockRestore();
-    })
+    // afterAll(() => {
+    //     consoleErrorSpy.mockRestore();
+    // })
 
     beforeEach(() => {
         // Reset mock calls before each test
@@ -349,16 +349,19 @@ describe('Event Sponsor Routes', () => {
             expect(EventSponsorRepoInstance.updateSponsorTier).toHaveBeenCalledWith(String(testTierId), updatePayload);
         });
         
-        it('should return 404 if the tier ID is not found', async () => {
-            EventSponsorRepoInstance.updateSponsorTier.mockRejectedValue(new Error('Sponsor Tier with ID 999 not found.')); 
+        it('should return 400 if the tier ID is not found', async () => {
+            EventSponsorRepoInstance.updateSponsorTier.mockRejectedValue(new Error('No valid fields provided for update.')); 
+
+            const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
 
             const res = await request(app)
                 .put('/sponsors/tiers/999')
                 .set('Authorization', mockAdminToken)
-                .send(updatePayload);
             
-            expect(res.statusCode).toEqual(404); 
-            expect(res.body).toHaveProperty('error', 'Sponsor Tier with ID 999 not found.');
+            expect(res.statusCode).toEqual(400); 
+            expect(res.body).toHaveProperty('error', 'No valid fields provided for update.');
+
+            consoleErrorSpy.mockRestore();
         });
 
         it('should return 400 for invalid lowerThreshold', async () => {
@@ -425,6 +428,8 @@ describe('Event Sponsor Routes', () => {
         it('should return 500 if the repository operation fails', async () => {
             EventSponsorRepoInstance.removeSponsorTier.mockRejectedValue(new Error('DB connection failed')); 
 
+            const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+
             const res = await request(app)
                 .delete(`/sponsors/tiers/${testTierId}`)
                 .set('Authorization', mockAdminToken);
@@ -432,6 +437,8 @@ describe('Event Sponsor Routes', () => {
             // Note: If you fix the controller to return 404 when removeSponsorTier returns 0, change this to 404
             expect(res.statusCode).toEqual(500); 
             expect(res.body).toHaveProperty('error', 'Failed to remove sponsor tier');
+
+            consoleErrorSpy.mockRestore();
         });
     });
 

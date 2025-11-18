@@ -11,6 +11,9 @@ const TeamRepo = {
             where: {teamName}
         });
     },
+    async findById(teamId){
+        return await Team.findByPk(teamId);
+    },
     async getAllTeams(){
         return await Team.findAll();
     },
@@ -29,7 +32,47 @@ const TeamRepo = {
         return rowsUpdated;
     },
     async delete(teamId){
-        return Team.destroy({where: {id: teamId}, individualHooks: true});
+        return Team.destroy({where: {id: teamId}});
+    },
+    async findProjectDetailsById(teamId) {
+        try {
+            const team = await Team.findByPk(teamId, {
+                attributes: [
+                    'id',
+                    'teamName',
+                    'projectName',
+                    'projectDescription',
+                    'presentationLink',
+                    'githubLink',
+                ]
+            });
+
+            return team ? team.toJSON() : null;
+        } catch (error) {
+            console.error('Repo error finding project details:', error);
+            throw error;
+        }
+    },
+    async updateProjectDetails(teamId, data) {
+        try {
+            const [rowsAffected] = await Team.update(
+                { ...data },
+                {
+                    where: { id: teamId },
+                }
+            );
+
+            if (rowsAffected === 0) {
+                return null; // Team not found
+            }
+
+            // Fetch and return the updated record
+            return this.findProjectDetailsById(teamId); 
+            
+        } catch (error) {
+            console.error('Repo error updating project details:', error);
+            throw error;
+        }
     }
 }
 

@@ -3,6 +3,7 @@ const TeamRepo = require('../repository/team/TeamRepo')
 const Team = require('../models/Team')
 const TeamDto = require('../dto/TeamDto')
 const EventParticipantsRepo = require('../repository/team/EventParticipantRepo')
+const EventRepo = require('../repository/event/EventRepo');
 
 class TeamController {
     static async createTeam(req, res) {
@@ -166,6 +167,80 @@ class TeamController {
         } catch (error) {
             console.error("Error deleting team:", error);
             return res.status(500).json({ message: "Failed to delete team due to a server error." });
+        }
+    }
+    static async getTeamProjectDetails(req, res){
+        const teamId = req.params.teamId;
+
+        if(!teamId){
+            return res.status(400).json({ message: 'Tean ID is required' });
+        }
+
+        try{
+            const teamDetails = await TeamRepo.findProjectDetailsById(teamId);
+
+            if(!teamDetails){
+                return res.status(404).json({ message: 'Team not found.' });
+            }
+
+            return res.status(200).json({
+                message: 'Successfully fetched project details',
+                data: teamDetails
+            });
+        }catch(err){
+            console.error('Error fetching team project details: ', err);
+            return res.status(500).json({ message: 'Failed to fetch project details due to a server error.' });
+        }
+    }
+    static async updateTeamProjectDetails(req, res){
+        const teamId = req.params.teamId;
+        const {
+            projectName,
+            projectDescription,
+            presentationLink,
+            githubLink
+        } = req.body;
+
+        if(!teamId){
+            return res.status(400).json({ message: 'Team ID is required.' });
+        }
+
+        try{
+            const team = await TeamRepo.findById(teamId);
+            if(!team){
+                return res.status(404).json({ message: 'Team not found.' });
+            }
+            
+            // Assuming EventRepo has a function to check submission status
+            const isSubmissionsOpen = await EventRepo.isSubmissionPeriodOpen(team.eventId); 
+            if (!isSubmissionsOpen) {
+                 return res.status(403).json({ message: 'Submissions are closed for this event.' });
+            }
+
+            // 3. Prepare data for update (only the project fields)
+            const updateData = {
+                projectName,
+                projectDescription,
+                presentationLink,
+                githubLink
+            };
+
+            // Call the new repository function
+            const updatedTeam = await TeamRepo.updateProjectDetails(teamId, updateData);
+
+            if (!updatedTeam) {
+                // This typically means the teamId was not found
+                return res.status(404).json({ message: 'Team not found or update failed.' });
+            }
+
+            return res.status(200).json({ 
+                message: 'Project details updated successfully.', 
+                data: updatedTeam 
+            });
+
+        } catch (err) {
+            console.error('Error updating team project details:', err);
+            return res.status(500).json({ message: 'Failed to update project details due to a server error.' });
         }
     }
 }
