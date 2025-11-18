@@ -86,8 +86,6 @@ EventParticipant.belongsTo(User, { foreignKey: 'userId', as: 'userDetails' });
 User.hasMany(EventParticipant, { foreignKey: 'userId' });
 
 /* HARDWARE/IMAGE ASSOCIATIONS */
-const Hardware = require('./Hardware');
-const HardwareImage = require('./HardwareImage');
 Hardware.hasMany(HardwareImage, {
     foreignKey: 'hardwareId',
     as: 'images'
