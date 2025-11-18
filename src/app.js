@@ -2,12 +2,15 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const { sequelize } = require('./repository/config/index'); // <-- destructure the instance
+const { sequelize } = require('./repository/config/index');
 const userRoutes = require('./routes/UserRoutes');
 const eventRoutes = require('./routes/EventRoutes');
 const hardwareRoutes = require('./routes/HardwareRoutes');
 const sponsorRoutes = require('./routes/SponsorRoutes');
 const teamRoutes = require('./routes/TeamRoutes');
+
+const uploadRoutes = require('./routes/UploadRoutes');
+
 const app = express();
 const { authMiddleware } = require('./util/JWTUtil');
 
@@ -29,7 +32,9 @@ app.use('/hardware', hardwareRoutes)
 app.use('/teams', teamRoutes);
 // Sponsor Routes
 app.use('/sponsors', sponsorRoutes);
-app.use('/api/eventsponsors', sponsorRoutes); 
+app.use('/api/eventsponsors', sponsorRoutes);
+
+app.use("/api", uploadRoutes);
 
 // Test route
 app.get('/test', (req, res) => {
