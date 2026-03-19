@@ -20,7 +20,7 @@ const UserRepo = {
         return EventParticipantRepo.getUsersByEvent(eventId);
     },
 
-    async getUsersById(userId){
+    async getUserById(userId){
         return await User.findOne({
             where: { id: userId }
         })
@@ -36,6 +36,21 @@ const UserRepo = {
         }
 
         user.checkIn = checkInStatus;
+
+        await user.save();
+        return user;
+    },
+
+    async updateEmailVerifiedStatus(userId, emailVerifiedStatus){
+        const user = await User.findByPk(userId);
+
+        if(!user){
+            const error = new Error(`User with ID ${userId} not found.`);
+            error.status = 404;
+            throw error;
+        }
+
+        user.isEmailVerified = emailVerifiedStatus;
 
         await user.save();
         return user;
@@ -100,6 +115,25 @@ const UserRepo = {
         } catch (error) {
             console.error("Error fetching staff for event:", error);
             throw new Error('Failed to retrieve staff list.');
+        }
+    },
+
+    async updatePassword(userId, hashedPassword) {
+        try {
+            const user = await User.findByPk(userId);
+
+            if(!user){
+                const error = new Error(`User with ID ${userId} not found.`);
+                error.status = 404;
+                throw error;
+            }
+
+            user.password = hashedPassword;
+
+            await user.save();
+            return user;
+        } catch(err) {
+            console.error(err);
         }
     }
 };

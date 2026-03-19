@@ -5,9 +5,11 @@ const UserResponseDto = require('../dto/UserResponseDto')
 const { generateToken, validateToken} = require('../util/JWTUtil');
 const bcrypt = require('bcrypt');
 const SALT_ROUNDS = 10;  // Number of salt rounds for bcrypt
-const { sendRegistrationConfirmation } = require('../util/emailService');
+const { sendRegistrationConfirmation, generateEmailToken, validateEmailToken, validatePasswordToken, verificationEmail, sendPasswordResetEmail, generatePasswordToken } = require('../util/emailService');
 const EventParticipantRepo = require('../repository/team/EventParticipantRepo');
 const QRCode = require('qrcode');
+const userRepo = require("../repository/user/UserRepo");
+const {UserProfileResponseDto} = require("../dto/UserProfileResponseDto");
 
 /**
  * This function will create a user based on the data that gets sent in and return
@@ -120,7 +122,13 @@ const createUser = async (req, res) => {
         const token = generateToken({ email: user.email });
 
         // Fire off confirmation email
-        await sendRegistrationConfirmation(user.email, user.firstName);
+        //await sendRegistrationConfirmation(user.email, user.firstName);
+
+        console.log(persistedUser.id);
+
+        const emailToken = generateEmailToken({id: persistedUser.id});
+
+        await verificationEmail(user.email, emailToken);
 
         // create user response dto
         const userResponseDto = new UserResponseDto(
@@ -200,6 +208,77 @@ const loginUser = async (req, res) => {
     }
 };
 
+const getUserById = async (req, res) => {
+    try {
+        const {
+            id
+        } = req.params;
+
+        // Find the user
+        const user = await UserRepo.getUserById(id);
+
+        if (!user)
+            return res.status(404).json({ message: 'User not found' });
+
+        const userResponseDto = new UserResponseDto(
+            user.id,
+            user.email,
+            user.firstName,
+            user.lastName,
+            undefined,
+            user.role
+        )
+
+        // Respond with success and token
+        res.status(200).json({
+            message: 'User retrieval successful',
+            data: userResponseDto
+        });
+    } catch (err) {
+        console.log('500 Error; Cause: ' + err)
+        res.status(500).json({ message: 'Error retrieving user with id', error: err.message });
+    }
+};
+
+const getProfileById = async (req, res) => {
+    try {
+        const {
+            id
+        } = req.params;
+
+        // Find the user
+        const user = await UserRepo.getUserById(id);
+        console.log(user.toJSON());
+
+        if (!user)
+            return res.status(404).json({ message: 'User not found' });
+
+        const userProfileResponseDto = new UserProfileResponseDto(// not all info
+            user.id,
+            user.firstName,
+            user.lastName,
+            user.age,
+            user.gender,
+            user.pronouns,
+            user.country,
+            user.school,
+            user.major,
+            user.graduationYear,
+            user.levelOfStudy,
+            user.tShirtSize,
+            user.hackathonsAttended,
+            user.dietaryRestrictions
+        )
+
+        // Respond with success and token
+        res.status(200).json({
+            message: 'Profile retrieval successful',
+            data: userProfileResponseDto
+        });
+    } catch (err) {
+        res.status(500).json({ message: 'Error retrieving profile data', error: err.message });
+    }
+};
 
 const authWithToken = async (req, res) => {
     try {
@@ -239,7 +318,7 @@ const validateQR = async (req, res) => {
             return res.status(400).json({ valid: false});
         }
 
-        const user = await UserRepo.getUsersById(userId);
+        const user = await UserRepo.getUserById(userId);
 
         if(!user){
             return res.json({ valid: false });
@@ -248,7 +327,7 @@ const validateQR = async (req, res) => {
         await UserRepo.updateCheckInStatus(userId, true);
 
         //fetch the updated user
-        const updatedUser = await UserRepo.getUsersById(userId);
+        const updatedUser = await UserRepo.getUserById(userId);
 
         //The QR code is valid, return that this is true and the updatedUser
         return res.json({ valid: true, user: updatedUser});
@@ -256,8 +335,6 @@ const validateQR = async (req, res) => {
     } catch (err) {
         res.status(500).json({ valid: false});
     }
-
-
 }
 
 const loginAdminUser = async (req, res) => {
@@ -366,7 +443,26 @@ const updateCheckIn = async (req, res) => {
 
 const updateUserById = async (req, res) => {
     const userId = Number(req.params.id);
-    const updatePayload = req.body;
+
+    const updatedProfileData = {
+        firstName: req.body.firstName,
+        lastName: req.body.lastName,
+        age: req.body.age,
+        gender: req.body.gender,
+        pronouns: req.body.pronouns,
+        country: req.body.country,
+        school: req.body.school,
+        major: req.body.major,
+        graduationYear: req.body.graduationYear,
+        levelOfStudy: req.body.levelOfStudy,
+        tShirtSize: req.body.tShirtSize,
+        hackathonsAttended: req.body.hackathonsAttended,
+        dietaryRestrictions: req.body.dietaryRestrictions
+    };
+
+    if (Number.isNaN(userId) || !Number.isInteger(userId))
+        return res.status(400).json({ error: "User ID is not a valid integer." });
+
 
     const allowedFields = [
         'firstName', 'lastName', 'age', 'email', 'phoneNumber', 'school', 
@@ -377,9 +473,8 @@ const updateUserById = async (req, res) => {
 
     const sanitizedUpdateData = {};
     for(const key of allowedFields){
-        if(updatePayload.hasOwnProperty(key)){
-            sanitizedUpdateData[key] = updatePayload[key];
-        }
+        if(updatedProfileData)
+            sanitizedUpdateData[key] = updatedProfileData[key];
     }
 
     if(Object.keys(sanitizedUpdateData).length === 0){
@@ -406,20 +501,92 @@ const updateUserById = async (req, res) => {
         return res.status(200).json({ message: "User updated successfully.", data: sanitizedUpdateData });
 
     } catch (error) {
-        console.error("Controller Error during user update:", error);
         // Send a generic error or a more specific one if validation failed before the try block
         return res.status(500).json({ error: "Failed to update user due to a server error." });
+    }
+}
+
+const updateEmailVerification = async(req, res) => {
+    const token = req.query.token;
+
+    if (!token) {
+        return res.status(400).send("Verification token missing");
+    }
+
+    try {
+        const payload = validateEmailToken(token);
+        console.log(payload);
+        console.log(payload.decoded.id);
+
+        const updatedUser = await UserRepo.updateEmailVerifiedStatus(
+            payload.decoded.id,
+            true
+        );
+
+        return res.status(200).send("Email verified successfully!");
+
+    } catch (error) {
+        console.error('Error verifying email:', error);
+        return res.status(400).send("Invalid or expired verification link");
+    }
+}
+const forgotPassword = async (req, res) => {
+    const { email } = req.body;
+
+    const user = await userRepo.findByEmail(email);
+
+    if (!user) {
+        return res.json({
+            message: "Account not found with that email address."
+        });
+    }
+
+    const resetToken = generatePasswordToken({ id: user.id });
+
+    await sendPasswordResetEmail(user.email, resetToken);
+
+    res.json({
+        message: "If an account exists, a reset link has been sent."
+    });
+}
+
+const resetPassword = async(req, res) => {
+    const { token, newPassword } = req.body;
+
+    if (!token || !newPassword) {
+        return res.status(400).json({ error: "Token and password required" });
+    }
+
+    try {
+        const payload = validatePasswordToken(token);
+        console.log(payload);
+        const userId = payload.decoded.id;
+        console.log(userId);
+
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        await UserRepo.updatePassword(userId, hashedPassword);
+        return res.json({ message: "Password reset successfully" });
+
+    }
+    catch (err) {
+        console.error(err);
+        return res.status(400).json({error: "Invalid or expired token"});
     }
 }
 
 module.exports = {
     createUser,
     createQRCode,
+    getUserById,
+    getProfileById,
     loginUser,
     authWithToken,
     loginAdminUser,
     getAllUsers,
     updateCheckIn,
     updateUserById,
-    validateQR
+    validateQR,
+    updateEmailVerification,
+    forgotPassword,
+    resetPassword
 }
