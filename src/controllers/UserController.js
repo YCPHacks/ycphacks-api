@@ -1,6 +1,7 @@
 const UserRepoModel = require('../repository/user/User')
 const UserRepo = require('../repository/user/UserRepo')
 const User = require('../models/User')
+const { UserMethods } = require('../repository/config/Models');
 const UserResponseDto = require('../dto/UserResponseDto')
 const { generateToken, validateToken} = require('../util/JWTUtil');
 const bcrypt = require('bcrypt');
@@ -66,7 +67,7 @@ const createUser = async (req, res) => {
             userData.mlhCodeOfConduct,
             userData.mlhPrivacyPolicy,
             userData.mlhEmails,
-            userData.isVerified
+            userData.isVerified,
         )
 
         // validate data
@@ -110,7 +111,7 @@ const createUser = async (req, res) => {
             mlhCodeOfConduct: user.mlhCodeOfConduct,
             mlhPrivacyPolicy: user.mlhPrivacyPolicy,
             mlhEmails: user.mlhEmails,
-            isVerified: user.isVerified
+            isVerified: user.isVerified,
         };
 
         // persist user  ONLY IF THE DATA IS VALID
@@ -135,7 +136,8 @@ const createUser = async (req, res) => {
             persistedUser.firstName,
             persistedUser.lastName,
             token,
-            user.role
+            user.role,
+            user.isEmailVerified = false
         )
 
         // send back user response dto
@@ -193,7 +195,8 @@ const loginUser = async (req, res) => {
             user.firstName,
             user.lastName,
             token,
-            user.role
+            user.role,
+            user.isEmailVerified
         )
 
         // Respond with success and token
@@ -295,7 +298,8 @@ const authWithToken = async (req, res) => {
             user.firstName,
             user.lastName,
             tokenString,
-            user.role
+            user.role,
+            user.isEmailVerified
         )
 
         // Respond with success and token
@@ -362,6 +366,7 @@ const loginAdminUser = async (req, res) => {
             user.lastName,
             token,
             user.role,
+            user.isEmailVerified
         )
 
         if (user.role === 'staff' || user.role === 'oscar') {
@@ -558,8 +563,7 @@ const updateEmailVerification = async(req, res) => {
             payload.decoded.id,
             true
         );
-
-        return res.status(200).send("Email verified successfully!");
+        res.redirect("http://localhost:8080/login")
 
     } catch (error) {
         console.error('Error verifying email:', error);
@@ -608,6 +612,32 @@ const resetPassword = async(req, res) => {
     }
 }
 
+const resendVerification = async(req, res) => {
+    try {
+        const resend = verificationEmail(req.body.email);
+    } catch {
+        return res.status(400).json({error: "Was unable to send the verification email"});
+    }
+}
+
+const getUserInfo = async(req, res) => {
+    try {
+        const user = UserMethods.findByPk(req.cookie.userId);
+        const userResponseDto = new UserResponseDto(
+            user.id,
+            user.email,
+            user.firstName,
+            user.lastName,
+            user.token,
+            user.role,
+            user.isEmailVerified
+        )
+        return res.json({message: "The user Information", data: userResponseDto})
+    } catch {
+        return res.status(400).json({error: "Was unable to send the User"});
+    }
+}
+
 module.exports = {
     createUser,
     createQRCode,
@@ -623,5 +653,7 @@ module.exports = {
     validateQR,
     updateEmailVerification,
     forgotPassword,
-    resetPassword
+    resetPassword,
+    resendVerification,
+    getUserInfo
 }
