@@ -481,6 +481,7 @@ const updateUserById = async (req, res) => {
     const updatedProfileData = {
         firstName: req.body.firstName,
         lastName: req.body.lastName,
+        role: req.body.role,
         age: req.body.age,
         gender: req.body.gender,
         pronouns: req.body.pronouns,
