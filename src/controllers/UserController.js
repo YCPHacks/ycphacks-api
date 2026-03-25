@@ -133,11 +133,11 @@ const createUser = async (req, res) => {
         const userResponseDto = new UserResponseDto(
             persistedUser.id,
             persistedUser.email,
+            false,
             persistedUser.firstName,
             persistedUser.lastName,
             token,
-            user.role,
-            user.isEmailVerified = false
+            user.role
         )
 
         // send back user response dto
@@ -192,11 +192,11 @@ const loginUser = async (req, res) => {
         const userResponseDto = new UserResponseDto(
             user.id,
             user.email,
+            user.isEmailVerified,
             user.firstName,
             user.lastName,
             token,
-            user.role,
-            user.isEmailVerified
+            user.role
         )
 
         // Respond with success and token
@@ -224,6 +224,7 @@ const getUserById = async (req, res) => {
         const userResponseDto = new UserResponseDto(
             user.id,
             user.email,
+            user.isEmailVerified,
             user.firstName,
             user.lastName,
             undefined,
@@ -295,11 +296,11 @@ const authWithToken = async (req, res) => {
         const userResponseDto = new UserResponseDto(
             user.id,
             user.email,
+            user.isEmailVerified,
             user.firstName,
             user.lastName,
             tokenString,
-            user.role,
-            user.isEmailVerified
+            user.role
         )
 
         // Respond with success and token
@@ -362,11 +363,11 @@ const loginAdminUser = async (req, res) => {
         const userResponseDto = new UserResponseDto(
             user.id,
             user.email,
+            user.isEmailVerified,
             user.firstName,
             user.lastName,
             token,
-            user.role,
-            user.isEmailVerified
+            user.role
         )
 
         if (user.role === 'staff' || user.role === 'oscar') {
@@ -620,24 +621,6 @@ const resendVerification = async(req, res) => {
     }
 }
 
-const getUserInfo = async(req, res) => {
-    try {
-        const user = UserMethods.findByPk(req.cookie.userId);
-        const userResponseDto = new UserResponseDto(
-            user.id,
-            user.email,
-            user.firstName,
-            user.lastName,
-            user.token,
-            user.role,
-            user.isEmailVerified
-        )
-        return res.json({message: "The user Information", data: userResponseDto})
-    } catch {
-        return res.status(400).json({error: "Was unable to send the User"});
-    }
-}
-
 module.exports = {
     createUser,
     createQRCode,
@@ -654,6 +637,5 @@ module.exports = {
     updateEmailVerification,
     forgotPassword,
     resetPassword,
-    resendVerification,
-    getUserInfo
+    resendVerification
 }

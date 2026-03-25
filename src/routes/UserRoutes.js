@@ -28,8 +28,6 @@ router.post('/register', checkBodyForSpecialCharacters, createUser);
 // Protected
 router.get('/:id/qrcode', authMiddleware, createQRCode);
 
-router.get('/:id/info', authMiddleware, getUserInfo);
-
 // Public
 router.post('/login', checkBodyForSpecialCharacters, loginUser);
 
