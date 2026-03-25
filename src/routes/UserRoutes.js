@@ -10,6 +10,7 @@ const {
     getUserById,
     getProfileById,
     updateCheckIn,
+    updatePassword,
     updateUserById,
     validateQR
 } = require('../controllers/UserController')
@@ -44,13 +45,17 @@ router.get('/event/:eventId/staff', EventParticipantController.getStaffForEvent)
 // Protected
 router.put('/:id/checkin', authMiddleware, updateCheckIn);
 
+// Protected
+router.put('/:id/updatePassword', authMiddleware, updatePassword);
+
 // Protected ,
 router.put('/:id', authMiddleware, checkBodyForSpecialCharacters, updateUserById);
 
-// Protectedr
+// Protected
 router.get('/:id', authMiddleware, getUserById);
 
 // Protected
-router.get('/:id/profile', authMiddleware, getProfileById);
+router.get('/:id/profile', getProfileById);
+
 
 module.exports = router;

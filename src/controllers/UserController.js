@@ -9,7 +9,7 @@ const { sendRegistrationConfirmation, generateEmailToken, validateEmailToken, va
 const EventParticipantRepo = require('../repository/team/EventParticipantRepo');
 const QRCode = require('qrcode');
 const userRepo = require("../repository/user/UserRepo");
-const {UserProfileResponseDto} = require("../dto/UserProfileResponseDto");
+const UserProfileResponseDto = require("../dto/UserProfileResponseDto");
 
 /**
  * This function will create a user based on the data that gets sent in and return
@@ -124,8 +124,6 @@ const createUser = async (req, res) => {
         // Fire off confirmation email
         //await sendRegistrationConfirmation(user.email, user.firstName);
 
-        console.log(persistedUser.id);
-
         const emailToken = generateEmailToken({id: persistedUser.id});
 
         await verificationEmail(user.email, emailToken);
@@ -235,20 +233,16 @@ const getUserById = async (req, res) => {
             data: userResponseDto
         });
     } catch (err) {
-        console.log('500 Error; Cause: ' + err)
         res.status(500).json({ message: 'Error retrieving user with id', error: err.message });
     }
 };
 
 const getProfileById = async (req, res) => {
     try {
-        const {
-            id
-        } = req.params;
+        const { id } = req.params;
 
         // Find the user
-        const user = await UserRepo.getUserById(id);
-        console.log(user.toJSON());
+        const user = await UserRepo.getUserById(Number(id));
 
         if (!user)
             return res.status(404).json({ message: 'User not found' });
@@ -267,7 +261,11 @@ const getProfileById = async (req, res) => {
             user.levelOfStudy,
             user.tShirtSize,
             user.hackathonsAttended,
-            user.dietaryRestrictions
+            user.dietaryRestrictions,
+            user.email,
+            user.mlhEmails,
+            user.phoneNumber,
+            user.linkedInUrl
         )
 
         // Respond with success and token
@@ -441,6 +439,42 @@ const updateCheckIn = async (req, res) => {
     }
 }
 
+const updatePassword = async (req, res) => {
+
+    const userId = Number(req.params.id);
+    const {currentPassword, updatedPassword, confirmedPassword} = req.body;
+    console.log(`O Pass: ${currentPassword}, U Pass: ${updatedPassword}, C Pass: ${confirmedPassword}`);
+
+    if (Number.isNaN(userId) || !Number.isInteger(userId))
+        return res.status(400).json({message: "User ID is not a valid integer"})
+
+
+    try {
+        const user = await UserRepo.getUserById(userId);
+
+        if (!user)
+            return res.status(404).json({error: "User not found"});
+
+        const currentPassIsCorrect = await bcrypt.compare(currentPassword, user.password);
+        if (!currentPassIsCorrect)
+            return res.status(400).json({error: "Current password is incorrect"});
+
+        if (updatedPassword !== confirmedPassword)
+            return res.status(400).json({error: "Confirmed password must match new password"});
+
+        if (currentPassword === updatedPassword)
+            return res.status(400).json({error: "New password cannot match current password"});
+
+
+        const hashedUpdatedPassword = await bcrypt.hash(updatedPassword, SALT_ROUNDS);
+        await UserRepo.updatePassword(userId, hashedUpdatedPassword);
+
+        return res.status(200).json({message: "Password updated successfully"});
+    } catch (err) {
+        return res.status(500).json({error: "Internal server error"});
+    }
+}
+
 const updateUserById = async (req, res) => {
     const userId = Number(req.params.id);
 
@@ -477,6 +511,7 @@ const updateUserById = async (req, res) => {
             sanitizedUpdateData[key] = updatedProfileData[key];
     }
 
+
     if(Object.keys(sanitizedUpdateData).length === 0){
         return res.status(400).json({ error: "No valid fields provided for update." });
     }
@@ -506,6 +541,8 @@ const updateUserById = async (req, res) => {
     }
 }
 
+
+
 const updateEmailVerification = async(req, res) => {
     const token = req.query.token;
 
@@ -515,8 +552,6 @@ const updateEmailVerification = async(req, res) => {
 
     try {
         const payload = validateEmailToken(token);
-        console.log(payload);
-        console.log(payload.decoded.id);
 
         const updatedUser = await UserRepo.updateEmailVerifiedStatus(
             payload.decoded.id,
@@ -559,9 +594,7 @@ const resetPassword = async(req, res) => {
 
     try {
         const payload = validatePasswordToken(token);
-        console.log(payload);
         const userId = payload.decoded.id;
-        console.log(userId);
 
         const hashedPassword = await bcrypt.hash(newPassword, 10);
         await UserRepo.updatePassword(userId, hashedPassword);
@@ -584,6 +617,7 @@ module.exports = {
     loginAdminUser,
     getAllUsers,
     updateCheckIn,
+    updatePassword,
     updateUserById,
     validateQR,
     updateEmailVerification,

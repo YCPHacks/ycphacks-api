@@ -13,7 +13,11 @@ class UserProfileResponseDto {
         levelOfStudy,
         tShirtSize,
         hackathonsAttended,
-        dietaryRestrictions
+        dietaryRestrictions,
+        email,
+        mlhEmails,
+        phoneNumber,
+        linkedInUrl
     ) {
         this.id = id
         this.firstName = firstName
@@ -29,7 +33,11 @@ class UserProfileResponseDto {
         this.tShirtSize = tShirtSize;
         this.hackathonsAttended = hackathonsAttended;
         this.dietaryRestrictions = dietaryRestrictions;
+        this.email = email;
+        this.mlhEmails = mlhEmails;
+        this.phoneNumber = phoneNumber;
+        this.linkedInUrl = linkedInUrl;
     }
 }
 
-module.exports = {UserProfileResponseDto};
+module.exports = UserProfileResponseDto;
