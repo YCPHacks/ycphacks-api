@@ -109,7 +109,7 @@ const createUser = async (req, res) => {
 
         console.log(persistedUser.id);
 
-        await verificationEmail(user.email);
+        await verificationEmail(persistedUser.email);
 
         // create user response dto
         const userResponseDto = new UserResponseDto(
@@ -118,8 +118,8 @@ const createUser = async (req, res) => {
             persistedUser.firstName,
             persistedUser.lastName,
             token,
-            user.role,
-            user.isEmailVerified = false
+            persistedUser.role,
+            persistedUser.isEmailVerified = false
         )
 
         // send back user response dto
@@ -268,7 +268,6 @@ const loginAdminUser = async (req, res) => {
         if (!isPasswordValid) {
             return res.status(400).json({ message: 'Invalid email or password' });
         }
-
         // Generate JWT token
         const token = generateToken({ email: user.email });
 

@@ -11,7 +11,7 @@ const {
 } = require('../controllers/UserController')
 const EventParticipantController= require('../controllers/EventParticipantsController')
 const { checkBodyForSpecialCharacters, validationRules, validate } = require('../middleware/validationMiddleware')
-const { authMiddleware } = require('../middleware/authMiddleware')
+const { authMiddleware, authorize } = require('../middleware/authMiddleware')
 
 // Protected
 router.post('/validate-qr', authMiddleware, validateQR);
@@ -39,7 +39,7 @@ router.get('/all', authMiddleware, EventParticipantController.getUsersByEvent);
 // Public
 router.get('/event/:eventId/staff', EventParticipantController.getStaffForEvent);
 
-// Protected
+// Protected, only staff/oscar can check people in
 router.put('/:id/checkin', authMiddleware, updateCheckIn);
 
 // Protected

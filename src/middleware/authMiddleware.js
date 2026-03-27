@@ -27,6 +27,21 @@ function authMiddleware(req, res, next) {
 
 }
 
+const authorize = (...allowedRoles) => {
+    return (req, res, next) => {
+        if(!req.user || !req.user.role){
+            return res.status(401).json({ Message: 'User role not found' });
+        }
+
+        const hasRequiredRole = allowedRoles.includes(req.user.role);
+
+        if(!hasRequiredRole){
+            return res.status(403).json({ message: 'Forbidden: You do not have the required permissions'} );
+        }
+        next();
+    };
+};
+
 module.exports = {
-    authMiddleware
+    authMiddleware, authorize
 }
