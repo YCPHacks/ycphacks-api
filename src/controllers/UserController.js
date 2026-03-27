@@ -70,6 +70,7 @@ const createUser = async (req, res) => {
         )
 
         // validate data
+        /*
         const validationErrors = user.validate()
         if (Object.keys(validationErrors).length > 0) {
             return res.status(400).json({
@@ -77,6 +78,9 @@ const createUser = async (req, res) => {
                 errors: validationErrors
             });
         }
+
+         */
+
 
         const existingUser = await UserRepo.findByEmail(user.email);
         if (existingUser){

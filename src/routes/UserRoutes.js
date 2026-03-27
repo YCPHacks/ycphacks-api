@@ -10,14 +10,14 @@ const {
     getAllUsers, updateCheckIn, updateUserById, validateQR, getUserInfo
 } = require('../controllers/UserController')
 const EventParticipantController= require('../controllers/EventParticipantsController')
-const { checkBodyForSpecialCharacters } = require('../middleware/validationMiddleware')
+const { checkBodyForSpecialCharacters, validationRules, validate } = require('../middleware/validationMiddleware')
 const { authMiddleware } = require('../middleware/authMiddleware')
 
 // Protected
 router.post('/validate-qr', authMiddleware, validateQR);
 
 // Public
-router.post('/register', checkBodyForSpecialCharacters, createUser);
+router.post('/register', validationRules, validate, createUser);
 
 // Protected
 router.get('/:id/qrcode', authMiddleware, createQRCode);
