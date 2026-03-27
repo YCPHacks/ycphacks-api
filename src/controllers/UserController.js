@@ -69,27 +69,6 @@ const createUser = async (req, res) => {
             userData.isVerified,
         )
 
-        // validate data
-        /*
-        const validationErrors = user.validate()
-        if (Object.keys(validationErrors).length > 0) {
-            return res.status(400).json({
-                message: 'Validation errors occurred',
-                errors: validationErrors
-            });
-        }
-
-         */
-
-
-        const existingUser = await UserRepo.findByEmail(user.email);
-        if (existingUser){
-            return res.status(400).json({
-                message: 'Email is already in use please sign in',
-                errors: { email: 'Email is already registered' }
-            });
-        }
-
         // Converts to plain object for Sequelize
         const userObj = {
             firstName: user.firstName,

@@ -1,6 +1,6 @@
 const {check, validationResult} = require('express-validator');
 const {isLength} = require("validator");
-//const {isAlphanumeric} = require("validator");
+const UserRepo = require("../repository/user/UserRepo");
 const checkBodyForSpecialCharacters = (req, res, next) => {
     // Fields we want to skip
     const ignoreFields = ["imageUrl", "password"]
@@ -8,41 +8,12 @@ const checkBodyForSpecialCharacters = (req, res, next) => {
     // Blocks characters often used in attacks ($, %, #, <, >, etc.)
     const generalRegex = /[^a-zA-Z0-9\s-',\.:/\?&_=()@]/;
 
-    // Blocks characters for phoneNumber (allows only digits, spaces, plus, parens, and hyphens)
-    const phoneRegex = /[^0-9\s\+\-\(\)]/;
-
-    // Blocks characters for Level of Study
-    const studyRegex = /[^a-zA-Z0-9\s\/\(\)\-\+\',’]/;
-
     for (const key in req.body) {
         if (ignoreFields.includes(key)) continue; // Skip validation for fields we don't want to check
         const value = req.body[key];
 
-        // Skip non-string values
-       // if (typeof value !== 'string') continue;
-
-        if(key === 'phoneNumber'){
-            if(phoneRegex.test(value)){
-                // Will return 400 if restricted character is found
-                return res.status(400).json({
-                    error: "Invalid Phone Number",
-                    message: "Phone numbers should only include numbers and symbols like +, -, or ( )."
-                });
-            }
-        }
-
-        else if(key === 'levelOfStudy'){
-            if(studyRegex.test(value)){
-                // Will return 400 if restricted character for levelOfStudy is found
-                return res.status(400).json({
-                    error: "Invalid Level of Study",
-                    message: "that aint right"
-                });
-            }
-        }
-
         // Only check string values
-        else if (typeof value === 'string') {
+        if (typeof value === 'string') {
             if (generalRegex.test(value)) {
                 // If a restricted character is found, fail fast and return 400
                 // console.warn(`Validation Failed: Field '${key}' contains restricted characters: ${value}`);
@@ -64,7 +35,15 @@ const validationRules = [
         // Check if the field is empty, bail if it is
         .notEmpty().withMessage('Please enter an email.').bail()
         // Check if what was entered is a valid email
-        .isEmail().withMessage('Your email is not valid.'),
+        .isEmail().withMessage('Your email is not valid.').bail()
+        // Check if the email has already been registered
+        .custom(async (value) => {
+            const existingUser = await UserRepo.findByEmail(value)
+            if (existingUser){
+                throw new Error('Email has already been registered.')
+            }
+            return true;
+}),
 
     // 2. Validate password
     check('password')
@@ -201,7 +180,7 @@ const validationRules = [
     check('mlhPrivacyPolicy')
         // Check that the input is a boolean, if not then bail
         .isBoolean().withMessage('Your answer must be either true or false.').bail()
-        // Check that the value is truee
+        // Check that the value is true
         .custom(value =>{
             if (value !== true){
                 throw new Error('MLH Privacy Policy must be accepted.')
@@ -220,7 +199,7 @@ const validationRules = [
 
 const validate = (req, res, next) => {
     const errors = validationResult(req);
-    if(!errors.isEmpty()){
+    if (!errors.isEmpty()) {
         const formattedErrors = {};
         errors.array().forEach(err => {
             console.log(err.path);

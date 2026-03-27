@@ -231,7 +231,7 @@ describe('POST /user/register', () => {
             });
 
         expect(res.statusCode).toEqual(400);
-        expect(res.body).toHaveProperty('message', 'Email is already in use please sign in');
+        expect(res.body).toHaveProperty('message', 'Validation failed');
         expect(UserRepo.findByEmail).toHaveBeenCalledTimes(1);
     });
 
