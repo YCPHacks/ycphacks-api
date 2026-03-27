@@ -70,23 +70,6 @@ const createUser = async (req, res) => {
             userData.isVerified,
         )
 
-        // validate data
-        const validationErrors = user.validate()
-        if (Object.keys(validationErrors).length > 0) {
-            return res.status(400).json({
-                message: 'Validation errors occurred',
-                errors: validationErrors
-            });
-        }
-
-        const existingUser = await UserRepo.findByEmail(user.email);
-        if (existingUser){
-            return res.status(400).json({
-                message: 'Email is already in use please sign in',
-                errors: { email: 'Email is already registered' }
-            });
-        }
-
         // Converts to plain object for Sequelize
         const userObj = {
             firstName: user.firstName,
@@ -127,7 +110,7 @@ const createUser = async (req, res) => {
 
         const emailToken = generateEmailToken({id: persistedUser.id});
 
-        await verificationEmail(user.email, emailToken);
+        await verificationEmail(persistedUser.email);
 
         // create user response dto
         const userResponseDto = new UserResponseDto(
@@ -137,7 +120,7 @@ const createUser = async (req, res) => {
             persistedUser.firstName,
             persistedUser.lastName,
             token,
-            user.role
+            persistedUser.role
         )
 
         // send back user response dto
@@ -356,7 +339,6 @@ const loginAdminUser = async (req, res) => {
         if (!isPasswordValid) {
             return res.status(400).json({ message: 'Invalid email or password' });
         }
-
         // Generate JWT token
         const token = generateToken({ email: user.email });
 

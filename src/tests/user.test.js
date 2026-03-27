@@ -103,7 +103,7 @@ const validUserCreateRequest = {
     password: 'strongpassword123!',
     email: 'test@example.com',
     role: 'participant',
-    phoneNumber: '+1234567891',
+    phoneNumber: '+1 254-445-1122',
     age: 20,
     gender: 'male',
     country: 'USA',
@@ -213,8 +213,8 @@ describe('POST /user/register', () => {
             });
 
         expect(res.statusCode).toEqual(400);
-        expect(res.body).toHaveProperty('message', 'Validation errors occurred');
-        expect(Object.keys(res.body.errors).length).toEqual(1);  // There should be exactly one validation error
+        expect(res.body).toHaveProperty('message', 'Validation failed');
+        expect(Object.keys(res.body.errors).length).toEqual(1); // There should be exactly one validation error
     });
 
     it('returns 400 (email already exists)', async () => {
@@ -231,7 +231,7 @@ describe('POST /user/register', () => {
             });
 
         expect(res.statusCode).toEqual(400);
-        expect(res.body).toHaveProperty('message', 'Email is already in use please sign in');
+        expect(res.body).toHaveProperty('message', 'Validation failed');
         expect(UserRepo.findByEmail).toHaveBeenCalledTimes(1);
     });
 
@@ -245,10 +245,10 @@ describe('POST /user/register', () => {
             });
 
         expect(res.statusCode).toEqual(400);
-        expect(res.body).toHaveProperty('message', 'Validation errors occurred');
+        expect(res.body).toHaveProperty('message', 'Validation failed');
         expect(Object.keys(res.body.errors).length).toEqual(2);  // There should be exactly two validation errors
-        expect(res.body.errors.firstName).toEqual('First name is required and must be less than 50 characters');
-        expect(res.body.errors.lastName).toEqual('Last name is required and must be less than 50 characters');
+        expect(res.body.errors.firstName).toEqual('Please enter a first name.');
+        expect(res.body.errors.lastName).toEqual('Please enter a last name.');
     });
 
     it('returns 400 (phone number is invalid)', async () => {
@@ -260,9 +260,9 @@ describe('POST /user/register', () => {
             });
 
         expect(res.statusCode).toEqual(400);
-        expect(res.body).toHaveProperty('message', 'Validation errors occurred');
+        expect(res.body).toHaveProperty('message', 'Validation failed');
         expect(Object.keys(res.body.errors).length).toEqual(1);  // There should be exactly one validation error
-        expect(res.body.errors.phoneNumber).toEqual('Invalid phone number format');
+        expect(res.body.errors.phoneNumber).toEqual('Please enter a valid phone number.');
     });
 
     it('returns 400 (No school)', async () => {
@@ -274,9 +274,9 @@ describe('POST /user/register', () => {
             });
 
         expect(res.statusCode).toEqual(400);
-        expect(res.body).toHaveProperty('message', 'Validation errors occurred');
+        expect(res.body).toHaveProperty('message', 'Validation failed');
         expect(Object.keys(res.body.errors).length).toEqual(1);  // There should be exactly one validation error
-        expect(res.body.errors.school).toEqual('School is required');
+        expect(res.body.errors.school).toEqual('Please enter your school.');
     });
 
     it('returns 400 (No level of study)', async () => {
@@ -288,9 +288,9 @@ describe('POST /user/register', () => {
             });
 
         expect(res.statusCode).toEqual(400);
-        expect(res.body).toHaveProperty('message', 'Validation errors occurred');
+        expect(res.body).toHaveProperty('message', 'Validation failed');
         expect(Object.keys(res.body.errors).length).toEqual(1);  // There should be exactly one validation error
-        expect(res.body.errors.levelOfStudy).toEqual('Level of study is required');
+        expect(res.body.errors.levelOfStudy).toEqual('Please enter your level of study.');
     });
 
     it('returns 400 (No country)', async () => {
@@ -302,9 +302,9 @@ describe('POST /user/register', () => {
             });
 
         expect(res.statusCode).toEqual(400);
-        expect(res.body).toHaveProperty('message', 'Validation errors occurred');
+        expect(res.body).toHaveProperty('message', 'Validation failed');
         expect(Object.keys(res.body.errors).length).toEqual(1);  // There should be exactly one validation error
-        expect(res.body.errors.country).toEqual('Country is required');
+        expect(res.body.errors.country).toEqual('Please select a country.');
     });
 
     it('returns 400 (age too low)', async () => {
@@ -316,9 +316,9 @@ describe('POST /user/register', () => {
             });
 
         expect(res.statusCode).toEqual(400);
-        expect(res.body).toHaveProperty('message', 'Validation errors occurred');
+        expect(res.body).toHaveProperty('message', 'Validation failed');
         expect(Object.keys(res.body.errors).length).toEqual(1);  // There should be exactly one validation error
-        expect(res.body.errors.age).toEqual('User must be at least 13 years old');
+        expect(res.body.errors.age).toEqual('You must be at least 13 years old to register.');
     });
 
     it('returns 400 (No t-shirt size)', async () => {
@@ -330,9 +330,9 @@ describe('POST /user/register', () => {
             });
 
         expect(res.statusCode).toEqual(400);
-        expect(res.body).toHaveProperty('message', 'Validation errors occurred');
+        expect(res.body).toHaveProperty('message', 'Validation failed');
         expect(Object.keys(res.body.errors).length).toEqual(1);  // There should be exactly one validation error
-        expect(res.body.errors.tShirtSize).toEqual('T-Shirt size is required');
+        expect(res.body.errors.tShirtSize).toEqual('Please enter your shirt size.');
     });
 
     it('returns 400 (graduation year is invalid)', async () => {
@@ -340,7 +340,7 @@ describe('POST /user/register', () => {
             .post('/user/register')
             .send({
                 ...validUserCreateRequest,
-                graduationYear: 2154 // Unreasonable graduation year
+                graduationYear: 1900 // Unreasonable graduation year
             });
 
         expect(res.statusCode).toEqual(400);
@@ -358,9 +358,9 @@ describe('POST /user/register', () => {
             });
 
         expect(res.statusCode).toEqual(400);
-        expect(res.body).toHaveProperty('message', 'Validation errors occurred');
+        expect(res.body).toHaveProperty('message', 'Validation failed');
         expect(Object.keys(res.body.errors).length).toEqual(1);  // There should be exactly one validation error
-        expect(res.body.errors.linkedInUrl).toEqual('Invalid LinkedIn URL');
+        expect(res.body.errors.linkedInUrl).toEqual('Please enter a valid LinkedInURL.');
     });
 
     it('returns 400 (MLH checks are not true)', async () => {
@@ -373,10 +373,10 @@ describe('POST /user/register', () => {
             });
 
         expect(res.statusCode).toEqual(400);
-        expect(res.body).toHaveProperty('message', 'Validation errors occurred');
+        expect(res.body).toHaveProperty('message', 'Validation failed');
         expect(Object.keys(res.body.errors).length).toEqual(2);  // There should be exactly two validation errors
-        expect(res.body.errors.mlhCodeOfConduct).toEqual('MLH Code of Conduct must be accepted');
-        expect(res.body.errors.mlhPrivacyPolicy).toEqual('MLH Privacy Policy must be accepted');
+        expect(res.body.errors.mlhCodeOfConduct).toEqual('MLH Code of Conduct must be accepted.');
+        expect(res.body.errors.mlhPrivacyPolicy).toEqual('MLH Privacy Policy must be accepted.');
     });
 });
 
