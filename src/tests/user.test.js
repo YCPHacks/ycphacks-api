@@ -344,9 +344,9 @@ describe('POST /user/register', () => {
             });
 
         expect(res.statusCode).toEqual(400);
-        expect(res.body).toHaveProperty('message', 'Validation errors occurred');
-        expect(Object.keys(res.body.errors).length).toEqual(1);  // There should be exactly one validation error
-        expect(res.body.errors.graduationYear).toEqual('Invalid graduation year');
+        expect(res.body).toHaveProperty('message', 'Validation failed');
+        expect(Object.keys(res.body.errors).length).toEqual(1);// There should be exactly one validation error
+        expect(res.body.errors.graduationYear).toEqual('Invalid graduation year.');
     });
 
     it('returns 400 (invalid LinkedIn url)', async () => {
@@ -359,7 +359,7 @@ describe('POST /user/register', () => {
 
         expect(res.statusCode).toEqual(400);
         expect(res.body).toHaveProperty('message', 'Validation failed');
-        expect(Object.keys(res.body.errors).length).toEqual(1);  // There should be exactly one validation error
+        expect(Object.keys(res.body.errors).length).toEqual(1); // There should be exactly one validation error
         expect(res.body.errors.linkedInUrl).toEqual('Please enter a valid LinkedInURL.');
     });
 
