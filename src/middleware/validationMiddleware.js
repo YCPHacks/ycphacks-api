@@ -29,7 +29,7 @@ const checkBodyForSpecialCharacters = (req, res, next) => {
     next();
 };
 
-const validationRules = [
+const userValidationRules = [
     // 1. Validate email
     check('email')
         // Check if the field is empty, bail if it is
@@ -216,4 +216,4 @@ const validate = (req, res, next) => {
     next();
 }
 
-module.exports = { checkBodyForSpecialCharacters, validationRules, validate };
+module.exports = { checkBodyForSpecialCharacters, userValidationRules, validate };

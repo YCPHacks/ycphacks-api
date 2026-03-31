@@ -103,7 +103,7 @@ const createUser = async (req, res) => {
         await EventParticipantRepo.addParticipant(persistedUser.id, eventId);
 
         // generate JWT
-        const token = generateToken({ email: user.email });
+        const token = generateToken({ email: user.email, role: user.role });
 
         // Fire off confirmation email
         //await sendRegistrationConfirmation(user.email, user.firstName);
@@ -170,7 +170,7 @@ const loginUser = async (req, res) => {
         }
 
         // Generate JWT token
-        const token = generateToken({ email: user.email });
+        const token = generateToken({ email: user.email, role: user.role, id: user.id });
 
         const userResponseDto = new UserResponseDto(
             user.id,
@@ -224,6 +224,8 @@ const getUserById = async (req, res) => {
     }
 };
 
+// NOTE: Profile should be able to be access by ANY role but they should only be able to get there own profile
+// it needs to obe changed to do that
 const getProfileById = async (req, res) => {
     try {
         const { id } = req.params;
@@ -233,6 +235,11 @@ const getProfileById = async (req, res) => {
 
         if (!user)
             return res.status(404).json({ message: 'User not found' });
+
+        // This is to ensure that users can only access their own profile
+        if(req.params.id !== String(req.user.id)){
+            return res.status(403).json({ message: 'Forbidden: You cannot access another users info'});
+        }
 
         const userProfileResponseDto = new UserProfileResponseDto(// not all info
             user.id,
@@ -340,7 +347,7 @@ const loginAdminUser = async (req, res) => {
             return res.status(400).json({ message: 'Invalid email or password' });
         }
         // Generate JWT token
-        const token = generateToken({ email: user.email });
+        const token = generateToken({ email: user.email, role: user.role, id: user.id });
 
         const userResponseDto = new UserResponseDto(
             user.id,

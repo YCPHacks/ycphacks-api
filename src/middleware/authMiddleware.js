@@ -1,7 +1,7 @@
 const JWTUtil = require('../util/JWTUtil');
 
 // Used for protected routes
-function authMiddleware(req, res, next) {
+function authToken(req, res, next) {
         const authHeader = req.headers.authorization;
         //Expecting bearer token format
         if (!authHeader?.startsWith('Bearer ')) {
@@ -27,7 +27,8 @@ function authMiddleware(req, res, next) {
 
 }
 
-const authorize = (...allowedRoles) => {
+// Check the user role inside the token payload
+const authorizeByRole = (...allowedRoles) => {
     return (req, res, next) => {
         if(!req.user || !req.user.role){
             return res.status(401).json({ Message: 'User role not found' });
@@ -38,10 +39,34 @@ const authorize = (...allowedRoles) => {
         if(!hasRequiredRole){
             return res.status(403).json({ message: 'Forbidden: You do not have the required permissions'} );
         }
+
+        // Participants are always only allowed to make changes and get info for their own account
+        if(req.user.role === 'participant' ){
+            if(!req.user || !req.user.id){
+                return res.status(401).json({ Message: 'User id not found'});
+            }
+
+            if(req.params.id !== String(req.user.id)){
+                return res.status(403).json({ message: 'Forbidden: You cannot access another users info'});
+            }
+        }
         next();
     };
 };
 
+
+// Anyone using a route containing this function will only be able to change their own info
+const isOwnerOfRequestedId = (req, res, next) => {
+    if(!req.user || !req.user.id){
+        return res.status(401).json({ Message: 'User id not found'});
+    }
+
+    if(req.params.id !== String(req.user.id)){
+        return res.status(403).json({ message: 'Forbidden: You cannot access another users info'});
+    }
+    next();
+}
+
 module.exports = {
-    authMiddleware, authorize
+    authToken, authorizeByRole, isOwnerOfRequestedId
 }

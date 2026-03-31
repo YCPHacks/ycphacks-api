@@ -16,17 +16,17 @@ const {
     validateQR
 } = require('../controllers/UserController')
 const EventParticipantController= require('../controllers/EventParticipantsController')
-const { checkBodyForSpecialCharacters, validationRules, validate } = require('../middleware/validationMiddleware')
-const { authMiddleware, authorize } = require('../middleware/authMiddleware')
+const { checkBodyForSpecialCharacters, userValidationRules, validate } = require('../middleware/validationMiddleware')
+const { authToken, authorizeByRole, isOwnerOfRequestedId} = require('../middleware/authMiddleware')
 
 // Protected
-router.post('/validate-qr', authMiddleware, validateQR);
+router.post('/validate-qr', authToken, authorizeByRole("oscar, staff"), validateQR);
 
 // Public
-router.post('/register', validationRules, validate, createUser);
+router.post('/register', userValidationRules, validate, createUser);
 
-// Protected
-router.get('/:id/qrcode', authMiddleware, createQRCode);
+// Protected - Participants can only access their own account qr code
+router.get('/:id/qrcode', authToken, authorizeByRole("oscar, staff, participant"), createQRCode);
 
 // Public
 router.post('/login', checkBodyForSpecialCharacters, loginUser);
@@ -35,28 +35,28 @@ router.post('/login', checkBodyForSpecialCharacters, loginUser);
 router.post('/admin-login', checkBodyForSpecialCharacters, loginAdminUser);
 
 // Protected
-router.post('/auth', authMiddleware, authWithToken);
+router.post('/auth', authToken, authWithToken);
 
 // Protected
-router.get('/all', authMiddleware, EventParticipantController.getUsersByEvent);
+router.get('/all',authToken, authorizeByRole("oscar", "staff"), EventParticipantController.getUsersByEvent);
 
 // Public
 router.get('/event/:eventId/staff', EventParticipantController.getStaffForEvent);
 
-// Protected, only staff/oscar can check people in
-router.put('/:id/checkin', authMiddleware, updateCheckIn);
+// Protected - only staff/oscar can check people in
+router.put('/:id/checkin', authToken, authorizeByRole("oscar", "staff"), updateCheckIn);
 
-// Protected
-router.put('/:id/updatePassword', authMiddleware, updatePassword);
+// Protected - everyone can only reset their own password regardless of role
+router.put('/:id/updatePassword', authToken, isOwnerOfRequestedId, updatePassword);
 
-// Protected ,
-router.put('/:id', authMiddleware, checkBodyForSpecialCharacters, updateUserById);
+// Protected - Participants can only update their own info
+router.put('/:id', authToken, authorizeByRole("oscar", "staff", "participant"), checkBodyForSpecialCharacters, updateUserById);
 
-// Protected
-router.get('/:id', authMiddleware, getUserById);
+// Protected - Participants can only get their own info
+router.get('/:id', authToken, authorizeByRole("oscar", "staff", "participant"), getUserById);
 
-// Protected
-router.get('/:id/profile', getProfileById);
+// Protected - Participants can only update their own info
+router.get('/:id/profile', authToken, authorizeByRole("oscar", "staff", "participant"), getProfileById);
 
 
 module.exports = router;

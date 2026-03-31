@@ -6,6 +6,7 @@ const bcrypt = require('bcrypt');
 const { updateUserById } = require('../controllers/UserController');
 const { generateToken } = require('../util/JWTUtil');
 const JWTUtil = require('../util/JWTUtil');
+const authMiddleware = require('../middleware/authMiddleware');
 const EventRepo = require('../repository/event/EventRepo');
 
 const MOCK_ADMIN_TOKEN = 'mock-admin-token';
@@ -128,6 +129,8 @@ const validUserCreateRequest = {
 // Has to be var so that it's hoisted up to very top of file
 var mockValidateToken = jest.fn();
 
+const mockUser = { id: '1', role: 'oscar'}
+
 // Mock the UserRepo to avoid actual database interaction
 jest.mock('../repository/user/UserRepo');
 
@@ -140,6 +143,23 @@ jest.mock('../util/emailService', () => ({
 jest.mock('../util/JWTUtil', () => ({
     validateToken: mockValidateToken,
     generateToken: jest.fn().mockReturnValue('mock-jwt-token-for-test-user-1'),
+}));
+
+// Mock the authMiddleware
+jest.mock('../middleware/authMiddleware', () => ({
+    authToken: jest.fn((req, res, next) => {
+        req.user = mockUser;
+        next();
+    }),
+
+    authorizeByRole: jest.fn((...roles) => (req, res, next) => {
+        next();
+    }),
+
+    isOwnerOfRequestedId: jest.fn((req, res, next) => {
+        next();
+    })
+
 }));
 
 // Mock EventRepo to simulate finding/missing active events
@@ -392,7 +412,7 @@ describe('GET /user/all', () => {
     beforeEach(() => {
         jest.clearAllMocks();
 
-        // Make sure the authmiddleware is looking at the mock function
+        // Make sure the validateToken is looking at the mock function
         JWTUtil.validateToken = mockValidateToken;
 
         // Valid admin token

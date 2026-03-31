@@ -5,8 +5,9 @@ const dotenv = require('dotenv');
 // Load environment variables from .env file (if you're using dotenv)
 dotenv.config();
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key'; // Use environment variable or default
-const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d'; // Example: 1 hour
+// Uses secret key located in .env
+const JWT_SECRET = process.env.JWT_SECRET
+const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN
 
 // Generate a new JWT token
 function generateToken(payload) {
