@@ -20,13 +20,13 @@ const { checkBodyForSpecialCharacters, userValidationRules, validate } = require
 const { authToken, authorizeByRole, isOwnerOfRequestedId} = require('../middleware/authMiddleware')
 
 // Protected
-router.post('/validate-qr', authToken, authorizeByRole("oscar, staff"), validateQR);
+router.post('/validate-qr', authToken, authorizeByRole("oscar", "staff"), validateQR);
 
 // Public
 router.post('/register', userValidationRules, validate, createUser);
 
 // Protected - Participants can only access their own account qr code
-router.get('/:id/qrcode', authToken, authorizeByRole("oscar, staff, participant"), createQRCode);
+router.get('/:id/qrcode', authToken, authorizeByRole("oscar", "staff", "participant"), createQRCode);
 
 // Public
 router.post('/login', checkBodyForSpecialCharacters, loginUser);

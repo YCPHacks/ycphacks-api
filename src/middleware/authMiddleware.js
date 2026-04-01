@@ -54,6 +54,8 @@ const authorizeByRole = (...allowedRoles) => {
     };
 };
 
+// Check the user email inside the token payload
+
 
 // Anyone using a route containing this function will only be able to change their own info
 const isOwnerOfRequestedId = (req, res, next) => {

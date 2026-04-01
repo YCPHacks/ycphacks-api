@@ -46,6 +46,25 @@ const validGetHackCategoryByIdResponse = {
     eventId: 1,
 };
 
+const mockUser = { id: '1', role: 'oscar'}
+
+// Mock the authMiddleware
+jest.mock('../middleware/authMiddleware', () => ({
+    authToken: jest.fn((req, res, next) => {
+        req.user = mockUser;
+        next();
+    }),
+
+    authorizeByRole: jest.fn((...roles) => (req, res, next) => {
+        next();
+    }),
+
+    isOwnerOfRequestedId: jest.fn((req, res, next) => {
+        next();
+    })
+
+}));
+
 describe('POST /category/create', () => {
     afterEach(() => {
         jest.resetAllMocks();

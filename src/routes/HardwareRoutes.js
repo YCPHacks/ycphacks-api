@@ -2,28 +2,30 @@ const express = require('express')
 const router = express.Router()
 const HardwareController = require('../controllers/HardwareController');
 const HardwareImagesController = require('../controllers/HardwareImagesController');
+const {authToken, authorizeByRole} = require("../middleware/authMiddleware");
 
-//GET all hardware items
+// Public
 router.get("/", HardwareController.getAllHardware);
 
-router.get("/admin", HardwareController.getAllHardwareAdmin);
+// Protected - staff and oscar only
+router.get("/admin", authToken, authorizeByRole("oscar", "staff"), HardwareController.getAllHardwareAdmin);
 
-//GET Availability
+// Public
 router.get('/availability', HardwareController.getHardwareAvailability);
 
-//GET one hardware item
+// Public - GET one hardware item
 router.get('/:id', HardwareController.getHardwareById);
 
-//POST new hardware
-router.post('/add', HardwareController.createHardware);
+// Protected - POST new hardware - oscar only
+router.post('/add', authToken, authorizeByRole("oscar"), HardwareController.createHardware);
 
-//PUT  hardware update
-router.put('/update/:id', HardwareController.updateHardware);
+// Protected - PUT hardware update - oscar only
+router.put('/update/:id',  authToken, authorizeByRole("oscar"), HardwareController.updateHardware);
 
-//hardware DELETE
-router.delete('/delete/:id', HardwareController.deleteHardware);
+// Protected - hardware DELETE - oscar only
+router.delete('/delete/:id', authToken, authorizeByRole("oscar"), HardwareController.deleteHardware);
 
-//POST hardware image
-router.post('/image/add', HardwareImagesController.createImage);
+// Protected - POST hardware image - oscar only
+router.post('/image/add', authToken, authorizeByRole("oscar"), HardwareImagesController.createImage);
 
 module.exports = router;

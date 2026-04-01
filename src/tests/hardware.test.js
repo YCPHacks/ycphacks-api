@@ -82,6 +82,25 @@ const expectedAvailability = [
 
 const HardwareRepoInstance = HardwareRepoMock;
 
+const mockUser = { id: '1', role: 'oscar'}
+
+// Mock the authMiddleware
+jest.mock('../middleware/authMiddleware', () => ({
+    authToken: jest.fn((req, res, next) => {
+        req.user = mockUser;
+        next();
+    }),
+
+    authorizeByRole: jest.fn((...roles) => (req, res, next) => {
+        next();
+    }),
+
+    isOwnerOfRequestedId: jest.fn((req, res, next) => {
+        next();
+    })
+
+}));
+
 describe('Hardware Routes', () => {
     beforeEach(() => {
         // Reset mock calls before each test

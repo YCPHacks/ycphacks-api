@@ -8,11 +8,17 @@ const {
     editCategory,
     deleteCategory
 } = require('../controllers/HackCategoryController');
+const {authToken, authorizeByRole} = require("../middleware/authMiddleware");
 
-router.post('/create', createCategory)
+// Protected - oscar only
+router.post('/create', authToken, authorizeByRole("oscar"), createCategory)
+// Public
 router.get('/by-event/:eventId', getCategoriesForEvent)
+// Public
 router.get('/:id', getCategoryById)
-router.put('/update', editCategory)
-router.delete('/delete/:id', deleteCategory)
+// Protected - oscar only
+router.put('/update', authToken, authorizeByRole("oscar"), editCategory)
+// Protected - oscar only
+router.delete('/delete/:id', authToken, authorizeByRole("oscar"), deleteCategory)
 
 module.exports = router;

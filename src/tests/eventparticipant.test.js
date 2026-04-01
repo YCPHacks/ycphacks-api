@@ -8,6 +8,23 @@ jest.mock('../repository/team/EventParticipantRepo');
 jest.mock('../repository/event/EventRepo');
 jest.mock('../repository/user/UserRepo');
 
+const mockUser = { id: '1', role: 'oscar'}
+jest.mock('../middleware/authMiddleware', () => ({
+    authToken: jest.fn((req, res, next) => {
+        req.user = mockUser;
+        next();
+    }),
+
+    authorizeByRole: jest.fn((...roles) => (req, res, next) => {
+        next();
+    }),
+
+    isOwnerOfRequestedId: jest.fn((req, res, next) => {
+        next();
+    })
+
+}));
+
 // --- Test Helpers ---
 
 // Helper function to create a mock Express response object

@@ -5,7 +5,8 @@ const {authToken, authorizeByRole} = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
-router.post("/upload", authToken, authorizeByRole('oscar'), upload.single("image"), (req, res) => {
+// Protected - only oscar can do this
+router.post("/upload", authToken, authorizeByRole("oscar"), upload.single("image"), (req, res) => {
     res.json({
         imageUrl: req.file.location,
     });
