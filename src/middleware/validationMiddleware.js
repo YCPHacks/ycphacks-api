@@ -202,7 +202,6 @@ const validate = (req, res, next) => {
     if (!errors.isEmpty()) {
         const formattedErrors = {};
         errors.array().forEach(err => {
-            console.log(err.path);
             formattedErrors[err.path] = err.msg;
         });
 

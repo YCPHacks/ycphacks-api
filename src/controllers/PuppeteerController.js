@@ -28,8 +28,13 @@ class PuppeteerController {
                 const html = createHTML(teams);
 
                 const browser = await puppeteer.launch({
-                    headless: "new",
-                    args: ["--no-sandbox"]
+                    // The CHROMIUM PATH is declared in the docker compose file
+                    executablePath: process.env.CHROMIUM_PATH,
+                    args: [
+                        '--no-sandbox',
+                        '--disable-setuid-sandbox',
+                        '--disable-dev-shm-usage' // Docker has limited shared memory
+                    ],
                 });
 
                 const page = await browser.newPage();
