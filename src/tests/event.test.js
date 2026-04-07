@@ -4,6 +4,24 @@ const EventRepo = require('../repository/event/EventRepo');
 
 // Mock the EventRepo to avoid actual database interaction
 jest.mock('../repository/event/EventRepo');
+// Mock the authMiddleware
+
+const mockUser = { id: '1', role: 'oscar'}
+jest.mock('../middleware/authMiddleware', () => ({
+    authToken: jest.fn((req, res, next) => {
+        req.user = mockUser;
+        next();
+    }),
+
+    authorizeByRole: jest.fn((...roles) => (req, res, next) => {
+        next();
+    }),
+
+    isOwnerOfRequestedId: jest.fn((req, res, next) => {
+        next();
+    })
+
+}));
 
 const validEventCreateRequest = {
     eventName: 'An event',

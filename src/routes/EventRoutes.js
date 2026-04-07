@@ -10,27 +10,33 @@ const {
     deleteEvent,
     createActivity,
     getActivitiesForEvent,
-    createCategory,
-    getCategoriesForEvent,
-    editCategory,
     editActivity,
     updateEvent,
     deleteActivity
 } = require('../controllers/EventController')
+const {authToken, authorizeByRole} = require("../middleware/authMiddleware");
 
-router.post('/create', createEvent)
-router.get('/all', getAllEvents)
+// Protected - oscar only
+router.post('/create', authToken, authorizeByRole("oscar"), createEvent)
+// Protected - oscar only
+router.get('/all', authToken, authorizeByRole("oscar"), getAllEvents)
+// Public
 router.get('/active', getActiveEvent)
+// Public
 router.get('/:id', getEventById)
-router.put('/update', editEvent)
-router.delete('/delete/:id', deleteEvent)
-router.post('/activity/', createActivity)
+// Protected - oscar only
+router.put('/update', authToken, authorizeByRole("oscar"), editEvent)
+// Protected - oscar only
+router.delete('/delete/:id', authToken, authorizeByRole("oscar"), deleteEvent)
+// Protected - oscar only
+router.post('/activity/', authToken, authorizeByRole("oscar"), createActivity)
+// Public
 router.get('/activity/:id', getActivitiesForEvent)
-router.delete('/activity/:id', deleteActivity)
-router.post('/category/', createCategory)
-router.get('/category/:id', getCategoriesForEvent)
-router.put('/category', editCategory)
-router.put('/activity', editActivity)
-router.put('/update', updateEvent)
+// Protected - oscar only
+router.delete('/activity/:id', authToken, authorizeByRole("oscar"), deleteActivity)
+// Protected - oscar only
+router.put('/activity', authToken, authorizeByRole("oscar"), editActivity)
+// Protected - oscar only
+router.put('/update', authToken, authorizeByRole("oscar"), updateEvent)
 
 module.exports = router;

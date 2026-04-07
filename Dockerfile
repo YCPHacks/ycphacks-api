@@ -1,6 +1,18 @@
 # Use the official Node.js LTS image
 FROM node:20-alpine
 
+# Install Chromium and the required wireframe libraries for Alpine
+RUN apk add --no-cache \
+      chromium \
+      nss \
+      freetype \
+      harfbuzz \
+      ca-certificates \
+      ttf-freefont
+
+# Prevents npm from downloading another browser since it was already done above ^^^
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+
 # Set working directory
 WORKDIR /usr/src/app
 

@@ -1,15 +1,10 @@
 const Event = require("./Event")
-const HackCategories = require("./HackCategory")
 const Activity = require("./Activity");
 
 
 const EventRepo = {
     async createEvent(event) {
         return Event.create(event)
-    },
-
-    async updateEvent(event) {
-        return Event.update({ ...event }, { where: { id: event.id }, individualHooks: true })
     },
 
     async findEventById(eventId) {
@@ -48,32 +43,6 @@ const EventRepo = {
         return Activity.findAll({ where: { eventId: eventId } });
     },
 
-    async createCategory( category) {
-        const event = await Event.findOne({
-            where: { id: category.eventId },
-            individualHooks: true
-        })
-        if (!event) {
-            return null
-        }
-        return HackCategories.create({
-            ...category
-        })
-    },
-    async getAllCategories(id) {
-        return HackCategories.findAll({
-            where: { eventId: id }
-        })
-    },
-    async updateCategory(category) {
-        return HackCategories.update(
-            {...category},
-            {
-                where: { id: category.id },
-                individualHooks: true
-            }
-        )
-    },
     async updateEvent(event) {
         return Event.update(
             {...event},

@@ -1,12 +1,16 @@
 const UserRepoModel = require('../repository/user/User')
 const UserRepo = require('../repository/user/UserRepo')
 const User = require('../models/User')
+const { UserMethods } = require('../repository/config/Models');
 const UserResponseDto = require('../dto/UserResponseDto')
 const { generateToken, validateToken} = require('../util/JWTUtil');
 const bcrypt = require('bcrypt');
 const SALT_ROUNDS = 10;  // Number of salt rounds for bcrypt
-const { sendRegistrationConfirmation } = require('../util/emailService');
+const { sendRegistrationConfirmation, generateEmailToken, validateEmailToken, validatePasswordToken, verificationEmail, sendPasswordResetEmail, generatePasswordToken } = require('../util/emailService');
 const EventParticipantRepo = require('../repository/team/EventParticipantRepo');
+const QRCode = require('qrcode');
+const userRepo = require("../repository/user/UserRepo");
+const UserProfileResponseDto = require("../dto/UserProfileResponseDto");
 
 /**
  * This function will create a user based on the data that gets sent in and return
@@ -63,25 +67,8 @@ const createUser = async (req, res) => {
             userData.mlhCodeOfConduct,
             userData.mlhPrivacyPolicy,
             userData.mlhEmails,
-            userData.isVerified
+            userData.isVerified,
         )
-
-        // validate data
-        const validationErrors = user.validate()
-        if (Object.keys(validationErrors).length > 0) {
-            return res.status(400).json({
-                message: 'Validation errors occurred',
-                errors: validationErrors
-            });
-        }
-
-        const existingUser = await UserRepo.findByEmail(user.email);
-        if (existingUser){
-            return res.status(400).json({
-                message: 'Email is already in use please sign in',
-                errors: { email: 'Email is already registered' }
-            });
-        }
 
         // Converts to plain object for Sequelize
         const userObj = {
@@ -107,7 +94,7 @@ const createUser = async (req, res) => {
             mlhCodeOfConduct: user.mlhCodeOfConduct,
             mlhPrivacyPolicy: user.mlhPrivacyPolicy,
             mlhEmails: user.mlhEmails,
-            isVerified: user.isVerified
+            isVerified: user.isVerified,
         };
 
         // persist user  ONLY IF THE DATA IS VALID
@@ -116,19 +103,24 @@ const createUser = async (req, res) => {
         await EventParticipantRepo.addParticipant(persistedUser.id, eventId);
 
         // generate JWT
-        const token = generateToken({ email: user.email });
+        const token = generateToken({ email: user.email, role: user.role });
 
         // Fire off confirmation email
-        await sendRegistrationConfirmation(user.email, user.firstName);
+        //await sendRegistrationConfirmation(user.email, user.firstName);
+
+        const emailToken = generateEmailToken({id: persistedUser.id});
+
+        await verificationEmail(persistedUser.email);
 
         // create user response dto
         const userResponseDto = new UserResponseDto(
             persistedUser.id,
             persistedUser.email,
+            false,
             persistedUser.firstName,
             persistedUser.lastName,
             token,
-            user.role
+            persistedUser.role
         )
 
         // send back user response dto
@@ -147,6 +139,19 @@ const createUser = async (req, res) => {
  * @param res
  * @returns {Promise<*>}
  */
+
+const createQRCode = async (req, res) =>{
+    //generate QR code that contains user id
+    let userinfo = JSON.stringify(req.params.id);
+    try {
+        const qrDataUrl = await QRCode.toDataURL(userinfo);
+        //sends the QR code to the fronted
+        res.json({qr:qrDataUrl});
+    } catch (err){
+        res.status(500).json({error: 'Failed to generate QR code'});
+    }
+};
+
 const loginUser = async (req, res) => {
     try {
         const { email, password } = req.body;
@@ -155,21 +160,22 @@ const loginUser = async (req, res) => {
         const user = await UserRepo.findByEmail(email);
 
         if (!user) {
-            return res.status(400).json({ message: 'Invalid email' });
+            return res.status(400).json({ message: 'Invalid email or password' });
         }
 
         // Compare the provided password with the stored hashed password
         const isPasswordValid = await bcrypt.compare(password, user.password);
         if (!isPasswordValid) {
-            return res.status(400).json({ message: 'Invalid password' });
+            return res.status(400).json({ message: 'Invalid email or password' });
         }
 
         // Generate JWT token
-        const token = generateToken({ email: user.email });
+        const token = generateToken({ email: user.email, role: user.role, id: user.id });
 
         const userResponseDto = new UserResponseDto(
             user.id,
             user.email,
+            user.isEmailVerified,
             user.firstName,
             user.lastName,
             token,
@@ -186,33 +192,101 @@ const loginUser = async (req, res) => {
     }
 };
 
-const authWithToken = async (req, res) => {
+const getUserById = async (req, res) => {
     try {
-        const tokenObj = req.body.token;
-        const tokenString = (typeof tokenObj === 'object' && tokenObj !== null) ? tokenObj.token : tokenObj;
+        const {
+            id
+        } = req.params;
 
-        // Ensure we actually have a string before proceeding
-        if (!tokenString || typeof tokenString !== 'string') {
-            return res.status(401).json({ message: 'Missing or malformed token in request body' });
-        }
-        
-        // Validate the token
-        const decodedToken = validateToken(tokenString);
+        // Find the user
+        const user = await UserRepo.getUserById(id);
 
-        if (decodedToken.error) {
-            return res.status(401).json({ message: 'Invalid token' });
-        }
-
-        // Find the user by email
-        const user = await UserRepo.findByEmail(decodedToken.email);
-
-        if (!user) {
-            return res.status(400).json({ message: 'Invalid email or password' });
-        }
+        if (!user)
+            return res.status(404).json({ message: 'User not found' });
 
         const userResponseDto = new UserResponseDto(
             user.id,
             user.email,
+            user.isEmailVerified,
+            user.firstName,
+            user.lastName,
+            undefined,
+            user.role
+        )
+
+        // Respond with success and token
+        res.status(200).json({
+            message: 'User retrieval successful',
+            data: userResponseDto
+        });
+    } catch (err) {
+        res.status(500).json({ message: 'Error retrieving user with id', error: err.message });
+    }
+};
+
+// NOTE: Profile should be able to be access by ANY role but they should only be able to get there own profile
+// it needs to obe changed to do that
+const getProfileById = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        // Find the user
+        const user = await UserRepo.getUserById(Number(id));
+
+        if (!user)
+            return res.status(404).json({ message: 'User not found' });
+
+        // This is to ensure that users can only access their own profile
+        if(req.params.id !== String(req.user.id)){
+            return res.status(403).json({ message: 'Forbidden: You cannot access another users info'});
+        }
+
+        const userProfileResponseDto = new UserProfileResponseDto(// not all info
+            user.id,
+            user.firstName,
+            user.lastName,
+            user.age,
+            user.gender,
+            user.pronouns,
+            user.country,
+            user.school,
+            user.major,
+            user.graduationYear,
+            user.levelOfStudy,
+            user.tShirtSize,
+            user.hackathonsAttended,
+            user.dietaryRestrictions,
+            user.email,
+            user.mlhEmails,
+            user.phoneNumber,
+            user.linkedInUrl
+        )
+
+        // Respond with success and token
+        res.status(200).json({
+            message: 'Profile retrieval successful',
+            data: userProfileResponseDto
+        });
+    } catch (err) {
+        res.status(500).json({ message: 'Error retrieving profile data', error: err.message });
+    }
+};
+
+const authWithToken = async (req, res) => {
+    try {
+        // Find the user by email
+        const email = req.user.email;
+        const user = await UserRepo.findByEmail(email);
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        const tokenString = req.headers.authorization.split(' ')[1];
+        const userResponseDto = new UserResponseDto(
+            user.id,
+            user.email,
+            user.isEmailVerified,
             user.firstName,
             user.lastName,
             tokenString,
@@ -225,7 +299,34 @@ const authWithToken = async (req, res) => {
             data: userResponseDto
         });
     } catch (err) {
-        res.status(500).json({ message: 'Error validating token', error: err.message });
+        res.status(500).json({ message: 'Error fetching user profile', error: err.message });
+    }
+}
+
+const validateQR = async (req, res) => {
+    try {
+        const { userId } = req.body;
+
+        if(!userId){
+            return res.status(400).json({ valid: false});
+        }
+
+        const user = await UserRepo.getUserById(userId);
+
+        if(!user){
+            return res.json({ valid: false });
+        }
+        //update check in status
+        await UserRepo.updateCheckInStatus(userId, true);
+
+        //fetch the updated user
+        const updatedUser = await UserRepo.getUserById(userId);
+
+        //The QR code is valid, return that this is true and the updatedUser
+        return res.json({ valid: true, user: updatedUser});
+
+    } catch (err) {
+        res.status(500).json({ valid: false});
     }
 }
 
@@ -245,17 +346,17 @@ const loginAdminUser = async (req, res) => {
         if (!isPasswordValid) {
             return res.status(400).json({ message: 'Invalid email or password' });
         }
-
         // Generate JWT token
-        const token = generateToken({ email: user.email });
+        const token = generateToken({ email: user.email, role: user.role, id: user.id });
 
         const userResponseDto = new UserResponseDto(
             user.id,
             user.email,
+            user.isEmailVerified,
             user.firstName,
             user.lastName,
             token,
-            user.role,
+            user.role
         )
 
         if (user.role === 'staff' || user.role === 'oscar') {
@@ -333,9 +434,65 @@ const updateCheckIn = async (req, res) => {
     }
 }
 
+const updatePassword = async (req, res) => {
+
+    const userId = Number(req.params.id);
+    const {currentPassword, updatedPassword, confirmedPassword} = req.body;
+    console.log(`O Pass: ${currentPassword}, U Pass: ${updatedPassword}, C Pass: ${confirmedPassword}`);
+
+    if (Number.isNaN(userId) || !Number.isInteger(userId))
+        return res.status(400).json({message: "User ID is not a valid integer"})
+
+
+    try {
+        const user = await UserRepo.getUserById(userId);
+
+        if (!user)
+            return res.status(404).json({error: "User not found"});
+
+        const currentPassIsCorrect = await bcrypt.compare(currentPassword, user.password);
+        if (!currentPassIsCorrect)
+            return res.status(400).json({error: "Current password is incorrect"});
+
+        if (updatedPassword !== confirmedPassword)
+            return res.status(400).json({error: "Confirmed password must match new password"});
+
+        if (currentPassword === updatedPassword)
+            return res.status(400).json({error: "New password cannot match current password"});
+
+
+        const hashedUpdatedPassword = await bcrypt.hash(updatedPassword, SALT_ROUNDS);
+        await UserRepo.updatePassword(userId, hashedUpdatedPassword);
+
+        return res.status(200).json({message: "Password updated successfully"});
+    } catch (err) {
+        return res.status(500).json({error: "Internal server error"});
+    }
+}
+
 const updateUserById = async (req, res) => {
     const userId = Number(req.params.id);
-    const updatePayload = req.body;
+
+    const updatedProfileData = {
+        firstName: req.body.firstName,
+        lastName: req.body.lastName,
+        role: req.body.role,
+        age: req.body.age,
+        gender: req.body.gender,
+        pronouns: req.body.pronouns,
+        country: req.body.country,
+        school: req.body.school,
+        major: req.body.major,
+        graduationYear: req.body.graduationYear,
+        levelOfStudy: req.body.levelOfStudy,
+        tShirtSize: req.body.tShirtSize,
+        hackathonsAttended: req.body.hackathonsAttended,
+        dietaryRestrictions: req.body.dietaryRestrictions
+    };
+
+    if (Number.isNaN(userId) || !Number.isInteger(userId))
+        return res.status(400).json({ error: "User ID is not a valid integer." });
+
 
     const allowedFields = [
         'firstName', 'lastName', 'age', 'email', 'phoneNumber', 'school', 
@@ -346,10 +503,10 @@ const updateUserById = async (req, res) => {
 
     const sanitizedUpdateData = {};
     for(const key of allowedFields){
-        if(updatePayload.hasOwnProperty(key)){
-            sanitizedUpdateData[key] = updatePayload[key];
-        }
+        if(updatedProfileData)
+            sanitizedUpdateData[key] = updatedProfileData[key];
     }
+
 
     if(Object.keys(sanitizedUpdateData).length === 0){
         return res.status(400).json({ error: "No valid fields provided for update." });
@@ -375,18 +532,99 @@ const updateUserById = async (req, res) => {
         return res.status(200).json({ message: "User updated successfully.", data: sanitizedUpdateData });
 
     } catch (error) {
-        console.error("Controller Error during user update:", error);
         // Send a generic error or a more specific one if validation failed before the try block
         return res.status(500).json({ error: "Failed to update user due to a server error." });
     }
 }
 
+
+
+const updateEmailVerification = async(req, res) => {
+    const token = req.query.token;
+
+    if (!token) {
+        return res.status(400).send("Verification token missing");
+    }
+
+    try {
+        const payload = validateEmailToken(token);
+
+        const updatedUser = await UserRepo.updateEmailVerifiedStatus(
+            payload.decoded.id,
+            true
+        );
+        res.redirect("http://localhost:8080/login")
+
+    } catch (error) {
+        console.error('Error verifying email:', error);
+        return res.status(400).send("Invalid or expired verification link");
+    }
+}
+const forgotPassword = async (req, res) => {
+    const { email } = req.body;
+
+    const user = await userRepo.findByEmail(email);
+
+    if (!user) {
+        return res.json({
+            message: "Account not found with that email address."
+        });
+    }
+
+    const resetToken = generatePasswordToken({ id: user.id });
+
+    await sendPasswordResetEmail(user.email, resetToken);
+
+    res.json({
+        message: "If an account exists, a reset link has been sent."
+    });
+}
+
+const resetPassword = async(req, res) => {
+    const { token, newPassword } = req.body;
+
+    if (!token || !newPassword) {
+        return res.status(400).json({ error: "Token and password required" });
+    }
+
+    try {
+        const payload = validatePasswordToken(token);
+        const userId = payload.decoded.id;
+
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        await UserRepo.updatePassword(userId, hashedPassword);
+        return res.json({ message: "Password reset successfully" });
+
+    }
+    catch (err) {
+        console.error(err);
+        return res.status(400).json({error: "Invalid or expired token"});
+    }
+}
+
+const resendVerification = async(req, res) => {
+    try {
+        const resend = verificationEmail(req.body.email);
+    } catch {
+        return res.status(400).json({error: "Was unable to send the verification email"});
+    }
+}
+
 module.exports = {
     createUser,
+    createQRCode,
+    getUserById,
+    getProfileById,
     loginUser,
     authWithToken,
     loginAdminUser,
     getAllUsers,
     updateCheckIn,
-    updateUserById
+    updatePassword,
+    updateUserById,
+    validateQR,
+    updateEmailVerification,
+    forgotPassword,
+    resetPassword,
+    resendVerification
 }
