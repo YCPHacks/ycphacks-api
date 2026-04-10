@@ -29,7 +29,7 @@ class HackCategory {
             errors.eventId = 'Event ID is required';
         }
 
-        return errors;
+        return {errors: errors};
     }
 }
 

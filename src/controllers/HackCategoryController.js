@@ -123,7 +123,7 @@ const editCategory = async (req, res) => {
         if (Object.keys(validationErrors.errors).length > 0) {
             return res.status(400).json({
                 message: "Validation errors occured",
-                errors: categoryIsValid.errors,
+                errors: validationErrors.errors,
             });
         }
 
