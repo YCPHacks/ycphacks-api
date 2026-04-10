@@ -28,4 +28,7 @@ router.delete('/delete/:id', authToken, authorizeByRole("oscar"), HardwareContro
 // Protected - POST hardware image - oscar only
 router.post('/image/add', authToken, authorizeByRole("oscar"), HardwareImagesController.createImage);
 
+// Protected - oscar only
+router.post('/import', authToken, express.text({ type: 'text/csv'} ),authorizeByRole("oscar"), HardwareController.importCSVHardware)
+
 module.exports = router;

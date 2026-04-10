@@ -6,7 +6,7 @@ const {
     getCategoriesForEvent,
     getCategoryById,
     editCategory,
-    deleteCategory
+    deleteCategory,
 } = require('../controllers/HackCategoryController');
 const {authToken, authorizeByRole} = require("../middleware/authMiddleware");
 
@@ -20,5 +20,6 @@ router.get('/:id', getCategoryById)
 router.put('/update', authToken, authorizeByRole("oscar"), editCategory)
 // Protected - oscar only
 router.delete('/delete/:id', authToken, authorizeByRole("oscar"), deleteCategory)
+
 
 module.exports = router;

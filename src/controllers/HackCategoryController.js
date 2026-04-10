@@ -120,10 +120,10 @@ const editCategory = async (req, res) => {
         );
 
         const validationErrors = category.validate(false);
-        if (Object.keys(validationErrors.errors).length > 0) {
+        if (Object.keys(validationErrors).length > 0) {
             return res.status(400).json({
                 message: "Validation errors occured",
-                errors: validationErrors.errors,
+                errors: validationErrors,
             });
         }
 
