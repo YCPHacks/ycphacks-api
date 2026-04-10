@@ -64,7 +64,7 @@ const isOwnerOfRequestedId = (req, res, next) => {
     }
 
     if(req.params.id !== String(req.user.id)){
-        return res.status(403).json({ message: 'Forbidden: You cannot access another users info TESTING'});
+        return res.status(403).json({ message: 'Forbidden: You cannot access another users info TESTNG'});
     }
     next();
 }
