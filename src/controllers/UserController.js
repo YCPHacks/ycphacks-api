@@ -67,7 +67,7 @@ const createUser = async (req, res) => {
             userData.mlhCodeOfConduct,
             userData.mlhPrivacyPolicy,
             userData.mlhEmails,
-            userData.isEmailVerified = true,
+            true,
         )
 
         // Converts to plain object for Sequelize
@@ -116,7 +116,7 @@ const createUser = async (req, res) => {
         const userResponseDto = new UserResponseDto(
             persistedUser.id,
             persistedUser.email,
-            persistedUser.isEmailVerified,
+            true, //persistedUser.isEmailVerified,
             persistedUser.firstName,
             persistedUser.lastName,
             token,
