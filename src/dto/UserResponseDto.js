@@ -10,7 +10,7 @@ class UserResponseDto {
     ) {
         this.id = id
         this.email = email
-        this.isEmailVerified = isEmailVerified
+        this.isEmailVerified = true
         this.firstName = firstName
         this.lastName = lastName
         this.token = token
