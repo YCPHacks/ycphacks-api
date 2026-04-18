@@ -116,17 +116,12 @@ const createUser = async (req, res) => {
         const userResponseDto = new UserResponseDto(
             persistedUser.id,
             persistedUser.email,
-            false,
+            true,
             persistedUser.firstName,
             persistedUser.lastName,
             token,
             persistedUser.role
         )
-
-        await UserRepo.updateEmailVerifiedStatus(
-            persistedUser.id,
-            true
-        );
 
         // send back user response dto
         res.status(201).json({ message: 'Create User successful:', data: userResponseDto });
