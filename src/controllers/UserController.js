@@ -124,7 +124,7 @@ const createUser = async (req, res) => {
         )
 
         await UserRepo.updateEmailVerifiedStatus(
-            persistedUser,
+            persistedUser.id,
             true
         );
 
