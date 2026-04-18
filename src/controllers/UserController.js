@@ -123,6 +123,11 @@ const createUser = async (req, res) => {
             persistedUser.role
         )
 
+        await UserRepo.updateEmailVerifiedStatus(
+            persistedUser,
+            true
+        );
+
         // send back user response dto
         res.status(201).json({ message: 'Create User successful:', data: userResponseDto });
     } catch (err) {
@@ -553,7 +558,7 @@ const updateEmailVerification = async(req, res) => {
             payload.decoded.id,
             true
         );
-        res.redirect("http://45.55.167.149:3000/login")
+        res.redirect("http://45.55.167.149:8080/login")
 
     } catch (error) {
         console.error('Error verifying email:', error);
