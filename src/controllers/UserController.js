@@ -67,7 +67,7 @@ const createUser = async (req, res) => {
             userData.mlhCodeOfConduct,
             userData.mlhPrivacyPolicy,
             userData.mlhEmails,
-            userData.isVerified,
+            userData.isEmailVerified,
         )
 
         // Converts to plain object for Sequelize
@@ -94,7 +94,7 @@ const createUser = async (req, res) => {
             mlhCodeOfConduct: user.mlhCodeOfConduct,
             mlhPrivacyPolicy: user.mlhPrivacyPolicy,
             mlhEmails: user.mlhEmails,
-            isVerified: user.isVerified,
+            isEmailVerified: user.isEmailVerified,
         };
 
         // persist user  ONLY IF THE DATA IS VALID
@@ -108,9 +108,9 @@ const createUser = async (req, res) => {
         // Fire off confirmation email
         //await sendRegistrationConfirmation(user.email, user.firstName);
 
-        const emailToken = generateEmailToken({id: persistedUser.id});
+        // const emailToken = generateEmailToken({id: persistedUser.id});
 
-        await verificationEmail(persistedUser.email);
+        // await verificationEmail(persistedUser.email);
 
         // create user response dto
         const userResponseDto = new UserResponseDto(
