@@ -26,7 +26,7 @@ router.post('/validate-qr', authToken, authorizeByRole("oscar", "staff"), valida
 router.post('/register', userValidationRules, validate, createUser);
 
 // Protected - Participants can only access their own account qr code
-router.get('/:email/qrcode', authToken, authorizeByRole("oscar", "staff", "participant"), createQRCode);
+router.get('/:email/qrcode', authToken, createQRCode);
 
 // Public
 router.post('/login', checkBodyForSpecialCharacters, loginUser);
