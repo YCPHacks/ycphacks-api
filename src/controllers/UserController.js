@@ -67,7 +67,7 @@ const createUser = async (req, res) => {
             userData.mlhCodeOfConduct,
             userData.mlhPrivacyPolicy,
             userData.mlhEmails,
-            userData.isEmailVerified,
+            userData.isEmailVerified = true,
         )
 
         // Converts to plain object for Sequelize
@@ -94,7 +94,7 @@ const createUser = async (req, res) => {
             mlhCodeOfConduct: user.mlhCodeOfConduct,
             mlhPrivacyPolicy: user.mlhPrivacyPolicy,
             mlhEmails: user.mlhEmails,
-            isEmailVerified: user.isEmailVerified,
+            isEmailVerified: true,
         };
 
         // persist user  ONLY IF THE DATA IS VALID
