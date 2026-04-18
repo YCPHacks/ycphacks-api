@@ -116,7 +116,7 @@ const createUser = async (req, res) => {
         const userResponseDto = new UserResponseDto(
             persistedUser.id,
             persistedUser.email,
-            true,
+            persistedUser.isEmailVerified,
             persistedUser.firstName,
             persistedUser.lastName,
             token,
