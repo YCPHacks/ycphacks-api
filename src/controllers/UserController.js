@@ -553,7 +553,7 @@ const updateEmailVerification = async(req, res) => {
             payload.decoded.id,
             true
         );
-        res.redirect("http://localhost:8080/login")
+        res.redirect("http://45.55.167.149:3000/login")
 
     } catch (error) {
         console.error('Error verifying email:', error);
