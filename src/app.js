@@ -31,7 +31,7 @@ const { rateLimiterUsingThirdParty } = require('./middleware/rateLimiter');
 
 // CORS configuration
 const corsOptions = {
-  origin: process.env.CORS,
+  origin: [process.env.CORS, process.env.CORS_ADMIN],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
