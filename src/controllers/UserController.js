@@ -142,7 +142,7 @@ const createUser = async (req, res) => {
 
 const createQRCode = async (req, res) =>{
     //generate QR code that contains user id
-    let userinfo = JSON.stringify(req.params.email);
+    let userinfo = JSON.stringify(req.params.id);
     try {
         const qrDataUrl = await QRCode.toDataURL(userinfo);
         //sends the QR code to the fronted
