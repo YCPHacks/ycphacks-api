@@ -305,22 +305,22 @@ const authWithToken = async (req, res) => {
 
 const validateQR = async (req, res) => {
     try {
-        const { userId } = req.body;
+        const { email } = req.body;
 
-        if(!userId){
+        if(!email){
             return res.status(400).json({ valid: false});
         }
 
-        const user = await UserRepo.getUserById(userId);
+        const user = await UserRepo.findByEmail(email);
 
         if(!user){
             return res.json({ valid: false });
         }
         //update check in status
-        await UserRepo.updateCheckInStatus(userId, true);
+        await UserRepo.updateCheckInStatus(user.id, true);
 
         //fetch the updated user
-        const updatedUser = await UserRepo.getUserById(userId);
+        const updatedUser = await UserRepo.getUserById(user.id);
 
         //The QR code is valid, return that this is true and the updatedUser
         return res.json({ valid: true, user: updatedUser});
