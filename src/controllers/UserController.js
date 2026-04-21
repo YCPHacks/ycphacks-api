@@ -257,6 +257,7 @@ const getProfileById = async (req, res) => {
             user.hackathonsAttended,
             user.dietaryRestrictions,
             user.email,
+            user.isEmailVerified,
             user.mlhEmails,
             user.phoneNumber,
             user.linkedInUrl

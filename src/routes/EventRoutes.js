@@ -12,7 +12,8 @@ const {
     getActivitiesForEvent,
     editActivity,
     updateEvent,
-    deleteActivity
+    deleteActivity,
+    importCSVActivities
 } = require('../controllers/EventController')
 const {authToken, authorizeByRole} = require("../middleware/authMiddleware");
 
@@ -38,5 +39,7 @@ router.delete('/activity/:id', authToken, authorizeByRole("oscar"), deleteActivi
 router.put('/activity', authToken, authorizeByRole("oscar"), editActivity)
 // Protected - oscar only
 router.put('/update', authToken, authorizeByRole("oscar"), updateEvent)
+// Protected - oscar only
+router.post('/import', authToken, express.text( { type: 'text/csv'} ), authorizeByRole("oscar"), importCSVActivities)
 
 module.exports = router;

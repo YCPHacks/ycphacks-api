@@ -3,6 +3,8 @@ const Event = require('../models/Event')
 const EventResponseDto = require('../dto/EventResponseDto')
 const Activity = require('../models/Activity');
 const ActivityResponseDto = require('../dto/ActivityResponseDto');
+const csv = require("csv-parser");
+const { Readable } = require("stream");
 
 const createEvent = async (req, res) => {
     try {
@@ -455,6 +457,49 @@ const updateEvent = async (req, res) => {
     }
 }
 
+const importCSVActivities = async (req, res) => {
+    const csvText = req.body;
+    if (!csvText) return res.status(400).json({ message: 'Missing CSV' });
+
+    try {
+        const parsedCSVData = await parseCSVToArray(csvText);
+
+        // Process all rows
+        for (const row of parsedCSVData) {
+            const activityObj = {
+                activityName: row.activityName,
+                activityDate: new Date(row.activityDate).toISOString(),
+                activityDescription: row.activityDescription,
+                eventId: parseInt(row.eventId.toString().trim(), 10),
+            };
+
+            await EventRepo.createActivity(activityObj);
+        }
+
+        return res.status(200).json({ message: 'CSV imported successfully', count: parsedCSVData.length, parsedCSVData});
+    } catch (err) {
+        console.error('CSV import error:', err);
+        return res.status(500).json({
+            message: 'Error processing CSV',
+            error: err.message || err,
+        });
+    }
+}
+
+const parseCSVToArray = async (csvText) => {
+    const rows = [];
+
+    await new Promise((resolve, reject) => {
+        Readable.from([csvText])
+            .pipe(csv({ mapHeaders: ({ header }) => header.trim().replace(/\s+/g, '') }))
+            .on('data', (row) => rows.push(row))
+            .on('end', () => resolve())
+            .on('error', (err) => reject(err));
+    });
+
+    return rows;
+};
+
 module.exports = {
     createEvent,
     getAllEvents,
@@ -466,5 +511,6 @@ module.exports = {
     getActivitiesForEvent,
     editActivity,
     updateEvent,
-    deleteActivity
+    deleteActivity,
+    importCSVActivities
 }

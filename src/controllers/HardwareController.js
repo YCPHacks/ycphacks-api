@@ -1,5 +1,8 @@
 const HardwareRepo = require('../repository/hardware/HardwareRepo');
 const Hardware = require('../models/Hardware');
+const EventRepo = require("../repository/event/EventRepo");
+const {Readable} = require("stream");
+const csv = require("csv-parser");
 
 
 const HardwareController = {
@@ -90,6 +93,49 @@ const HardwareController = {
             res.status(500).json({ message: "Failed to delete hardware", error: err.message });
         }
     },
+
+    async importCSVHardware(req, res) {
+        const csvText = req.body;
+        if (!csvText) return res.status(400).json({ message: 'Missing CSV' });
+
+        try {
+            const parsedCSVData = await parseHardwareCSVToArray(csvText);
+
+            // Process all rows
+            for (const row of parsedCSVData) {
+                const hardwareObj = {
+                    hardwareName: row.hardwareName,
+                    serial: row.serial,
+                    description: row.description,
+                    functional: parseInt(row.functional.toString().trim(), 10)
+                };
+
+                await HardwareRepo.createHardware(hardwareObj);
+            }
+
+            return res.status(200).json({ message: 'CSV imported successfully', count: parsedCSVData.length, parsedCSVData});
+        } catch (err) {
+            console.error('CSV import error:', err);
+            return res.status(500).json({
+                message: 'Error processing CSV',
+                error: err.message || err,
+            });
+        }
+    },
+
 }
 
+const parseHardwareCSVToArray = async (csvText) => {
+    const rows = [];
+
+    await new Promise((resolve, reject) => {
+        Readable.from([csvText])
+            .pipe(csv({ mapHeaders: ({ header }) => header.trim().replace(/\s+/g, '') }))
+            .on('data', (row) => rows.push(row))
+            .on('end', resolve)
+            .on('error', reject);
+    });
+
+    return rows;
+};
 module.exports = HardwareController;

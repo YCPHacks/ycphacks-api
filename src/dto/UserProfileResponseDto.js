@@ -15,6 +15,7 @@ class UserProfileResponseDto {
         hackathonsAttended,
         dietaryRestrictions,
         email,
+        isEmailVerified,
         mlhEmails,
         phoneNumber,
         linkedInUrl
@@ -34,6 +35,7 @@ class UserProfileResponseDto {
         this.hackathonsAttended = hackathonsAttended;
         this.dietaryRestrictions = dietaryRestrictions;
         this.email = email;
+        this.isEmailVerified = isEmailVerified;
         this.mlhEmails = mlhEmails;
         this.phoneNumber = phoneNumber;
         this.linkedInUrl = linkedInUrl;

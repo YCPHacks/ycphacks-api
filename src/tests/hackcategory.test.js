@@ -81,7 +81,7 @@ describe('POST /category/create', () => {
                 ...validHackCategoryCreateRequest
             });
 
-
+        console.log(res)
         // Assert: response checks
         expect(res.statusCode).toEqual(201);
         expect(res.body).toHaveProperty('message', 'Category created successfully');
