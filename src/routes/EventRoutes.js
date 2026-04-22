@@ -20,7 +20,7 @@ const {authToken, authorizeByRole} = require("../middleware/authMiddleware");
 // Protected - oscar only
 router.post('/create', authToken, authorizeByRole("oscar"), createEvent)
 // Protected - oscar only
-router.get('/all', authToken, authorizeByRole("oscar", "staff", "participant"), getAllEvents)
+router.get('/all', authToken, getAllEvents)
 // Public
 router.get('/active', getActiveEvent)
 // Public
