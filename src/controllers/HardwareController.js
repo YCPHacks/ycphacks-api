@@ -67,17 +67,14 @@ const HardwareController = {
     },
 
     async updateHardware(req, res) {
-        try {
-            const updated = await HardwareRepo.updateHardware(req.params.id, {
-                hardwareName: req.body.name,
-                serial: req.body.serial,
-                status: req.body.status,
-                functional: req.body.functional,
-                description: req.body.description,
-                whoHasId: req.body.whoHasId,
-
-               // whoHasID: req.body.whoHasID ? Number(req.body.whoHasID) : null,
-            });
+    try {
+        const updated = await HardwareRepo.updateHardware(req.params.id, {
+            hardwareName: req.body.hardwareName,
+            serial: req.body.serial,
+            functional: req.body.functional,
+            description: req.body.description,
+            whoHasId: req.body.whoHasId,
+        });
             res.json({ message: "Hardware updated successfully", result: updated });
         } catch (err) {
             console.error("Error updating hardware:", err);
