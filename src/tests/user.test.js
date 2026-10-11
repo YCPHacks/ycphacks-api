@@ -121,9 +121,7 @@ const validUserCreateRequest = {
     mlhCodeOfConduct: true,
     mlhPrivacyPolicy: true,
     mlhEmails: false,
-    isVerified: false,
-    // FIX: Add eventId to prevent the "Missing eventId" error
-    eventId: 1 
+    isVerified: false
 };
 
 // Has to be var so that it's hoisted up to very top of file

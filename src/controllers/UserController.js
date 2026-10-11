@@ -24,11 +24,6 @@ const createUser = async (req, res) => {
 
         // convert user into user model
         const userData = req.body
-        const { eventId } = req.body;
-
-        if(!eventId){
-            return res.status(400).json({ message: 'Missing eventId in request body.' });
-        }
 
         const isBanned = await UserRepo.checkIfBanned({
             firstName: userData.firstName,
@@ -97,13 +92,11 @@ const createUser = async (req, res) => {
             isEmailVerified: true,
         };
 
-        // persist user  ONLY IF THE DATA IS VALID
+        // Accounts are kept separate from event enrollment, users register for the active event afterwards
         const persistedUser = await UserRepo.create(userObj);
 
-        await EventParticipantRepo.addParticipant(persistedUser.id, eventId);
-
         // generate JWT
-        const token = generateToken({ email: user.email, role: user.role });
+        const token = generateToken({ email: user.email, role: user.role, id: persistedUser.id });
 
         // Fire off confirmation email
         //await sendRegistrationConfirmation(user.email, user.firstName);

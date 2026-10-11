@@ -185,6 +185,78 @@ class EventParticipantController{
             });
         }
     }
+    static async getEnrollmentStatus(req, res){
+        const userId = Number(req.params.id);
+
+        if (Number.isNaN(userId) || !Number.isInteger(userId)) {
+            return res.status(400).json({ message: 'User ID is not a valid integer.' });
+        }
+
+        try {
+            const activeEvent = await EventRepo.findActiveEvent();
+
+            if (!activeEvent) {
+                return res.status(200).json({
+                    message: 'There is no active event',
+                    data: { event: null, isEnrolled: false }
+                });
+            }
+
+            const participant = await EventParticipantsRepo.findParticipantsByUserIdAndEventId(userId, activeEvent.id);
+
+            return res.status(200).json({
+                message: 'Successfully retrieved enrollment status',
+                data: {
+                    event: { id: activeEvent.id, eventName: activeEvent.eventName, startDate: activeEvent.startDate, endDate: activeEvent.endDate },
+                    isEnrolled: !!participant
+                }
+            });
+        } catch (err) {
+            console.error("Error fetching enrollment status:", err);
+            return res.status(500).json({ message: 'Server error retrieving enrollment status', error: err.message });
+        }
+    }
+    static async enrollInActiveEvent(req, res){
+        const userId = Number(req.params.id);
+
+        if (Number.isNaN(userId) || !Number.isInteger(userId)) {
+            return res.status(400).json({ message: 'User ID is not a valid integer.' });
+        }
+
+        try {
+            const activeEvent = await EventRepo.findActiveEvent();
+
+            if (!activeEvent) {
+                return res.status(404).json({ message: 'There is no active event to register for.' });
+            }
+
+            const user = await UserRepo.getUserById(userId);
+
+            if (!user) {
+                return res.status(404).json({ message: 'User not found' });
+            }
+
+            if (user.isBanned) {
+                return res.status(403).json({ message: 'Registration declined: This user has been banned from previous events.' });
+            }
+
+            await EventParticipantsRepo.addParticipant(userId, activeEvent.id);
+
+            return res.status(201).json({
+                message: `Successfully registered for ${activeEvent.eventName}`,
+                data: {
+                    event: { id: activeEvent.id, eventName: activeEvent.eventName, startDate: activeEvent.startDate, endDate: activeEvent.endDate },
+                    isEnrolled: true
+                }
+            });
+        } catch (err) {
+            if (err.message.includes('duplicate')) {
+                return res.status(409).json({ message: 'You are already registered for this event.' });
+            }
+            console.error("Error enrolling user in active event:", err);
+            return res.status(500).json({ message: 'Failed to register for event.', error: err.message });
+        }
+    }
     async getTeamsByEvent(eventId) {
         return await Team.findAll({
             where: {

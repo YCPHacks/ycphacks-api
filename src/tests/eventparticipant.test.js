@@ -271,4 +271,123 @@ describe('EventParticipantController', () => {
             consoleErrorSpy.mockRestore(); 
         });
     });
+
+    // ----------------------------------------------------
+    // GET /user/:id/enrollment
+    // ----------------------------------------------------
+    describe('getEnrollmentStatus', () => {
+        const activeEvent = { id: 2, eventName: 'YCP Hacks 2026', startDate: 'start', endDate: 'end' };
+
+        it('should return isEnrolled true when the user is in the active event', async () => {
+            req = { params: { id: '5' } };
+            EventRepo.findActiveEvent.mockResolvedValue(activeEvent);
+            EventParticipantsRepo.findParticipantsByUserIdAndEventId.mockResolvedValue({ teamId: null });
+
+            await EventParticipantController.getEnrollmentStatus(req, res);
+
+            expect(EventParticipantsRepo.findParticipantsByUserIdAndEventId).toHaveBeenCalledWith(5, 2);
+            expect(res.status).toHaveBeenCalledWith(200);
+            expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+                data: { event: activeEvent, isEnrolled: true }
+            }));
+        });
+
+        it('should return isEnrolled false when the user is not in the active event', async () => {
+            req = { params: { id: '5' } };
+            EventRepo.findActiveEvent.mockResolvedValue(activeEvent);
+            EventParticipantsRepo.findParticipantsByUserIdAndEventId.mockResolvedValue(null);
+
+            await EventParticipantController.getEnrollmentStatus(req, res);
+
+            expect(res.status).toHaveBeenCalledWith(200);
+            expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+                data: { event: activeEvent, isEnrolled: false }
+            }));
+        });
+
+        it('should return a null event when there is no active event', async () => {
+            req = { params: { id: '5' } };
+            EventRepo.findActiveEvent.mockResolvedValue(null);
+
+            await EventParticipantController.getEnrollmentStatus(req, res);
+
+            expect(EventParticipantsRepo.findParticipantsByUserIdAndEventId).not.toHaveBeenCalled();
+            expect(res.status).toHaveBeenCalledWith(200);
+            expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+                data: { event: null, isEnrolled: false }
+            }));
+        });
+
+        it('should return 400 for a non-integer user id', async () => {
+            req = { params: { id: 'abc' } };
+
+            await EventParticipantController.getEnrollmentStatus(req, res);
+
+            expect(res.status).toHaveBeenCalledWith(400);
+        });
+    });
+
+    // ----------------------------------------------------
+    // POST /user/:id/enrollment
+    // ----------------------------------------------------
+    describe('enrollInActiveEvent', () => {
+        const activeEvent = { id: 2, eventName: 'YCP Hacks 2026', startDate: 'start', endDate: 'end' };
+
+        it('should register a returning user for the active event and return 201', async () => {
+            req = { params: { id: '5' } };
+            EventRepo.findActiveEvent.mockResolvedValue(activeEvent);
+            UserRepo.getUserById.mockResolvedValue({ id: 5, isBanned: false });
+            EventParticipantsRepo.addParticipant.mockResolvedValue({ userId: 5, eventId: 2, teamId: null });
+
+            await EventParticipantController.enrollInActiveEvent(req, res);
+
+            expect(EventParticipantsRepo.addParticipant).toHaveBeenCalledWith(5, 2);
+            expect(res.status).toHaveBeenCalledWith(201);
+            expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+                data: { event: activeEvent, isEnrolled: true }
+            }));
+        });
+
+        it('should return 409 if the user is already registered', async () => {
+            req = { params: { id: '5' } };
+            EventRepo.findActiveEvent.mockResolvedValue(activeEvent);
+            UserRepo.getUserById.mockResolvedValue({ id: 5, isBanned: false });
+            EventParticipantsRepo.addParticipant.mockRejectedValue(new Error('Participant is already registered for this event (duplicate).'));
+
+            await EventParticipantController.enrollInActiveEvent(req, res);
+
+            expect(res.status).toHaveBeenCalledWith(409);
+        });
+
+        it('should return 403 if the user is banned', async () => {
+            req = { params: { id: '5' } };
+            EventRepo.findActiveEvent.mockResolvedValue(activeEvent);
+            UserRepo.getUserById.mockResolvedValue({ id: 5, isBanned: true });
+
+            await EventParticipantController.enrollInActiveEvent(req, res);
+
+            expect(EventParticipantsRepo.addParticipant).not.toHaveBeenCalled();
+            expect(res.status).toHaveBeenCalledWith(403);
+        });
+
+        it('should return 404 if there is no active event', async () => {
+            req = { params: { id: '5' } };
+            EventRepo.findActiveEvent.mockResolvedValue(null);
+
+            await EventParticipantController.enrollInActiveEvent(req, res);
+
+            expect(EventParticipantsRepo.addParticipant).not.toHaveBeenCalled();
+            expect(res.status).toHaveBeenCalledWith(404);
+        });
+
+        it('should return 404 if the user does not exist', async () => {
+            req = { params: { id: '5' } };
+            EventRepo.findActiveEvent.mockResolvedValue(activeEvent);
+            UserRepo.getUserById.mockResolvedValue(null);
+
+            await EventParticipantController.enrollInActiveEvent(req, res);
+
+            expect(res.status).toHaveBeenCalledWith(404);
+        });
+    });
 });

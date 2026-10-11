@@ -49,6 +49,12 @@ router.put('/:id/checkin', authToken, authorizeByRole("oscar", "staff"), updateC
 // Protected - everyone can only reset their own password regardless of role
 router.put('/:id/updatePassword', authToken, isOwnerOfRequestedId, updatePassword);
 
+// Protected - Participants can only view their own enrollment status for the active event
+router.get('/:id/enrollment', authToken, authorizeByRole("oscar", "staff", "participant"), EventParticipantController.getEnrollmentStatus);
+
+// Protected - Participants can only register themselves for the active event
+router.post('/:id/enrollment', authToken, authorizeByRole("oscar", "staff", "participant"), EventParticipantController.enrollInActiveEvent);
+
 // Protected - Participants can only update their own info
 router.put('/:id', authToken, authorizeByRole("oscar", "staff", "participant"), checkBodyForSpecialCharacters, updateUserById);
 
