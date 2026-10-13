@@ -8,6 +8,7 @@ const { generateToken } = require('../util/JWTUtil');
 const JWTUtil = require('../util/JWTUtil');
 const authMiddleware = require('../middleware/authMiddleware');
 const EventRepo = require('../repository/event/EventRepo');
+const EventParticipantRepo = require('../repository/team/EventParticipantRepo');
 
 const MOCK_ADMIN_TOKEN = 'mock-admin-token';
 const mockUsersList = [
@@ -131,6 +132,9 @@ const mockUser = { id: '1', role: 'oscar'}
 
 // Mock the UserRepo to avoid actual database interaction
 jest.mock('../repository/user/UserRepo');
+
+// Mock the EventParticipantRepo, check-in status is stored per event participant
+jest.mock('../repository/team/EventParticipantRepo');
 
 // Mock success an actual email isn't sent
 jest.mock('../util/emailService', () => ({
@@ -468,51 +472,55 @@ describe('GET /user/all', () => {
 });
 
 describe('PUT /user/:id/checkin', () => {
-    const createSequelizeMock = (data) => ({
-        ...data,
-        toJSON: () => data,
-        dataValues: data 
-    });
-
     const userId = 101;
-    
+    const activeEvent = { id: 2, eventName: 'YCP Hacks 2026' };
+
     beforeEach(() => {
-        UserRepo.updateCheckInStatus.mockClear();
+        EventParticipantRepo.updateCheckInStatus.mockReset();
+        EventRepo.findActiveEvent.mockReset();
     });
 
-    it('should update checkIn status to true and return 200 status', async () => {
-        const updatedUserPlain = { ...mockUsersList[0], id: userId, checkIn: true };
-        const updatedUser = createSequelizeMock(updatedUserPlain);
-
-        UserRepo.updateCheckInStatus.mockResolvedValue(updatedUser);
+    it('should update checkIn status for the active event and return 200 status', async () => {
+        EventRepo.findActiveEvent.mockResolvedValue(activeEvent);
+        EventParticipantRepo.updateCheckInStatus.mockResolvedValue(true);
 
         const res = await request(app)
             .put(`/user/${userId}/checkin`)
-            .send({ checkIn: true }) 
+            .send({ checkIn: true })
             .set('Authorization', `Bearer ${MOCK_ADMIN_TOKEN}`);
 
         expect(res.statusCode).toEqual(200);
-        expect(res.body).toHaveProperty('message', `User ${userId} checked in successfully.`); 
-        expect(res.body.data.checkIn).toBe(true); 
-        expect(UserRepo.updateCheckInStatus).toHaveBeenCalledWith(userId, true);
+        expect(res.body).toHaveProperty('message', `User ${userId} checked in successfully.`);
+        expect(res.body.data).toEqual({ id: userId, eventId: activeEvent.id, checkIn: true });
+        expect(EventParticipantRepo.updateCheckInStatus).toHaveBeenCalledWith(userId, activeEvent.id, true);
     });
 
-    it('should return 404 if the user ID is not found', async () => {
+    it('should return 404 if the user is not registered for the active event', async () => {
         const nonExistentId = 999;
-        
-        const notFoundError = new Error(`User with ID ${nonExistentId} not found.`);
-        notFoundError.status = 404; 
-        UserRepo.updateCheckInStatus.mockRejectedValue(notFoundError);
+        EventRepo.findActiveEvent.mockResolvedValue(activeEvent);
+        EventParticipantRepo.updateCheckInStatus.mockResolvedValue(false);
 
         const res = await request(app)
             .put(`/user/${nonExistentId}/checkin`)
-            .send({ checkIn: true }) 
+            .send({ checkIn: true })
             .set('Authorization', `Bearer ${MOCK_ADMIN_TOKEN}`);
 
         expect(res.statusCode).toEqual(404);
-        expect(res.body).toHaveProperty('error');
-        expect(res.body.error).toContain(`User with ID ${nonExistentId} not found.`);
-        expect(UserRepo.updateCheckInStatus).toHaveBeenCalledWith(nonExistentId, true);
+        expect(res.body.error).toContain('is not registered for the active event');
+        expect(EventParticipantRepo.updateCheckInStatus).toHaveBeenCalledWith(nonExistentId, activeEvent.id, true);
+    });
+
+    it('should return 404 if there is no active event', async () => {
+        EventRepo.findActiveEvent.mockResolvedValue(null);
+
+        const res = await request(app)
+            .put(`/user/${userId}/checkin`)
+            .send({ checkIn: true })
+            .set('Authorization', `Bearer ${MOCK_ADMIN_TOKEN}`);
+
+        expect(res.statusCode).toEqual(404);
+        expect(res.body).toHaveProperty('error', 'There is no active event to check in to.');
+        expect(EventParticipantRepo.updateCheckInStatus).not.toHaveBeenCalled();
     });
 
     it('should return 400 if checkIn is missing from the request body', async () => {
@@ -523,7 +531,60 @@ describe('PUT /user/:id/checkin', () => {
 
         expect(res.statusCode).toEqual(400);
         expect(res.body).toHaveProperty('error', 'Invalid or missing user ID or checkIn status (must be boolean) in request.');
-        expect(UserRepo.updateCheckInStatus).not.toHaveBeenCalled();
+        expect(EventParticipantRepo.updateCheckInStatus).not.toHaveBeenCalled();
+    });
+});
+
+describe('POST /user/validate-qr', () => {
+    const activeEvent = { id: 2, eventName: 'YCP Hacks 2026' };
+    const user = { id: 101, firstName: 'Alex', lastName: 'Johnson', email: 'alex.johnson@example.com', password: 'secureHash123' };
+
+    beforeEach(() => {
+        EventParticipantRepo.updateCheckInStatus.mockReset();
+        EventRepo.findActiveEvent.mockReset();
+        UserRepo.findByEmail.mockReset();
+    });
+
+    it('should check the user in to the active event and not return their password', async () => {
+        UserRepo.findByEmail.mockResolvedValue(user);
+        EventRepo.findActiveEvent.mockResolvedValue(activeEvent);
+        EventParticipantRepo.updateCheckInStatus.mockResolvedValue(true);
+
+        const res = await request(app)
+            .post('/user/validate-qr')
+            .send({ email: user.email })
+            .set('Authorization', `Bearer ${MOCK_ADMIN_TOKEN}`);
+
+        expect(res.statusCode).toEqual(200);
+        expect(res.body.valid).toBe(true);
+        expect(res.body.user).toEqual({ id: 101, firstName: 'Alex', lastName: 'Johnson', email: user.email, checkIn: true });
+        expect(EventParticipantRepo.updateCheckInStatus).toHaveBeenCalledWith(101, activeEvent.id, true);
+    });
+
+    it('should reject a user who is not registered for the active event', async () => {
+        UserRepo.findByEmail.mockResolvedValue(user);
+        EventRepo.findActiveEvent.mockResolvedValue(activeEvent);
+        EventParticipantRepo.updateCheckInStatus.mockResolvedValue(false);
+
+        const res = await request(app)
+            .post('/user/validate-qr')
+            .send({ email: user.email })
+            .set('Authorization', `Bearer ${MOCK_ADMIN_TOKEN}`);
+
+        expect(res.body).toEqual({ valid: false, message: 'User is not registered for the active event.' });
+    });
+
+    it('should reject when there is no active event', async () => {
+        UserRepo.findByEmail.mockResolvedValue(user);
+        EventRepo.findActiveEvent.mockResolvedValue(null);
+
+        const res = await request(app)
+            .post('/user/validate-qr')
+            .send({ email: user.email })
+            .set('Authorization', `Bearer ${MOCK_ADMIN_TOKEN}`);
+
+        expect(res.body).toEqual({ valid: false, message: 'There is no active event to check in to.' });
+        expect(EventParticipantRepo.updateCheckInStatus).not.toHaveBeenCalled();
     });
 });
 

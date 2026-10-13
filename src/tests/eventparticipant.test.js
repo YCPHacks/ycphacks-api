@@ -40,12 +40,12 @@ const mockResponse = () => {
 const createMockParticipant = (userId, teamId, isBanned = false, checkIn = true) => ({
     userId: userId,
     teamId: teamId,
-    participants: { 
+    checkIn: checkIn, // Check-in is stored on the participant row
+    participants: {
         id: userId,
-        firstName: `User${userId}`, 
-        lastName: 'Test', 
+        firstName: `User${userId}`,
+        lastName: 'Test',
         email: `user${userId}@test.com`,
-        checkIn: checkIn,
         isBanned: isBanned
     },
 });
@@ -268,7 +268,7 @@ describe('EventParticipantController', () => {
             expect(res.status).toHaveBeenCalledWith(500);
             expect(res.json).toHaveBeenCalledWith({ message: expect.stringContaining("Internal server error") });
             
-            consoleErrorSpy.mockRestore(); 
+            consoleErrorSpy.mockRestore();
         });
     });
 

@@ -20,7 +20,7 @@ class EventParticipantController{
                 firstName: p.participants?.firstName,
                 lastName: p.participants?.lastName,
                 email: p.participants?.email,
-                checkIn: p.participants?.checkIn,
+                checkIn: p.checkIn,
                 teamId: p.teamId
             }));
 
@@ -257,6 +257,85 @@ class EventParticipantController{
             return res.status(500).json({ message: 'Failed to register for event.', error: err.message });
         }
     }
+    static async updateCheckIn(req, res) {
+        const userId = Number(req.params.id);
+
+        const { checkIn } = req.body;
+
+        // console.log(`Received userId: ${userId} (Type: ${typeof userId})`);
+        // console.log(`Received checkIn: ${checkIn} (Type: ${typeof checkIn})`);
+
+        if (isNaN(userId) || checkIn === undefined || checkIn === null) {
+            return res.status(400).json({
+                error: 'Invalid or missing user ID or checkIn status (must be boolean) in request.'
+            });
+        }
+
+        try {
+            const activeEvent = await EventRepo.findActiveEvent();
+
+            if (!activeEvent) {
+                return res.status(404).json({ error: 'There is no active event to check in to.' });
+            }
+
+            // Check-in is per event, users must be registered for the active event first
+            const updated = await EventParticipantsRepo.updateCheckInStatus(
+                userId,
+                activeEvent.id,
+                !!checkIn
+            );
+
+            if (!updated) {
+                return res.status(404).json({ error: `User ${userId} is not registered for the active event.` });
+            }
+
+            return res.status(200).json({
+                message: `User ${userId} checked in successfully.`,
+                data: { id: userId, eventId: activeEvent.id, checkIn: !!checkIn }
+            });
+
+        } catch (error) {
+            console.error('Error updating check-in status:', error);
+            return res.status(500).json({ error: 'Failed to update user check-in status.' });
+        }
+    }
+    static async validateQR(req, res) {
+        try {
+            const { email } = req.body;
+
+            if(!email){
+                return res.status(400).json({ valid: false});
+            }
+
+            const user = await UserRepo.findByEmail(email);
+
+            if(!user){
+                return res.json({ valid: false });
+            }
+
+            const activeEvent = await EventRepo.findActiveEvent();
+
+            if(!activeEvent){
+                return res.json({ valid: false, message: 'There is no active event to check in to.' });
+            }
+
+            // Check-in is per event, users must be registered for the active event first
+            const checkedIn = await EventParticipantsRepo.updateCheckInStatus(user.id, activeEvent.id, true);
+
+            if(!checkedIn){
+                return res.json({ valid: false, message: 'User is not registered for the active event.' });
+            }
+
+            //The QR code is valid, return that this is true and the checked in user
+            return res.json({
+                valid: true,
+                user: { id: user.id, firstName: user.firstName, lastName: user.lastName, email: user.email, checkIn: true }
+            });
+
+        } catch (err) {
+            res.status(500).json({ valid: false});
+        }
+    }
     async getTeamsByEvent(eventId) {
         return await Team.findAll({
             where: {
@@ -319,7 +398,8 @@ class EventParticipantController{
                 tShirtSize: user.dataValues.tShirtSize,
                 dietaryRestrictions: user.dataValues.dietaryRestrictions,
                 role: user.dataValues.role,
-                checkIn: user.dataValues.checkIn,
+                // The query only includes this event's participant row
+                checkIn: !!user.participant?.[0]?.checkIn,
                 isBanned: user.dataValues.isBanned
             }));
 
