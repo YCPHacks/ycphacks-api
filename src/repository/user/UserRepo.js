@@ -26,21 +26,6 @@ const UserRepo = {
         })
     },
 
-    async updateCheckInStatus(userId, checkInStatus){
-        const user = await User.findByPk(userId);
-
-        if(!user){
-            const error = new Error(`User with ID ${userId} not found.`);
-            error.status = 404;
-            throw error;
-        }
-
-        user.checkIn = checkInStatus;
-
-        await user.save();
-        return user;
-    },
-
     async updateEmailVerifiedStatus(userId, emailVerifiedStatus){
         const user = await User.findByPk(userId);
 
