@@ -8,7 +8,7 @@ const Sponsor = require('../sponsor/Sponsor');
 const SponsorTier = require('../sponsor/SponsorTier');
 const EventSponsor = require('../sponsor/EventSponsor');
 const Hardware = require('../hardware/Hardware');
-const HardwareImage = require('../hardware/HardwareImage');
+const HardwareType = require('../hardware/HardwareType');
 const Team = require('../team/Team');
 const HackCategory = require('../category/HackCategory');
 const Prize = require('../prize/Prize');
@@ -108,11 +108,8 @@ EventParticipant.belongsTo(User, { foreignKey: 'userId', as: 'participants', tar
 User.hasMany(EventParticipant, { foreignKey: 'userId', as:'participant' });
 
 /* HARDWARE/IMAGE ASSOCIATIONS */
-Hardware.hasMany(HardwareImage, {
-    foreignKey: 'hardwareId',
-    as: 'images'
-});
-HardwareImage.belongsTo(Hardware, { foreignKey: 'hardwareId' });
+HardwareType.hasMany(Hardware, { foreignKey: 'hardwareTypeId', as: 'hardwareItems' });
+Hardware.belongsTo(HardwareType, { foreignKey: 'hardwareTypeId', as: 'hardwareType' });
 
 /* SPONSOR/IMAGE Association */
 Sponsor.belongsTo(Image, { foreignKey: "sponsorImageId" });
@@ -192,7 +189,7 @@ module.exports = {
     Image,
     Analytics,
     Hardware,
-    HardwareImage,
+    HardwareType,
     AuditLog
 };
 

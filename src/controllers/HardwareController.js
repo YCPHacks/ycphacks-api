@@ -52,6 +52,8 @@ const HardwareController = {
                 serial: req.body.serial,
                 functional: req.body.functional,
                 description: req.body.description,
+                whoHasId: req.body.whoHasId ?? null,
+                hardwareTypeId: req.body.hardwareTypeId,
             });
 
             res.status(201).json({
@@ -74,6 +76,7 @@ const HardwareController = {
             functional: req.body.functional,
             description: req.body.description,
             whoHasId: req.body.whoHasId,
+            hardwareTypeId: req.body.hardwareTypeId,
         });
             res.json({ message: "Hardware updated successfully", result: updated });
         } catch (err) {
@@ -91,6 +94,28 @@ const HardwareController = {
         }
     },
 
+    async getTypes(req, res) {
+        try { res.json(await HardwareRepo.listTypes()); }
+        catch (err) { res.status(500).json({ message: err.message }); }
+    },
+    async createType(req, res) {
+        try {
+            const name = String(req.body.name || '').trim();
+            if (!name) return res.status(400).json({ message: 'Type name required' });
+            res.status(201).json(await HardwareRepo.createType({ name, imageUrl: req.body.imageUrl || null }));
+        } catch (err) { res.status(500).json({ message: err.message }); }
+    },
+    async updateType(req, res) {
+        try {
+            const changes = {};
+            if (req.body.name !== undefined) changes.name = String(req.body.name).trim();
+            if (req.body.imageUrl !== undefined) changes.imageUrl = req.body.imageUrl;
+            if (changes.name === '') return res.status(400).json({ message: 'Type name required' });
+            const type = await HardwareRepo.updateType(req.params.id, changes);
+            if (!type) return res.status(404).json({ message: 'Type not found' });
+            res.json(type);
+        } catch (err) { res.status(500).json({ message: err.message }); }
+    },
     async importCSVHardware(req, res) {
         const csvText = req.body;
         if (!csvText) return res.status(400).json({ message: 'Missing CSV' });
@@ -102,6 +127,8 @@ const HardwareController = {
             for (const row of parsedCSVData) {
                 const hardwareObj = {
                     hardwareName: row.hardwareName,
+                    hardwareTypeId: (await HardwareRepo.listTypes()).find(t => t.name === row.hardwareName)?.id ||
+                        (await HardwareRepo.createType({ name: row.hardwareName, imageUrl: null })).id,
                     serial: row.serial,
                     description: row.description,
                     functional: parseInt(row.functional.toString().trim(), 10)

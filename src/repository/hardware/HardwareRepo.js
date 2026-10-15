@@ -1,88 +1,48 @@
-const Hardware = require("./Hardware");
-const { Sponsor, EventSponsor, SponsorTier } = require("../config/Models");
-const HardwareImage = require('./HardwareImage');
+const Hardware = require('./Hardware');
+const HardwareType = require('./HardwareType');
 
+const typeInclude = { model: HardwareType, as: 'hardwareType', attributes: ['id', 'name', 'imageUrl'] };
 const HardwareRepo = {
-    async findHardwareById(id) {
-        return Hardware.findOne({
-            where: { id },
-            include: [{
-                model: HardwareImage,
-                as: 'images',
-                attributes: ['imageUrl', 'id']
-            }]
-        });
+    async findHardwareById(id) { return Hardware.findOne({ where: { id }, include: [typeInclude] }); },
+    async findAllHardware() { return Hardware.findAll({ include: [typeInclude] }); },
+    async findAllHardwareAdmin() {
+        return Hardware.findAll({ include: [typeInclude] });
     },
-
-    async findAllHardware() {
-        return Hardware.findAll({
-            include: [{
-                model: HardwareImage,
-                as: 'images',
-                attributes: ['imageUrl']
-            }]
-        });
+    async listTypes() { return HardwareType.findAll({ order: [['name', 'ASC']] }); },
+    async createType(data) { return HardwareType.create(data); },
+    async updateType(id, data) {
+        const type = await HardwareType.findByPk(id);
+        if (!type) return null;
+        await type.update(data);
+        return type;
     },
-
+    async findType(id) { return HardwareType.findByPk(id); },
     async groupHardware() {
-        const hardwareList = await Hardware.findAll({
-            attributes: [
-                'id', 'hardwareName', 'description', 'serial', 'whoHasId', 'functional'
-            ],
-            include: [{
-                model: HardwareImage,
-                as: 'images',
-                attributes: ['imageUrl'],
-                limit: 1
-            }]
-        });
-
+        const hardwareList = await Hardware.findAll({ include: [typeInclude] });
         const grouped = {};
         const multiWordFamilies = await this.findMultiWordFamilies(hardwareList);
-
         hardwareList.forEach(item => {
-
-            const isUnavailable = item.whoHasId !== null;
-
-            let groupTitle = item.hardwareName.split(" ")[0];
-            let subtitle = item.hardwareName.split(" ").slice(1).join(" ");
-
-            for(const fam of multiWordFamilies){
-                if(item.hardwareName.startsWith(fam)){
+            const fullName = item.hardwareType?.name || item.hardwareName;
+            let groupTitle = fullName.split(' ')[0];
+            let subtitle = fullName.split(' ').slice(1).join(' ');
+            for (const fam of multiWordFamilies) {
+                if (fullName.startsWith(fam)) {
                     groupTitle = fam;
-                    subtitle = item.hardwareName.replace(fam, "").trim();
+                    subtitle = fullName.replace(fam, '').trim();
                     break;
                 }
             }
-
-            if(!grouped[groupTitle]){
-                grouped[groupTitle] = {
-                    id: groupTitle.toLowerCase().replace(/\s+/g, "-"),
-                    title: groupTitle,
-                    items: []
-                };
-            }
-
-            const imageUrl = item.images && item.images.length > 0 ? item.images[0].imageUrl : null;
-
+            if (!grouped[groupTitle]) grouped[groupTitle] = {
+                id: groupTitle.toLowerCase().replace(/\s+/g, '-'), title: groupTitle, items: []
+            };
             grouped[groupTitle].items.push({
-                fullName: item.hardwareName,
-                isUnavailable: isUnavailable,
-                isFunctional: item.functional,
-                name: subtitle || groupTitle,
-                subtitle: subtitle,
-                description: item.description || "",
-                image: imageUrl
+                fullName, isUnavailable: item.whoHasId !== null,
+                isFunctional: item.functional, name: subtitle || groupTitle,
+                subtitle, description: item.description || '',
+                image: item.hardwareType?.imageUrl || null
             });
         });
         return Object.values(grouped);
-    },
-
-    async findAllHardwareAdmin() {
-        return Hardware.findAll({
-            attributes: ['id', 'hardwareName', 'serial', 'functional', 'description', 'whoHasId'],
-            include: [{ model: HardwareImage, as: 'images', attributes: ['id', 'imageUrl', 'hardwareId'] }]
-        });
     },
     async getAvailabilityList(){
         const hardwareList = await Hardware.findAll({
@@ -98,7 +58,7 @@ const HardwareRepo = {
     },
 
     async createHardware(hardware) {
-        return await Hardware.create(hardware);
+        return Hardware.create(hardware);
     },
 
     async updateHardware(id, updatedFields) {
@@ -120,7 +80,7 @@ const HardwareRepo = {
         const familyCandidates = new Set();
 
         hardwareList.forEach(item => {
-            const words = item.hardwareName.split(/\s+/).filter(w => w.length > 0);
+            const words = (item.hardwareType?.name || item.hardwareName).split(/\s+/).filter(w => w.length > 0);
 
             if (words.length >= 3) {
                 const prefix3 = words.slice(0, 3).join(" ");
@@ -151,26 +111,6 @@ const HardwareRepo = {
         return Array.from(familyCandidates);
     },
 
-    async getImagesByHardwareId(hardwareId) {
-        return HardwareImage.findAll({
-            where: { hardwareId: hardwareId },
-            attributes: ['id', 'imageUrl', 'hardwareId']
-        });
-    },
 
-    async createHardwareImage({ imageUrl, hardwareId }) {
-        return HardwareImage.create({
-            imageUrl: imageUrl,
-            hardwareId: hardwareId
-        });
-    },
-
-    async deleteHardwareImage(imageId) {
-        const deletedRows = await HardwareImage.destroy({
-            where: { id: imageId }
-        });
-        return deletedRows;
-    }
 };
-
 module.exports = HardwareRepo;
