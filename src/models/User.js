@@ -18,7 +18,6 @@ class User {
         hackathonsAttended,
         linkedInUrl,
         pronouns,
-        checkIn,
         mlhCodeOfConduct,
         mlhPrivacyPolicy,
         mlhEmails,
@@ -42,7 +41,6 @@ class User {
         this.hackathonsAttended = hackathonsAttended;
         this.linkedInUrl = linkedInUrl;
         this.pronouns = pronouns;
-        this.checkIn = checkIn;
         this.mlhCodeOfConduct = mlhCodeOfConduct;
         this.mlhPrivacyPolicy = mlhPrivacyPolicy;
         this.mlhEmails = mlhEmails;

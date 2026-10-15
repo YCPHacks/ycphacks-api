@@ -31,6 +31,11 @@ const EventParticipant = sequelize.define(
             },
             onDelete: 'SET NULL',
             onUpdate: 'CASCADE'
+        },
+        checkIn: {
+            type: DataTypes.BOOLEAN,
+            allowNull: false,
+            defaultValue: false
         }
     },
     {

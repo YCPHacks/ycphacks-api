@@ -35,20 +35,21 @@ class EventParticipantRepo {
     static async getUsersByEvent(eventId) {
         // List all attributes needed by the controller (from the User model)
         const userAttributes = [
-            'id', 'firstName', 'lastName', 'age', 'email', 'phoneNumber', 
-            'school', 'tShirtSize', 'dietaryRestrictions', 'role', 
-            'checkIn', 'isBanned'
+            'id', 'firstName', 'lastName', 'age', 'email', 'phoneNumber',
+            'school', 'tShirtSize', 'dietaryRestrictions', 'role',
+            'isBanned'
         ];
 
         try {
             const users = await User.findAll({
-                attributes: userAttributes, 
+                attributes: userAttributes,
                 include: [{
                     model: EventParticipant,
                     as: 'participant',
                     where: { eventId: eventId },
                     required: true,
-                    attributes: []
+                    // Check-in is per event, so it comes from the participant row
+                    attributes: ['checkIn']
                 }],
                 order: [['lastName', 'ASC'], ['firstName', 'ASC']],
                 raw: false
@@ -63,16 +64,16 @@ class EventParticipantRepo {
         return EventParticipant.findAll({
             where: {
                 eventId: eventId,
+                checkIn: true,
                 teamId: {
                     [Op.is]: null
                 }
             },
-            include: [{ 
-                model: User, 
+            include: [{
+                model: User,
                 as: 'participants',
-                attributes: ['id', 'firstName', 'lastName', 'email', 'checkIn', 'isBanned'] ,
+                attributes: ['id', 'firstName', 'lastName', 'email', 'isBanned'] ,
                 where: {
-                    checkIn: 1,
                     role: 'participant',
                     isBanned: {[Op.not]: true}
                 }
@@ -139,6 +140,13 @@ class EventParticipantRepo {
         }
 
         return true;
+    }
+    static async updateCheckInStatus(userId, eventId, checkIn){
+        const [rowsUpdated] = await EventParticipant.update(
+            { checkIn: checkIn },
+            { where: { userId: userId, eventId: eventId } }
+        );
+        return rowsUpdated > 0;
     }
     static async addParticipant(userId, eventId){
         const existing = await EventParticipant.findOne({where: {userId, eventId}});
