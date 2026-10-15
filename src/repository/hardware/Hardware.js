@@ -10,8 +10,14 @@ const Hardware = sequelize.define(
             primaryKey: true,
             allowNull: false
         },
-        hardwareTypeId: { type: DataTypes.INTEGER, allowNull: true,
-            references: { model: 'HardwareType', key: 'id' } },
+        hardwareTypeId : {
+            type: DataTypes.INTEGER,
+            allowNull: true,
+            references: {
+            model: 'HardwareType',
+            key: 'id'
+            }
+        },
         hardwareName : {
             type: DataTypes.STRING(100),
             allowNull: false,
@@ -45,4 +51,4 @@ const Hardware = sequelize.define(
     }
 );
 
-module.exports = Hardware;
+module.exports = Hardware;

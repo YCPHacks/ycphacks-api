@@ -69,15 +69,15 @@ const HardwareController = {
     },
 
     async updateHardware(req, res) {
-    try {
-        const updated = await HardwareRepo.updateHardware(req.params.id, {
-            hardwareName: req.body.hardwareName,
-            serial: req.body.serial,
-            functional: req.body.functional,
-            description: req.body.description,
-            whoHasId: req.body.whoHasId,
-            hardwareTypeId: req.body.hardwareTypeId,
-        });
+        try {
+            const updated = await HardwareRepo.updateHardware(req.params.id, {
+                hardwareName: req.body.hardwareName,
+                serial: req.body.serial,
+                functional: req.body.functional,
+                description: req.body.description,
+                whoHasId: req.body.whoHasId,
+                hardwareTypeId: req.body.hardwareTypeId,
+            });
             res.json({ message: "Hardware updated successfully", result: updated });
         } catch (err) {
             console.error("Error updating hardware:", err);
@@ -95,27 +95,61 @@ const HardwareController = {
     },
 
     async getTypes(req, res) {
-        try { res.json(await HardwareRepo.listTypes()); }
-        catch (err) { res.status(500).json({ message: err.message }); }
+        try {
+            const types = await HardwareRepo.listTypes();
+            res.json(types);
+        } catch (err) {
+            res.status(500).json({ message: err.message });
+        }
     },
+
     async createType(req, res) {
         try {
             const name = String(req.body.name || '').trim();
-            if (!name) return res.status(400).json({ message: 'Type name required' });
-            res.status(201).json(await HardwareRepo.createType({ name, imageUrl: req.body.imageUrl || null }));
-        } catch (err) { res.status(500).json({ message: err.message }); }
+
+            if (!name) {
+                return res.status(400).json({ message: 'Type name required' });
+            }
+
+            const type = await HardwareRepo.createType({
+                name,
+                imageUrl: req.body.imageUrl || null
+            });
+
+            res.status(201).json(type);
+        } catch (err) {
+            res.status(500).json({ message: err.message });
+        }
     },
+
     async updateType(req, res) {
         try {
             const changes = {};
-            if (req.body.name !== undefined) changes.name = String(req.body.name).trim();
-            if (req.body.imageUrl !== undefined) changes.imageUrl = req.body.imageUrl;
-            if (changes.name === '') return res.status(400).json({ message: 'Type name required' });
+
+            if (req.body.name !== undefined) {
+                changes.name = String(req.body.name).trim();
+            }
+
+            if (req.body.imageUrl !== undefined) {
+                changes.imageUrl = req.body.imageUrl;
+            }
+
+            if (changes.name === '') {
+                return res.status(400).json({ message: 'Type name required' });
+            }
+
             const type = await HardwareRepo.updateType(req.params.id, changes);
-            if (!type) return res.status(404).json({ message: 'Type not found' });
+
+            if (!type) {
+                return res.status(404).json({ message: 'Type not found' });
+            }
+
             res.json(type);
-        } catch (err) { res.status(500).json({ message: err.message }); }
+        } catch (err) {
+            res.status(500).json({ message: err.message });
+        }
     },
+
     async importCSVHardware(req, res) {
         const csvText = req.body;
         if (!csvText) return res.status(400).json({ message: 'Missing CSV' });
@@ -123,12 +157,26 @@ const HardwareController = {
         try {
             const parsedCSVData = await parseHardwareCSVToArray(csvText);
 
+            // Load existing types once before processing rows
+            const types = await HardwareRepo.listTypes();
+            const typeMap = new Map(types.map(type => [type.name, type.id]));
+
             // Process all rows
             for (const row of parsedCSVData) {
+                let hardwareTypeId = typeMap.get(row.hardwareName);
+
+                if (!hardwareTypeId) {
+                    const newType = await HardwareRepo.createType({
+                        name: row.hardwareName,
+                        imageUrl: null
+                    });
+
+                    hardwareTypeId = newType.id;
+                    typeMap.set(row.hardwareName, hardwareTypeId);
+                }
                 const hardwareObj = {
                     hardwareName: row.hardwareName,
-                    hardwareTypeId: (await HardwareRepo.listTypes()).find(t => t.name === row.hardwareName)?.id ||
-                        (await HardwareRepo.createType({ name: row.hardwareName, imageUrl: null })).id,
+                    hardwareTypeId: hardwareTypeId,
                     serial: row.serial,
                     description: row.description,
                     functional: parseInt(row.functional.toString().trim(), 10)

@@ -12,11 +12,11 @@ router.get("/admin", authToken, authorizeByRole("oscar", "staff"), HardwareContr
 // Public
 router.get('/availability', HardwareController.getHardwareAvailability);
 
-// Hardware types (declare before /:id)
 router.get('/types', HardwareController.getTypes);
-router.post('/types', authToken, authorizeByRole('oscar'), HardwareController.createType);
-router.put('/types/:id', authToken, authorizeByRole('oscar'), HardwareController.updateType);
 
+router.post('/types', authToken, authorizeByRole('oscar'), HardwareController.createType);
+
+router.put('/types/:id', authToken, authorizeByRole('oscar'), HardwareController.updateType);
 // Public - GET one hardware item
 router.get('/:id', HardwareController.getHardwareById);
 
@@ -29,8 +29,7 @@ router.put('/update/:id',  authToken, authorizeByRole("oscar"), HardwareControll
 // Protected - hardware DELETE - oscar only
 router.delete('/delete/:id', authToken, authorizeByRole("oscar"), HardwareController.deleteHardware);
 
-
 // Protected - oscar only
 router.post('/import', authToken, express.text({ type: 'text/csv'} ),authorizeByRole("oscar"), HardwareController.importCSVHardware)
 
-module.exports = router;
+module.exports = router;

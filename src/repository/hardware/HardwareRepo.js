@@ -1,48 +1,101 @@
-const Hardware = require('./Hardware');
+const Hardware = require("./Hardware");
+const { Sponsor, EventSponsor, SponsorTier } = require("../config/Models");
 const HardwareType = require('./HardwareType');
 
-const typeInclude = { model: HardwareType, as: 'hardwareType', attributes: ['id', 'name', 'imageUrl'] };
+const typeInclude = {
+    model: HardwareType,
+    as: 'hardwareType',
+    attributes: ['id', 'name', 'imageUrl']
+};
+
 const HardwareRepo = {
-    async findHardwareById(id) { return Hardware.findOne({ where: { id }, include: [typeInclude] }); },
-    async findAllHardware() { return Hardware.findAll({ include: [typeInclude] }); },
-    async findAllHardwareAdmin() {
-        return Hardware.findAll({ include: [typeInclude] });
+    async findHardwareById(id) {
+        return Hardware.findOne({
+            where: { id },
+            include: [typeInclude]
+        });
     },
-    async listTypes() { return HardwareType.findAll({ order: [['name', 'ASC']] }); },
-    async createType(data) { return HardwareType.create(data); },
+
+    async findAllHardware() {
+        return Hardware.findAll({
+            include: [typeInclude]
+        });
+    },
+    async listTypes() {
+        return HardwareType.findAll({
+          order: [['name', 'ASC']]
+        });
+    },
+
+    async createType(data) {
+        return HardwareType.create(data);
+    },
+
     async updateType(id, data) {
         const type = await HardwareType.findByPk(id);
+
         if (!type) return null;
+
         await type.update(data);
         return type;
     },
-    async findType(id) { return HardwareType.findByPk(id); },
+
+    async findType(id) {
+        return HardwareType.findByPk(id);
+    },
+
     async groupHardware() {
-        const hardwareList = await Hardware.findAll({ include: [typeInclude] });
+        const hardwareList = await Hardware.findAll({
+            attributes: [
+                'id', 'hardwareName', 'hardwareTypeId', 'description', 'serial', 'whoHasId', 'functional'
+            ],
+            include: [typeInclude]
+        });
+
         const grouped = {};
         const multiWordFamilies = await this.findMultiWordFamilies(hardwareList);
+
         hardwareList.forEach(item => {
+
+            const isUnavailable = item.whoHasId !== null;
             const fullName = item.hardwareType?.name || item.hardwareName;
-            let groupTitle = fullName.split(' ')[0];
-            let subtitle = fullName.split(' ').slice(1).join(' ');
-            for (const fam of multiWordFamilies) {
-                if (fullName.startsWith(fam)) {
+
+            let groupTitle = fullName.split(" ")[0];
+            let subtitle = fullName.split(" ").slice(1).join(" ");
+
+            for(const fam of multiWordFamilies){
+                if(fullName.startsWith(fam)){
                     groupTitle = fam;
-                    subtitle = fullName.replace(fam, '').trim();
+                    subtitle = fullName.replace(fam, "").trim();
                     break;
                 }
             }
-            if (!grouped[groupTitle]) grouped[groupTitle] = {
-                id: groupTitle.toLowerCase().replace(/\s+/g, '-'), title: groupTitle, items: []
-            };
+
+            if(!grouped[groupTitle]){
+                grouped[groupTitle] = {
+                    id: groupTitle.toLowerCase().replace(/\s+/g, "-"),
+                    title: groupTitle,
+                    items: []
+                };
+            }
+
             grouped[groupTitle].items.push({
-                fullName, isUnavailable: item.whoHasId !== null,
-                isFunctional: item.functional, name: subtitle || groupTitle,
-                subtitle, description: item.description || '',
+                fullName: fullName,
+                isUnavailable: isUnavailable,
+                isFunctional: item.functional,
+                name: subtitle || groupTitle,
+                subtitle: subtitle,
+                description: item.description || "",
                 image: item.hardwareType?.imageUrl || null
             });
         });
         return Object.values(grouped);
+    },
+
+    async findAllHardwareAdmin() {
+        return Hardware.findAll({
+            include: [typeInclude]
+        });
     },
     async getAvailabilityList(){
         const hardwareList = await Hardware.findAll({
@@ -58,7 +111,7 @@ const HardwareRepo = {
     },
 
     async createHardware(hardware) {
-        return Hardware.create(hardware);
+        return await Hardware.create(hardware);
     },
 
     async updateHardware(id, updatedFields) {
@@ -111,6 +164,6 @@ const HardwareRepo = {
         return Array.from(familyCandidates);
     },
 
-
 };
+
 module.exports = HardwareRepo;
