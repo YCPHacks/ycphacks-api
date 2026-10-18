@@ -18,6 +18,14 @@ const Team = sequelize.define(
                 key: 'id'
             }
         },
+        teamLeaderId: {
+            type: DataTypes.INTEGER,
+            allowNull: true,
+            references: {
+                model: "EventParticipant",
+                key: "id"
+            }
+        },
         teamName: {
             type: DataTypes.STRING(100), // matches varchar(100)
             allowNull: false,
@@ -38,7 +46,6 @@ const Team = sequelize.define(
 
     {
         tableName: 'Team'
-
     }
 );
 

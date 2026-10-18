@@ -1,40 +1,55 @@
 const Hardware = require("./Hardware");
 const { Sponsor, EventSponsor, SponsorTier } = require("../config/Models");
-const HardwareImage = require('./HardwareImage');
+const HardwareType = require('./HardwareType');
+
+const typeInclude = {
+    model: HardwareType,
+    as: 'hardwareType',
+    attributes: ['id', 'name', 'imageUrl']
+};
 
 const HardwareRepo = {
     async findHardwareById(id) {
         return Hardware.findOne({
             where: { id },
-            include: [{
-                model: HardwareImage,
-                as: 'images',
-                attributes: ['imageUrl', 'id']
-            }]
+            include: [typeInclude]
         });
     },
 
     async findAllHardware() {
         return Hardware.findAll({
-            include: [{
-                model: HardwareImage,
-                as: 'images',
-                attributes: ['imageUrl']
-            }]
+            include: [typeInclude]
         });
+    },
+    async listTypes() {
+        return HardwareType.findAll({
+          order: [['name', 'ASC']]
+        });
+    },
+
+    async createType(data) {
+        return HardwareType.create(data);
+    },
+
+    async updateType(id, data) {
+        const type = await HardwareType.findByPk(id);
+
+        if (!type) return null;
+
+        await type.update(data);
+        return type;
+    },
+
+    async findType(id) {
+        return HardwareType.findByPk(id);
     },
 
     async groupHardware() {
         const hardwareList = await Hardware.findAll({
             attributes: [
-                'id', 'hardwareName', 'description', 'serial', 'whoHasId', 'functional'
+                'id', 'hardwareName', 'hardwareTypeId', 'description', 'serial', 'whoHasId', 'functional'
             ],
-            include: [{
-                model: HardwareImage,
-                as: 'images',
-                attributes: ['imageUrl'],
-                limit: 1
-            }]
+            include: [typeInclude]
         });
 
         const grouped = {};
@@ -43,14 +58,15 @@ const HardwareRepo = {
         hardwareList.forEach(item => {
 
             const isUnavailable = item.whoHasId !== null;
+            const fullName = item.hardwareType?.name || item.hardwareName;
 
-            let groupTitle = item.hardwareName.split(" ")[0];
-            let subtitle = item.hardwareName.split(" ").slice(1).join(" ");
+            let groupTitle = fullName.split(" ")[0];
+            let subtitle = fullName.split(" ").slice(1).join(" ");
 
             for(const fam of multiWordFamilies){
-                if(item.hardwareName.startsWith(fam)){
+                if(fullName.startsWith(fam)){
                     groupTitle = fam;
-                    subtitle = item.hardwareName.replace(fam, "").trim();
+                    subtitle = fullName.replace(fam, "").trim();
                     break;
                 }
             }
@@ -63,16 +79,14 @@ const HardwareRepo = {
                 };
             }
 
-            const imageUrl = item.images && item.images.length > 0 ? item.images[0].imageUrl : null;
-
             grouped[groupTitle].items.push({
-                fullName: item.hardwareName,
+                fullName: fullName,
                 isUnavailable: isUnavailable,
                 isFunctional: item.functional,
                 name: subtitle || groupTitle,
                 subtitle: subtitle,
                 description: item.description || "",
-                image: imageUrl
+                image: item.hardwareType?.imageUrl || null
             });
         });
         return Object.values(grouped);
@@ -80,8 +94,7 @@ const HardwareRepo = {
 
     async findAllHardwareAdmin() {
         return Hardware.findAll({
-            attributes: ['id', 'hardwareName', 'serial', 'functional', 'description', 'whoHasId'],
-            include: [{ model: HardwareImage, as: 'images', attributes: ['id', 'imageUrl', 'hardwareId'] }]
+            include: [typeInclude]
         });
     },
     async getAvailabilityList(){
@@ -120,7 +133,7 @@ const HardwareRepo = {
         const familyCandidates = new Set();
 
         hardwareList.forEach(item => {
-            const words = item.hardwareName.split(/\s+/).filter(w => w.length > 0);
+            const words = (item.hardwareType?.name || item.hardwareName).split(/\s+/).filter(w => w.length > 0);
 
             if (words.length >= 3) {
                 const prefix3 = words.slice(0, 3).join(" ");
@@ -151,26 +164,6 @@ const HardwareRepo = {
         return Array.from(familyCandidates);
     },
 
-    async getImagesByHardwareId(hardwareId) {
-        return HardwareImage.findAll({
-            where: { hardwareId: hardwareId },
-            attributes: ['id', 'imageUrl', 'hardwareId']
-        });
-    },
-
-    async createHardwareImage({ imageUrl, hardwareId }) {
-        return HardwareImage.create({
-            imageUrl: imageUrl,
-            hardwareId: hardwareId
-        });
-    },
-
-    async deleteHardwareImage(imageId) {
-        const deletedRows = await HardwareImage.destroy({
-            where: { id: imageId }
-        });
-        return deletedRows;
-    }
 };
 
 module.exports = HardwareRepo;

@@ -168,6 +168,31 @@ describe('Hardware Routes', () => {
             consoleErrorSpy.mockRestore();
         });
     });
+        describe('PUT /update/:id', () => {
+        it('should update a hardware item and return 200', async () => {
+            HardwareRepoInstance.updateHardware.mockResolvedValue([1]);
+
+            const updateData = {
+                hardwareName: "Raspberry Pi 5",
+                serial: "SN005",
+                functional: true,
+                description: "Updated Raspberry Pi",
+                whoHasId: null
+            };
+
+            const res = await request(app)
+                .put('/hardware/update/5')
+                .send(updateData);
+
+            expect(res.statusCode).toEqual(200);
+            expect(res.body.message).toBe("Hardware updated successfully");
+
+            expect(HardwareRepoInstance.updateHardware).toHaveBeenCalledWith(
+                "5",
+                updateData
+            );
+        });
+    });
 });
 
 afterAll(async () => {

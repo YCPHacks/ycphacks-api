@@ -10,17 +10,15 @@ const {
     getUserById,
     getProfileById,
     getAllUsers,
-    updateCheckIn,
     updatePassword,
-    updateUserById,
-    validateQR
+    updateUserById
 } = require('../controllers/UserController')
 const EventParticipantController= require('../controllers/EventParticipantsController')
 const { checkBodyForSpecialCharacters, userValidationRules, validate } = require('../middleware/validationMiddleware')
 const { authToken, authorizeByRole, isOwnerOfRequestedId} = require('../middleware/authMiddleware')
 
 // Protected
-router.post('/validate-qr', authToken, authorizeByRole("oscar", "staff"), validateQR);
+router.post('/validate-qr', authToken, authorizeByRole("oscar", "staff"), EventParticipantController.validateQR);
 
 // Public
 router.post('/register', userValidationRules, validate, createUser);
@@ -44,10 +42,16 @@ router.get('/all',authToken, authorizeByRole("oscar", "staff"), EventParticipant
 router.get('/event/:eventId/staff', EventParticipantController.getStaffForEvent);
 
 // Protected - only staff/oscar can check people in
-router.put('/:id/checkin', authToken, authorizeByRole("oscar", "staff"), updateCheckIn);
+router.put('/:id/checkin', authToken, authorizeByRole("oscar", "staff"), EventParticipantController.updateCheckIn);
 
 // Protected - everyone can only reset their own password regardless of role
 router.put('/:id/updatePassword', authToken, isOwnerOfRequestedId, updatePassword);
+
+// Protected - Participants can only view their own enrollment status for the active event
+router.get('/:id/enrollment', authToken, authorizeByRole("oscar", "staff", "participant"), EventParticipantController.getEnrollmentStatus);
+
+// Protected - Participants can only register themselves for the active event
+router.post('/:id/enrollment', authToken, authorizeByRole("oscar", "staff", "participant"), EventParticipantController.enrollInActiveEvent);
 
 // Protected - Participants can only update their own info
 router.put('/:id', authToken, authorizeByRole("oscar", "staff", "participant"), checkBodyForSpecialCharacters, updateUserById);

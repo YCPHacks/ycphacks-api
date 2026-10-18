@@ -4,9 +4,13 @@ const {sequelize} = require('../config/index');
 const EventParticipant = sequelize.define(
     'EventParticipant',
     {
-        eventId: {
+        id: {
             type: DataTypes.INTEGER,
             primaryKey: true,
+            autoIncrement: true
+        },
+        eventId: {
+            type: DataTypes.INTEGER,
             allowNull: false,
             references: {
                 model: 'Event',
@@ -15,7 +19,6 @@ const EventParticipant = sequelize.define(
         },
         userId: {
             type: DataTypes.INTEGER,
-            primaryKey: true,
             allowNull: false,
             references: {
                 model: 'User',
@@ -31,6 +34,11 @@ const EventParticipant = sequelize.define(
             },
             onDelete: 'SET NULL',
             onUpdate: 'CASCADE'
+        },
+        checkIn: {
+            type: DataTypes.BOOLEAN,
+            allowNull: false,
+            defaultValue: false
         }
     },
     {

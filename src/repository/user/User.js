@@ -108,11 +108,6 @@ const User = sequelize.define(
             type: DataTypes.STRING,
             defaultValue: null
         },
-        checkIn: {
-            type: DataTypes.BOOLEAN, // Matches tinyint(1)
-            allowNull: false,
-            defaultValue: false
-        },
         mlhCodeOfConduct: {
             type: DataTypes.BOOLEAN, // Matches tinyint(1)
             allowNull: false,
