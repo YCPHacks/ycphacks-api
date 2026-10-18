@@ -101,9 +101,14 @@ Prize.belongsTo(HackCategory, {
     }
 });
 
-Team.hasMany(EventParticipant, { foreignKey: 'teamId', as: 'EventParticipants' });
-EventParticipant.belongsTo(Team, { foreignKey: 'teamId', as: 'EventParticipants' });
+// EventParticipant <---> Team
+Team.hasOne(EventParticipant, {foreignKey: 'teamLeaderId'});
+EventParticipant.belongsTo(Team, {foreignKey: 'teamLeaderId'});
 
+Team.hasMany(EventParticipant, {foreignKey: 'teamId'});
+EventParticipant.belongsTo(Team, {foreignKey: 'teamId'});
+
+// EventParticipant <---> User
 EventParticipant.belongsTo(User, { foreignKey: 'userId', as: 'participants', targetKey: 'id' });
 User.hasMany(EventParticipant, { foreignKey: 'userId', as:'participant' });
 
