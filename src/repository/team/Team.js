@@ -20,7 +20,7 @@ const Team = sequelize.define(
         },
         teamLeaderId: {
             type: DataTypes.INTEGER,
-            allowNull: true,
+            allowNull: false,
             references: {
                 model: "EventParticipant",
                 key: "id"

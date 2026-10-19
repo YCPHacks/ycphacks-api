@@ -82,7 +82,7 @@ const TeamRepo = {
             include: [
                 {
                     model: EventParticipant,
-                    as: 'EventParticipants',
+                    as: 'members',
                     attributes: ['userId', 'teamId'],
                     include: [{
                         model: User,
