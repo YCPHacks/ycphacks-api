@@ -61,7 +61,7 @@ class EventParticipantRepo {
         }
     }
     static async findUnassignedParticipants(eventId) {
-        return EventParticipant.findAll({
+        return await EventParticipant.findAll({
             where: {
                 eventId: eventId,
                 checkIn: true,
@@ -72,13 +72,18 @@ class EventParticipantRepo {
             include: [{
                 model: User,
                 as: 'participants',
-                attributes: ['id', 'firstName', 'lastName', 'email', 'isBanned'] ,
                 where: {
-                    role: 'participant',
-                    isBanned: {[Op.not]: true}
-                }
+                    role: 'participant'
+                },
+                attributes: [
+                    'firstName',
+                    'lastName',
+                    'email'
+                ]
             }],
-            raw: false
+            attributes: [
+                'userId'
+            ]
         });
     }
     static async assignToTeam(userId, eventId, teamId){

@@ -7,24 +7,19 @@ const EventController = require('../controllers/EventController')
 class EventParticipantController{
     static async getUnassignedParticipants(req, res) {
         try {
-            const eventId = req.query.eventId || 1; 
+            const eventId = req.query.eventId || 1;// fails silently
 
-            const participants = await EventParticipantsRepo.findUnassignedParticipants(eventId);
+            const results = await EventParticipantsRepo.findUnassignedParticipants(eventId);
+            console.log(results);
 
-            const nonBannedParticipants = participants.filter(p =>
-                p.participants && p.participants.isBanned !== true && p.participants.isBanned !== 1
-            );
-
-            const formattedParticipants = nonBannedParticipants.map(p => ({
-                id: p.userId,
-                firstName: p.participants?.firstName,
-                lastName: p.participants?.lastName,
-                email: p.participants?.email,
-                checkIn: p.checkIn,
-                teamId: p.teamId
+            const formattedResults = results.map(r => ({
+                userId: r.dataValues.userId,
+                firstName: r.dataValues.participants.firstName,
+                lastName: r.dataValues.participants.lastName,
+                email: r.dataValues.participants.email
             }));
 
-            res.status(200).json({ message: 'Successfully fetched unassigned participants', data: formattedParticipants });
+            res.status(200).json({ message: 'Successfully fetched unassigned participants', data: formattedResults });
         } catch (err) {
             console.error("Backend Error in getUnassignedParticipants:", err);
             res.status(500).json({ message: 'Error getting unassigned participants', error: err.message });
