@@ -24,11 +24,6 @@ const createUser = async (req, res) => {
 
         // convert user into user model
         const userData = req.body
-        const { eventId } = req.body;
-
-        if(!eventId){
-            return res.status(400).json({ message: 'Missing eventId in request body.' });
-        }
 
         const isBanned = await UserRepo.checkIfBanned({
             firstName: userData.firstName,
@@ -63,7 +58,6 @@ const createUser = async (req, res) => {
             userData.hackathonsAttended,
             userData.linkedInUrl,
             userData.pronouns,
-            userData.checkIn,
             userData.mlhCodeOfConduct,
             userData.mlhPrivacyPolicy,
             userData.mlhEmails,
@@ -90,20 +84,17 @@ const createUser = async (req, res) => {
             hackathonsAttended: user.hackathonsAttended,
             linkedInUrl: user.linkedInUrl,
             pronouns: user.pronouns,
-            checkIn: user.checkIn,
             mlhCodeOfConduct: user.mlhCodeOfConduct,
             mlhPrivacyPolicy: user.mlhPrivacyPolicy,
             mlhEmails: user.mlhEmails,
             isEmailVerified: true,
         };
 
-        // persist user  ONLY IF THE DATA IS VALID
+        // Accounts are kept separate from event enrollment, users register for the active event afterwards
         const persistedUser = await UserRepo.create(userObj);
 
-        await EventParticipantRepo.addParticipant(persistedUser.id, eventId);
-
         // generate JWT
-        const token = generateToken({ email: user.email, role: user.role });
+        const token = generateToken({ email: user.email, role: user.role, id: persistedUser.id });
 
         // Fire off confirmation email
         //await sendRegistrationConfirmation(user.email, user.firstName);
@@ -304,33 +295,6 @@ const authWithToken = async (req, res) => {
     }
 }
 
-const validateQR = async (req, res) => {
-    try {
-        const { email } = req.body;
-
-        if(!email){
-            return res.status(400).json({ valid: false});
-        }
-
-        const user = await UserRepo.findByEmail(email);
-
-        if(!user){
-            return res.json({ valid: false });
-        }
-        //update check in status
-        await UserRepo.updateCheckInStatus(user.id, true);
-
-        //fetch the updated user
-        const updatedUser = await UserRepo.getUserById(user.id);
-
-        //The QR code is valid, return that this is true and the updatedUser
-        return res.json({ valid: true, user: updatedUser});
-
-    } catch (err) {
-        res.status(500).json({ valid: false});
-    }
-}
-
 const loginAdminUser = async (req, res) => {
     try {
         const { email, password } = req.body;
@@ -390,48 +354,12 @@ const getAllUsers = async (req, res) => {
             tShirtSize: user.dataValues.tShirtSize,
             dietaryRestrictions: user.dataValues.dietaryRestrictions,
             role: user.dataValues.role,
-            checkIn: user.dataValues.checkIn,
             isBanned: user.dataValues.isBanned
         }));
 
         res.status(200).json({ message: 'Successfully fetched all users', data: userData });
     } catch (err) {
         res.status(500).json({ message: 'Error getting all users', error: err.message });
-    }
-}
-
-const updateCheckIn = async (req, res) => {
-    const userId = Number(req.params.id);
-
-    const { checkIn } = req.body;
-
-    // console.log(`Received userId: ${userId} (Type: ${typeof userId})`);
-    // console.log(`Received checkIn: ${checkIn} (Type: ${typeof checkIn})`);
-
-    if (isNaN(userId) || checkIn === undefined || checkIn === null) {
-        return res.status(400).json({
-            error: 'Invalid or missing user ID or checkIn status (must be boolean) in request.'
-        });
-    }
-
-    try {
-        const updatedUser = await UserRepo.updateCheckInStatus(
-            userId,
-            !!checkIn 
-        );
-
-        return res.status(200).json({ 
-            message: `User ${userId} checked in successfully.`,
-            data: updatedUser 
-        });
-
-    } catch (error) {
-        if (error.status === 404) {
-            return res.status(404).json({ error: error.message });
-        }
-        
-        console.error('Error updating check-in status:', error);
-        return res.status(500).json({ error: 'Failed to update user check-in status.' });
     }
 }
 
@@ -499,7 +427,7 @@ const updateUserById = async (req, res) => {
         'firstName', 'lastName', 'age', 'email', 'phoneNumber', 'school', 
         'tShirtSize', 'dietaryRestrictions', 'role', 'gender', 'country', 
         'hackathonsAttended', 'pronouns', 'isVerified', 'major', 
-        'graduationYear', 'levelOfStudy', 'linkedInUrl', 'checkIn', 'isBanned'
+        'graduationYear', 'levelOfStudy', 'linkedInUrl', 'isBanned'
     ];
 
     const sanitizedUpdateData = {};
@@ -620,10 +548,8 @@ module.exports = {
     authWithToken,
     loginAdminUser,
     getAllUsers,
-    updateCheckIn,
     updatePassword,
     updateUserById,
-    validateQR,
     updateEmailVerification,
     forgotPassword,
     resetPassword,

@@ -415,12 +415,12 @@ describe('EventParticipantController', () => {
     const createMockParticipant = (userId, teamId, isBanned = false, checkIn = true) => ({
         userId: userId,
         teamId: teamId,
-        participants: { 
+        checkIn: checkIn, // Check-in is stored on the participant row
+        participants: {
             id: userId,
-            firstName: `User${userId}`, 
-            lastName: 'Test', 
+            firstName: `User${userId}`,
+            lastName: 'Test',
             email: `user${userId}@test.com`,
-            checkIn: checkIn,
             isBanned: isBanned
         },
     });
@@ -430,9 +430,9 @@ describe('EventParticipantController', () => {
     // --------------------------------------------------------------------------
     describe('GET /teams/unassignedParticipants', () => {
         const mockUnassigned = [
-            { userId: 301, teamId: null, eventId: 1, participants: { id: 301, firstName: 'A', lastName: 'Unassigned', email: 'a@example.com', checkIn: true, isBanned: false } },
-            { userId: 302, teamId: null, eventId: 1, participants: { id: 302, firstName: 'B', lastName: 'Unassigned', email: 'b@example.com', checkIn: false, isBanned: 0 } },
-            { userId: 303, teamId: null, eventId: 1, participants: { id: 303, firstName: 'C', lastName: 'Banned', email: 'c@example.com', checkIn: true, isBanned: true } }, // Should be filtered out
+            { userId: 301, teamId: null, eventId: 1, checkIn: true, participants: { id: 301, firstName: 'A', lastName: 'Unassigned', email: 'a@example.com', isBanned: false } },
+            { userId: 302, teamId: null, eventId: 1, checkIn: false, participants: { id: 302, firstName: 'B', lastName: 'Unassigned', email: 'b@example.com', isBanned: 0 } },
+            { userId: 303, teamId: null, eventId: 1, checkIn: true, participants: { id: 303, firstName: 'C', lastName: 'Banned', email: 'c@example.com', isBanned: true } }, // Should be filtered out
         ];
         const expectedFormatted = [
             { id: 301, firstName: 'A', lastName: 'Unassigned', email: 'a@example.com', checkIn: true, teamId: null },
