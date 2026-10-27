@@ -3,6 +3,9 @@ const TeamRepo = require('../repository/team/TeamRepo')
 const EventRepo = require('../repository/event/EventRepo')
 const UserRepo = require('../repository/user/UserRepo')
 const EventController = require('../controllers/EventController')
+const PermissionsRepo = require("../repository/permissions/PermissionsRepo");
+const { generateToken, validateToken} = require('../util/JWTUtil');
+const UserResponseDto = require('../dto/UserResponseDto')
 
 class EventParticipantController{
     static async getUnassignedParticipants(req, res) {
@@ -240,12 +243,31 @@ class EventParticipantController{
                 return res.status(403).json({ message: 'Registration declined: This user has been banned from previous events.' });
             }
 
-            await EventParticipantsRepo.addParticipant(userId, activeEvent.id);
+           const newParticipant = await EventParticipantsRepo.addParticipant(userId, activeEvent.id);
+
+            // Create participant permission for newly created participant
+           const newPermission = await PermissionsRepo.createPermission(newParticipant.id, 'participant');
+
+            // Generate JWT token
+            const token = generateToken({ email: user.email, permission: [newPermission.permission], id: user.id });
+            console.log(newParticipant);
+            console.log(newPermission);
+
+            // create user response dto
+            const userResponseDto = new UserResponseDto(
+                user.id,
+                user.email,
+                true,
+                user.firstName,
+                user.lastName,
+                token
+            )
 
             return res.status(201).json({
                 message: `Successfully registered for ${activeEvent.eventName}`,
                 data: {
                     event: { id: activeEvent.id, eventName: activeEvent.eventName, startDate: activeEvent.startDate, endDate: activeEvent.endDate },
+                    userResponseDto,
                     isEnrolled: true
                 }
             });

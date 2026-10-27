@@ -36,6 +36,12 @@ const EventParticipant = sequelize.define(
             type: DataTypes.BOOLEAN,
             allowNull: false,
             defaultValue: false
+        },
+        id: {
+            type: DataTypes.INTEGER,
+            primaryKey: true,
+            autoIncrement: true,
+            allowNull: false
         }
     },
     {

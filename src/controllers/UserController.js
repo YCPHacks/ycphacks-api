@@ -44,7 +44,6 @@ const createUser = async (req, res) => {
             userData.lastName,
             userData.email,
             hashedPassword,
-            "participant", // Force participant role initially
             userData.phoneNumber,
             userData.age,
             userData.gender,
@@ -70,7 +69,6 @@ const createUser = async (req, res) => {
             lastName: user.lastName,
             email: user.email,
             password: user.password,
-            role: user.role,
             phoneNumber: user.phoneNumber,
             age: user.age,
             gender: user.gender,
@@ -93,8 +91,11 @@ const createUser = async (req, res) => {
         // Accounts are kept separate from event enrollment, users register for the active event afterwards
         const persistedUser = await UserRepo.create(userObj);
 
+        // TODO: Users no longer need a role, but we still want them to sign in as a user and then
+        // be logged in as whatever participant is them for that active event
+
         // generate JWT
-        const token = generateToken({ email: user.email, role: user.role, id: persistedUser.id });
+        const token = generateToken({ email: user.email, id: persistedUser.id });
 
         // Fire off confirmation email
         //await sendRegistrationConfirmation(user.email, user.firstName);
@@ -111,7 +112,6 @@ const createUser = async (req, res) => {
             persistedUser.firstName,
             persistedUser.lastName,
             token,
-            persistedUser.role
         )
 
         // send back user response dto
@@ -143,6 +143,7 @@ const createQRCode = async (req, res) =>{
     }
 };
 
+//TODO: I might need to add the eventId into the req body
 const loginUser = async (req, res) => {
     try {
         const { email, password } = req.body;
@@ -159,6 +160,8 @@ const loginUser = async (req, res) => {
         if (!isPasswordValid) {
             return res.status(400).json({ message: 'Invalid email or password' });
         }
+
+        //const permissions = await PermissionsRepo
 
         // Generate JWT token
         const token = generateToken({ email: user.email, role: user.role, id: user.id });

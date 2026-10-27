@@ -6,7 +6,6 @@ class UserResponseDto {
         firstName,
         lastName,
         token,
-        role
     ) {
         this.id = id
         this.email = email
@@ -14,7 +13,6 @@ class UserResponseDto {
         this.firstName = firstName
         this.lastName = lastName
         this.token = token
-        this.role = role
     }
 }
 

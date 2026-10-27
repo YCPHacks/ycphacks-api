@@ -36,10 +36,6 @@ const User = sequelize.define(
             type: DataTypes.STRING,
             allowNull: false,
         },
-        role: {
-            type: DataTypes.ENUM("participant", "staff", "oscar"),
-            defaultValue: "participant"
-        },
         phoneNumber: {
             type: DataTypes.STRING(20), // Matches varchar(20)
             allowNull: false,
