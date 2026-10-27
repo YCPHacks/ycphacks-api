@@ -16,21 +16,10 @@ class EventParticipantRepo {
         });
     }
     static async findParticipantsByUserIdAndEventId(userId, eventId){
-        const participant = await EventParticipant.findOne({
-            attributes: ['teamId'], 
-            where: { userId: userId, eventId: eventId },
-            
-            include: [{ 
-                model: User, 
-                as: 'participants',
-                attributes: [],
-                where: {
-                    isBanned: { [Op.not]: true }
-                }
-            }],
+        return await EventParticipant.findOne({
+            attributes: ['teamId'],
+            where: { userId: userId, eventId: eventId }
         });
-
-        return participant;
     }
     static async getUsersByEvent(eventId) {
         // List all attributes needed by the controller (from the User model)

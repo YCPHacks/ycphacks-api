@@ -7,16 +7,26 @@ const EventController = require('../controllers/EventController')
 class EventParticipantController{
     static async getUnassignedParticipants(req, res) {
         try {
-            const eventId = req.query.eventId || 1;// fails silently
+            let eventId = req.query.eventId || null;
+
+            if (eventId == null) {
+                res.status(400).json({message: 'EventId query field missing'});
+            }
+
+            try {
+                eventId = parseInt(eventId)
+            } catch (err) {
+                res.status(400).json({message: 'Invalid eventId provided', error: err.message});
+            }
 
             const results = await EventParticipantsRepo.findUnassignedParticipants(eventId);
             console.log(results);
 
             const formattedResults = results.map(r => ({
-                userId: r.dataValues.userId,
-                firstName: r.dataValues.participants.firstName,
-                lastName: r.dataValues.participants.lastName,
-                email: r.dataValues.participants.email
+                userId: r.userId,
+                firstName: r.participants.firstName,
+                lastName: r.participants.lastName,
+                email: r.participants.email
             }));
 
             res.status(200).json({ message: 'Successfully fetched unassigned participants', data: formattedResults });

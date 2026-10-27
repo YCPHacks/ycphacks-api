@@ -1,6 +1,7 @@
 class Team {
     constructor(
         eventId,
+        teamLeaderId,
         teamName,
         presentationLink,
         githubLink,
@@ -8,6 +9,7 @@ class Team {
         projectDescription
     ) {
         this.eventId = eventId;
+        this.teamLeaderId = teamLeaderId;
         this.teamName = teamName;
         this.presentationLink = presentationLink;
         this.githubLink = githubLink;

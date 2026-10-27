@@ -113,6 +113,7 @@ const getEventById = async (req, res) => {
 }
 
 const getActiveEvent = async (req, res) => {
+    console.log("reached backend active event")
     try {
         const event = await EventRepo.findActiveEvent()
 

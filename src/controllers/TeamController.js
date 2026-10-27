@@ -7,11 +7,13 @@ const EventRepo = require('../repository/event/EventRepo');
 
 class TeamController {
     static async createTeam(req, res) {
-        const { participantIds, ...teamData } = req.body;
+        const { participantIds, teamLeaderId, ...teamData } = req.body;
+        console.log(`>> >> >> TEAM LEADER ID: ${teamLeaderId} << << <<`)
 
         try{
             const team = new Team(
                 teamData.eventId,
+                teamLeaderId,
                 teamData.teamName,
                 teamData.presentationLink,
                 teamData.githubLink,
@@ -29,6 +31,7 @@ class TeamController {
 
             const teamObj = {
                 teamName: team.teamName,
+                teamLeaderId: team.teamLeaderId,
                 projectName: team.projectName,
                 projectDescription: team.projectDescription,
                 presentationLink: team.presentationLink,
@@ -55,6 +58,7 @@ class TeamController {
 
             const responseDto = new TeamDto(
                 teamDataValues.eventId,
+                teamDataValues.teamLeaderId,
                 teamDataValues.teamName,
                 teamDataValues.presentationLink,
                 teamDataValues.githubLink,
