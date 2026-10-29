@@ -17,7 +17,7 @@ class EventParticipantRepo {
     }
     static async findParticipantsByUserIdAndEventId(userId, eventId){
         const participant = await EventParticipant.findOne({
-            attributes: ['teamId'], 
+            attributes: ['teamId', 'id'],
             where: { userId: userId, eventId: eventId },
             
             include: [{ 

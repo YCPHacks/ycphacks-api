@@ -19,7 +19,6 @@ module.exports = {
         type: Sequelize.ENUM(
             'participant',
             'staff',
-            'staff-view',
             'staff-user-management-edit',
             'staff-team-registration-edit',
             'staff-hardware-edit',

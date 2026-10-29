@@ -53,7 +53,18 @@ const PermissionsRepo = {
                 permission
             })
         } catch(err) {
-            console.error(err);
+            throw (err);
+        }
+    },
+
+    async findAllPermissionsById( participantId ) {
+        try {
+            return await Permissions.findAll({
+                attributes: ['permission'],
+                where: { participantId: participantId }
+            })
+        } catch (err) {
+            throw err;
         }
     }
 };

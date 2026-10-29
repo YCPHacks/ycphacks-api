@@ -11,7 +11,7 @@ const EventParticipantRepo = require('../repository/team/EventParticipantRepo');
 const QRCode = require('qrcode');
 const userRepo = require("../repository/user/UserRepo");
 const UserProfileResponseDto = require("../dto/UserProfileResponseDto");
-
+const PermissionsRepo = require("../repository/permissions/PermissionsRepo");
 /**
  * This function will create a user based on the data that gets sent in and return
  * the users id, email, first name, and token on success
@@ -146,7 +146,8 @@ const createQRCode = async (req, res) =>{
 //TODO: I might need to add the eventId into the req body
 const loginUser = async (req, res) => {
     try {
-        const { email, password } = req.body;
+        const { email, password, eventId } = req.body;
+        console.log('body:', req.body);
 
         // Find the user by email
         const user = await UserRepo.findByEmail(email);
@@ -161,10 +162,16 @@ const loginUser = async (req, res) => {
             return res.status(400).json({ message: 'Invalid email or password' });
         }
 
-        //const permissions = await PermissionsRepo
+        // Get the participantId for the active event
+        const participant = await EventParticipantRepo.findParticipantsByUserIdAndEventId(user.id, eventId);
+
+        // Get the participants permissions if they are registered for the active event
+        const permissions = await PermissionsRepo.findAllPermissionsById(participant.id);
+        const permissionList = permissions.map(p => p.permission);
+        console.log('participant.id:', participant?.id, 'permissions:', permissions.length);
 
         // Generate JWT token
-        const token = generateToken({ email: user.email, role: user.role, id: user.id });
+        const token = generateToken({ email: user.email, permission: permissionList, id: user.id });
 
         const userResponseDto = new UserResponseDto(
             user.id,
@@ -172,8 +179,7 @@ const loginUser = async (req, res) => {
             user.isEmailVerified,
             user.firstName,
             user.lastName,
-            token,
-            user.role
+            token
         )
 
         // Respond with success and token
