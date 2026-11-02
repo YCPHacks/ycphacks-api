@@ -7,6 +7,7 @@ const cors = require('cors');
 const { sequelize } = require('./repository/config/index'); // <-- destructure the instance
 const { attachAuditHooks } = require('./repository/config/Models');
 const userRoutes = require('./routes/UserRoutes');
+const participantRoutes = require('./routes/ParticipantRoutes');
 const eventRoutes = require('./routes/EventRoutes');
 const categoryRoutes = require('./routes/HackCategoryRoutes');
 const prizeRoutes = require('./routes/PrizeRoutes');
@@ -48,6 +49,7 @@ app.use(rateLimiterUsingThirdParty);
 */
 // Use your routes
 app.use('/user', userRoutes)
+app.use('/participant', participantRoutes);
 app.use('/event', eventRoutes)
 app.use('/category', categoryRoutes);
 app.use('/prize', prizeRoutes);

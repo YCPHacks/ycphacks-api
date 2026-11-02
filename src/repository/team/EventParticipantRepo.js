@@ -3,21 +3,29 @@ const { Op } = require('sequelize');
 
 class EventParticipantRepo {
     static async findParticipantsByTeamId(teamId){
-        return EventParticipant.findAll({
+        return await EventParticipant.findAll({
+            attributes: ['id'],
             where: { teamId: teamId },
             include: [{ 
                 model: User, 
                 as: 'participants',
-                attributes: ['id', 'firstName', 'lastName', 'isBanned'],
+                attributes: ['firstName', 'lastName'],
                 where: {
                     isBanned: { [Op.not]: true }
                 }
             }],
         });
     }
-    static async findParticipantsByUserIdAndEventId(userId, eventId){
+
+    static async getParticipantTeamStatus(participantId) {
         return await EventParticipant.findOne({
             attributes: ['teamId'],
+            where: { id: participantId }
+        });
+    }
+
+    static async findParticipantByUserIdAndEventId(userId, eventId){
+        return await EventParticipant.findOne({
             where: { userId: userId, eventId: eventId }
         });
     }

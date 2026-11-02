@@ -1,10 +1,46 @@
-const EventParticipantsRepo = require('../repository/team/EventParticipantRepo');
+const EventParticipantRepo = require('../repository/team/EventParticipantRepo');
 const TeamRepo = require('../repository/team/TeamRepo')
 const EventRepo = require('../repository/event/EventRepo')
 const UserRepo = require('../repository/user/UserRepo')
 const EventController = require('../controllers/EventController')
 
 class EventParticipantController{
+    static async getParticipantByEventAndUser(req, res) {
+        try {
+
+            let eventId = req.query.eventId || null;
+            let userId = req.query.userId || null;
+
+            if (eventId == null || userId == null) {
+                return res.status(400).json({
+                    message: 'One or more required query fields missing. Required fields: eventId, userId'
+                });
+            }
+
+            eventId = parseInt(eventId);
+            if (isNaN(eventId)) {
+                return res.status(400).json({message: 'Invalid eventId provided'});
+            }
+
+            userId = parseInt(userId);
+            if (isNaN(userId)) {
+                return res.status(400).json({message: 'Invalid userId provided'});
+            }
+
+
+            const result = await EventParticipantRepo.findParticipantByUserIdAndEventId(userId, eventId);
+
+            if (result == null) {
+                return res.status(404).json({ message: 'No participant found', data: { participant: null }});
+            }
+
+            return res.status(200).json({ message: 'Successfully fetched participant', data: { participant: result } });
+        }
+        catch (err) {
+            return res.status(500).json({ message: 'Error getting participant', error: err.message });
+        }
+    }
+
     static async getUnassignedParticipants(req, res) {
         try {
             let eventId = req.query.eventId || null;
@@ -19,8 +55,7 @@ class EventParticipantController{
                 res.status(400).json({message: 'Invalid eventId provided', error: err.message});
             }
 
-            const results = await EventParticipantsRepo.findUnassignedParticipants(eventId);
-            console.log(results);
+            const results = await EventParticipantRepo.findUnassignedParticipants(eventId);
 
             const formattedResults = results.map(r => ({
                 userId: r.userId,
@@ -43,7 +78,7 @@ class EventParticipantController{
         }
 
         try {
-            const success = await EventParticipantsRepo.assignToTeam(userId, eventId, teamId);
+            const success = await EventParticipantRepo.assignToTeam(userId, eventId, teamId);
 
             if (success) {
                 return res.status(200).json({ message: `User ${userId} successfully assigned to Team ${teamId}.` });
@@ -66,7 +101,7 @@ class EventParticipantController{
         }
 
         try {
-            const success = await EventParticipantsRepo.assignToTeam(userId, eventId, null);
+            const success = await EventParticipantRepo.assignToTeam(userId, eventId, null);
 
             if (success) {
                 return res.status(200).json({ message: `User ${userId} successfully unassigned from team.` });
@@ -81,21 +116,26 @@ class EventParticipantController{
             });
         }
     }
-    static async getUserTeamStatus(req, res){
-        const userId = req.params.userId;
-        const eventId = req.query.eventId;
+    static async getParticipantTeamStatus(req, res){
+        const participantIdParam = req.params.participantId;
 
-        if(!userId || !eventId){
-            return res.status(400).json({ message: 'Missing user ID or event ID' });
+        if(!participantIdParam) {
+            return res.status(400).json({ message: 'Missing participant ID' });
         }
 
         try{
-            const participant = await EventParticipantsRepo.findParticipantsByUserIdAndEventId(userId, eventId);
+            const participantId = parseInt(participantIdParam, 10);
 
-            const teamId = participant ? participant.teamId : null;
+            if (isNaN(participantId)) {
+                return res.status(400).json({
+                    message: 'Invalid integer passed for parameter participant ID'
+                });
+            }
+
+            const teamStatus = await EventParticipantRepo.getParticipantTeamStatus(participantId);
 
             return res.status(200).json({
-                teamId: teamId,
+                teamId: teamStatus,
                 message: 'Successfully retrieved user team status'
             });
         }catch(err){
@@ -172,7 +212,7 @@ class EventParticipantController{
 
         try {
             // The repository method should handle creating the new EventParticipant record.
-            const newParticipant = await EventParticipantsRepo.addParticipant(userId, eventId);
+            const newParticipant = await EventParticipantRepo.addParticipant(userId, eventId);
 
             return res.status(201).json({ 
                 message: `User ${userId} successfully added as participant to Event ${eventId}.`,
@@ -207,7 +247,7 @@ class EventParticipantController{
                 });
             }
 
-            const participant = await EventParticipantsRepo.findParticipantsByUserIdAndEventId(userId, activeEvent.id);
+            const participant = await EventParticipantRepo.findParticipantsByUserIdAndEventId(userId, activeEvent.id);
 
             return res.status(200).json({
                 message: 'Successfully retrieved enrollment status',
@@ -245,7 +285,7 @@ class EventParticipantController{
                 return res.status(403).json({ message: 'Registration declined: This user has been banned from previous events.' });
             }
 
-            await EventParticipantsRepo.addParticipant(userId, activeEvent.id);
+            await EventParticipantRepo.addParticipant(userId, activeEvent.id);
 
             return res.status(201).json({
                 message: `Successfully registered for ${activeEvent.eventName}`,
@@ -284,7 +324,7 @@ class EventParticipantController{
             }
 
             // Check-in is per event, users must be registered for the active event first
-            const updated = await EventParticipantsRepo.updateCheckInStatus(
+            const updated = await EventParticipantRepo.updateCheckInStatus(
                 userId,
                 activeEvent.id,
                 !!checkIn
@@ -325,7 +365,7 @@ class EventParticipantController{
             }
 
             // Check-in is per event, users must be registered for the active event first
-            const checkedIn = await EventParticipantsRepo.updateCheckInStatus(user.id, activeEvent.id, true);
+            const checkedIn = await EventParticipantRepo.updateCheckInStatus(user.id, activeEvent.id, true);
 
             if(!checkedIn){
                 return res.json({ valid: false, message: 'User is not registered for the active event.' });
@@ -384,12 +424,12 @@ class EventParticipantController{
                 eventId = activeEvent.id; 
             }
 
-            if (!eventId) {
+            if (!eventId) {
                 return res.status(500).json({ error: "Internal error: Failed to determine active event ID." });
             }
 
             // 2. Call a new repository function to get users filtered by event
-            const users = await EventParticipantsRepo.getUsersByEvent(eventId); 
+            const users = await EventParticipantRepo.getUsersByEvent(eventId);
 
             // 3. Map the data
             const userData = users.map(user => ({

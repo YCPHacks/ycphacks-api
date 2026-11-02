@@ -180,19 +180,19 @@ class TeamController {
         const teamId = req.params.teamId;
 
         if(!teamId){
-            return res.status(400).json({ message: 'Tean ID is required' });
+            return res.status(400).json({ message: 'Team ID is required' });
         }
 
         try{
-            const teamDetails = await TeamRepo.findProjectDetailsById(teamId);
+            const projectDetails = await TeamRepo.findProjectDetailsById(teamId);
 
-            if(!teamDetails){
+            if(!projectDetails){
                 return res.status(404).json({ message: 'Team not found.' });
             }
 
             return res.status(200).json({
                 message: 'Successfully fetched project details',
-                data: teamDetails
+                data: { projectDetails: projectDetails}
             });
         }catch(err){
             console.error('Error fetching team project details: ', err);
@@ -208,16 +208,15 @@ class TeamController {
             githubLink
         } = req.body;
 
-        if(!teamId){
+        if(!teamId)
             return res.status(400).json({ message: 'Team ID is required.' });
-        }
 
         try{
             const team = await TeamRepo.findById(teamId);
-            if(!team){
+
+            if(!team)
                 return res.status(404).json({ message: 'Team not found.' });
-            }
-            
+
             // Assuming EventRepo has a function to check submission status
             const isSubmissionsOpen = await EventRepo.isSubmissionPeriodOpen(team.eventId); 
             if (!isSubmissionsOpen) {
