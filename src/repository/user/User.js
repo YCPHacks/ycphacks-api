@@ -132,6 +132,11 @@ const User = sequelize.define(
         isEmailVerified: {
             type: DataTypes.BOOLEAN,
             defaultValue: false
+        },
+        notificationPreference_toast: {
+            type: DataTypes.BOOLEAN,
+            allowNull: false,
+            defaultValue: true
         }
     },
     {
