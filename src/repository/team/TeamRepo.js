@@ -34,6 +34,11 @@ const TeamRepo = {
     async delete(teamId){
         return Team.destroy({where: {id: teamId}}); 
     },
+    async getTeamLeaderOfTeam(teamId) {
+        return await Team.findByPk(teamId, {
+            attributes: ['teamLeaderId']
+        });
+    },
     async findProjectDetailsById(teamId) {
         try {
             const team = await Team.findByPk(teamId, {

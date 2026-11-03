@@ -176,6 +176,70 @@ class TeamController {
             return res.status(500).json({ message: "Failed to delete team due to a server error." });
         }
     }
+
+    static async getTeamLeaderId(req, res) {
+        let teamId = req.params.teamId;
+
+        if (!teamId)
+            return res.status(400).json({message: "Team ID is required."});
+
+        teamId = parseInt(teamId);
+        if (isNaN(teamId))
+            return res.status(400).json({message: "Team ID must be a valid integer."})
+
+        try {
+            const response = await TeamRepo.getTeamLeaderOfTeam(teamId);
+
+            if (!response?.teamLeaderId)
+                return res.status(404).json({message: "No team found with given ID."})
+
+            return res.status(200).json({
+                message: "Successfully retrieved teamLeaderId",
+                teamLeaderId: response.teamLeaderId
+            });
+        }
+        catch (err) {
+            console.error('Error finding teamLeaderId from team ID: ', err);
+            return res.status(500).json({message: "Failed to retrieve teamLeaderId due to server error"});
+        }
+    }
+
+    static async getTeamMembers(req, res) {
+        let teamId = req.params.teamId;
+
+        if (!teamId)
+            return res.status(400).json({message: "Team ID is required."});
+
+        teamId = parseInt(teamId);
+        if (isNaN(teamId))
+            return res.status(400).json({message: "Team ID must be a valid integer."})
+
+        try {
+            const teamMembers = await EventParticipantsRepo.findParticipantsByTeamId(teamId);
+            console.log(teamMembers);
+
+            if (!teamMembers)
+                return res.status(404).json({message: "No team found with given ID."});
+
+            const formattedTeamMembers = teamMembers.map(p => {
+                return {
+                    id: p.id,
+                    firstName: p.participants.firstName,
+                    lastName: p.participants.lastName
+                }
+            });
+
+            return res.status(200).json({
+                message: "Successfully retrieved team members.",
+                teamMembers: formattedTeamMembers
+            });
+        }
+        catch (err) {
+            console.error('Error finding team members from ID: ', err);
+            return res.status(500).json({message: "Failed to retrieve team members due to server error."});
+        }
+    }
+
     static async getTeamProjectDetails(req, res){
         const teamId = req.params.teamId;
 
