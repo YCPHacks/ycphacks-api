@@ -143,7 +143,6 @@ const createQRCode = async (req, res) =>{
     }
 };
 
-//TODO: I might need to add the eventId into the req body
 const loginUser = async (req, res) => {
     try {
         const { email, password, eventId } = req.body;
@@ -306,7 +305,7 @@ const authWithToken = async (req, res) => {
 
 const loginAdminUser = async (req, res) => {
     try {
-        const { email, password } = req.body;
+        const { email, password, eventId } = req.body;
 
         // Find the user by email
         const user = await UserRepo.findByEmail(email);
@@ -320,8 +319,20 @@ const loginAdminUser = async (req, res) => {
         if (!isPasswordValid) {
             return res.status(400).json({ message: 'Invalid email or password' });
         }
+
+        // Get the participantId for the active event
+        const participant = await EventParticipantRepo.findParticipantsByUserIdAndEventId(user.id, eventId);
+
+        if (!participant) {
+            return res.status(403).json({ message: 'Access denied: not registered for this event' });
+        }
+
+        // Get the participants permissions if they are registered for the active event
+        const permissions = await PermissionsRepo.findAllPermissionsById(participant.id);
+        const permissionList = permissions.map(p => p.permission);
+
         // Generate JWT token
-        const token = generateToken({ email: user.email, role: user.role, id: user.id });
+        const token = generateToken({ email: user.email, permission: permissionList, id: user.id });
 
         const userResponseDto = new UserResponseDto(
             user.id,
@@ -329,15 +340,16 @@ const loginAdminUser = async (req, res) => {
             user.isEmailVerified,
             user.firstName,
             user.lastName,
-            token,
-            user.role
+            token
         )
 
-        if (user.role === 'staff' || user.role === 'oscar') {
+        const hasRequiredRole = permissionList.some(p => ['staff', 'oscar'].includes(p));
+
+        if (hasRequiredRole) {
             // Respond with success and token
             res.status(200).json({
                 message: 'Login successful',
-                data: userResponseDto
+                data: userResponseDto, permissionList
             });
         } else {
             return res.status(403).json({ message: 'Access denied: insufficient permissions' });
