@@ -16,6 +16,13 @@ const {
 const EventParticipantController= require('../controllers/EventParticipantsController')
 const { checkBodyForSpecialCharacters, userValidationRules, validate } = require('../middleware/validationMiddleware')
 const { authToken, authorizeByRole, isOwnerOfRequestedId} = require('../middleware/authMiddleware')
+const ImportedRegistrationController = require('../controllers/ImportedRegistrationController');
+
+// Protected
+router.post('/importCSV', authToken, authorizeByRole('oscar', 'staff'), express.text({ type: 'text/csv', limit: '5mb' }), ImportedRegistrationController.importCSV);
+
+// Protected
+router.get('/imported', authToken, authorizeByRole('oscar', 'staff'), ImportedRegistrationController.getRegistrations);
 
 // Protected
 router.post('/validate-qr', authToken, authorizeByRole("oscar", "staff"), EventParticipantController.validateQR);
