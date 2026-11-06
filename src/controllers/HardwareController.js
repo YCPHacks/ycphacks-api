@@ -3,6 +3,9 @@ const Hardware = require('../models/Hardware');
 const EventRepo = require("../repository/event/EventRepo");
 const {Readable} = require("stream");
 const csv = require("csv-parser");
+const { sequelize } = require('../repository/config/index');
+const HardwareModel = require('../repository/hardware/Hardware');
+const HardwareTypeModel = require('../repository/hardware/HardwareType');
 
 
 const HardwareController = {
@@ -151,46 +154,124 @@ const HardwareController = {
     },
 
     async importCSVHardware(req, res) {
-        const csvText = req.body;
-        if (!csvText) return res.status(400).json({ message: 'Missing CSV' });
+        if (typeof req.body !== 'string' || !req.body.trim()) {
+            return res.status(400).json({ message: 'Missing CSV' });
+        }
 
         try {
-            const parsedCSVData = await parseHardwareCSVToArray(csvText);
-
-            // Load existing types once before processing rows
-            const types = await HardwareRepo.listTypes();
-            const typeMap = new Map(types.map(type => [type.name, type.id]));
-
-            // Process all rows
-            for (const row of parsedCSVData) {
-                let hardwareTypeId = typeMap.get(row.hardwareName);
-
-                if (!hardwareTypeId) {
-                    const newType = await HardwareRepo.createType({
-                        name: row.hardwareName,
-                        imageUrl: null
-                    });
-
-                    hardwareTypeId = newType.id;
-                    typeMap.set(row.hardwareName, hardwareTypeId);
-                }
-                const hardwareObj = {
-                    hardwareName: row.hardwareName,
-                    hardwareTypeId: hardwareTypeId,
-                    serial: row.serial,
-                    description: row.description,
-                    functional: parseInt(row.functional.toString().trim(), 10)
-                };
-
-                await HardwareRepo.createHardware(hardwareObj);
+            const { rows, headers } = await parseHardwareCSVToArray(req.body);
+            if (!headers.includes('hardwaretype') || !rows.length) {
+                return res.status(400).json({
+                    message: 'CSV must contain a Hardware Type column and at least one item'
+                });
             }
 
-            return res.status(200).json({ message: 'CSV imported successfully', count: parsedCSVData.length, parsedCSVData});
+            const clean = (value) => String(value ?? '').replace(/\s+/g, ' ').trim();
+            const key = (value) => clean(value).toLowerCase();
+            const functionalValue = (value, rowNumber) => {
+                const answer = key(value);
+                if (!answer || ['yes', 'y', 'true', '1'].includes(answer)) return true;
+                if (['no', 'n', 'false', '0'].includes(answer)) return false;
+                const err = new Error(`Row ${rowNumber}: invalid Functional value: ${value}`);
+                err.status = 400;
+                throw err;
+            };
+
+            // Validate the entire file before inserting anything.
+            const items = rows.map((row, index) => {
+                const rowNumber = index + 2;
+                const typeName = clean(row.hardwaretype);
+                const name = clean(row.name);
+                const image = clean(row.image);
+                const serial = clean(row.serialnumber) || '<missing serial>';
+                const description = clean(row.description) || null;
+
+                if (!typeName) {
+                    const err = new Error(`Row ${rowNumber}: Hardware Type is required`);
+                    err.status = 400;
+                    throw err;
+                }
+                if (typeName.length > 100 || name.length > 100 ||
+                    serial.length > 255 || (description && description.length > 255) ||
+                    image.length > 255) {
+                    const err = new Error(`Row ${rowNumber}: a field exceeds its database length limit`);
+                    err.status = 400;
+                    throw err;
+                }
+
+                return {
+                    typeName, name, image, serial, description,
+                    functional: functionalValue(row.functional, rowNumber),
+                    rowNumber
+                };
+            });
+
+            // All records are created together, or none are created if an insert fails.
+            const result = await sequelize.transaction(async (transaction) => {
+                const types = await HardwareTypeModel.findAll({ transaction });
+                const typeMap = new Map(types.map(type => [key(type.name), type]));
+                const existing = await HardwareModel.findAll({
+                    attributes: ['hardwareName'], transaction
+                });
+                const usedNames = new Set(existing.map(item => key(item.hardwareName)));
+                const nextNumber = new Map();
+                let typesCreated = 0;
+
+                for (const item of items) {
+                    const typeKey = key(item.typeName);
+                    let type = typeMap.get(typeKey);
+
+                    if (!type) {
+                        type = await HardwareTypeModel.create({
+                            name: item.typeName,
+                            imageUrl: item.image || null
+                        }, { transaction });
+                        typeMap.set(typeKey, type);
+                        typesCreated++;
+                    } else if (item.image && !type.imageUrl) {
+                        // A blank image must not replace an existing type image.
+                        await type.update({ imageUrl: item.image }, { transaction });
+                    }
+
+                    let name = item.name;
+                    if (!name) {
+                        let number = nextNumber.get(typeKey) || 1;
+                        do {
+                            name = `${type.name} (${number++})`;
+                        } while (usedNames.has(key(name)));
+                        nextNumber.set(typeKey, number);
+                    }
+
+                    if (name.length > 100) {
+                        const err = new Error(`Row ${item.rowNumber}: generated Name exceeds 100 characters`);
+                        err.status = 400;
+                        throw err;
+                    }
+
+                    await HardwareModel.create({
+                        hardwareName: name,
+                        hardwareTypeId: type.id,
+                        serial: item.serial,
+                        description: item.description,
+                        functional: item.functional,
+                        whoHasId: null
+                    }, { transaction });
+                    usedNames.add(key(name));
+                }
+
+                return { count: items.length, typesCreated };
+            });
+
+            return res.status(200).json({
+                message: `Imported ${result.count} hardware items successfully`,
+                ...result
+            });
         } catch (err) {
-            console.error('CSV import error:', err);
-            return res.status(500).json({
-                message: 'Error processing CSV',
-                error: err.message || err,
+            console.error('CSV hardware import error:', err);
+            const status = err.status === 400 ? 400 : 500;
+            return res.status(status).json({
+                message: status === 400 ? err.message : 'Error processing CSV',
+                ...(status === 500 ? { error: err.message } : {})
             });
         }
     },
@@ -199,15 +280,18 @@ const HardwareController = {
 
 const parseHardwareCSVToArray = async (csvText) => {
     const rows = [];
-
+    let headers = [];
     await new Promise((resolve, reject) => {
         Readable.from([csvText])
-            .pipe(csv({ mapHeaders: ({ header }) => header.trim().replace(/\s+/g, '') }))
-            .on('data', (row) => rows.push(row))
+            .pipe(csv({
+                mapHeaders: ({ header }) =>
+                    header.replace(/^\uFEFF/, '').trim().toLowerCase().replace(/[^a-z0-9]/g, '')
+            }))
+            .on('headers', parsed => { headers = parsed; })
+            .on('data', row => rows.push(row))
             .on('end', resolve)
             .on('error', reject);
     });
-
-    return rows;
+    return { rows, headers };
 };
 module.exports = HardwareController;
