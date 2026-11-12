@@ -15,6 +15,17 @@ const PermissionsController = {
         } catch (err) {
             res.status(500).json({ message: 'Error persisting permissions in database', error: err });
         }
+    },
+
+    async getAllPermissionsByEventId(req, res) {
+        const eventId = req.query.eventId;
+        try {
+            const permissions = await PermissionsRepo.findAllPermissionsForEvent(eventId);
+
+            res.status(200).json({data: permissions});
+        } catch (err) {
+            res.status(500).json({ message: 'Failed to fetch permissions'});
+        }
     }
 }
 

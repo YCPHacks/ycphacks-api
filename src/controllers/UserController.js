@@ -290,12 +290,12 @@ const authWithToken = async (req, res) => {
             user.firstName,
             user.lastName,
             tokenString,
-            user.role
         )
 
         // Respond with success and token
         res.status(200).json({
             message: 'Token validated',
+            permission: req.user.permission ?? [],
             data: userResponseDto
         });
     } catch (err) {

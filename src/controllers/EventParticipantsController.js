@@ -419,7 +419,6 @@ class EventParticipantController{
                 school: user.dataValues.school,
                 tShirtSize: user.dataValues.tShirtSize,
                 dietaryRestrictions: user.dataValues.dietaryRestrictions,
-                role: user.dataValues.role,
                 // The query only includes this event's participant row
                 checkIn: !!user.participant?.[0]?.checkIn,
                 isBanned: user.dataValues.isBanned
@@ -428,6 +427,32 @@ class EventParticipantController{
             res.status(200).json({ message: `Successfully fetched users for event ${eventId}`, data: userData });
         } catch (err) {
             res.status(500).json({ message: 'Error getting users by event', error: err.message });
+        }
+    }
+
+    static async getParticipantsForEvent(req, res) {
+        const eventId = req.query.eventId;
+
+        console.log(eventId);
+        console.log("it's above!!!");
+
+        if (!eventId) {
+            return res.status(400).json({ message: 'Missing event ID in request.' });
+        }
+
+        try {
+            const participants = await EventParticipantsRepo.findAllParticipantsByEventId(eventId);
+
+            const participantData = participants.map(EventParticipant =>({
+                eventId: EventParticipant.dataValues.eventId,
+                userId: EventParticipant.dataValues.userId,
+                teamId: EventParticipant.dataValues.teamId,
+                id: EventParticipant.dataValues.id,
+            }));
+
+            res.status(200).json({ message: `Successfully fetched participants for event ${eventId}`, data: participantData});
+        } catch (err) {
+            res.status(500).json({ message: 'Error getting participants by event', error: err.message});
         }
     }
     static async getStaffForEvent(req, res){

@@ -11,9 +11,11 @@ const {
     getProfileById,
     getAllUsers,
     updatePassword,
-    updateUserById
+    updateUserById,
+
 } = require('../controllers/UserController')
 const EventParticipantController= require('../controllers/EventParticipantsController')
+const PermissionsController = require('../controllers/PermissionsController')
 const { checkBodyForSpecialCharacters, userValidationRules, validate } = require('../middleware/validationMiddleware')
 const { authToken, authorizeByRole, isOwnerOfRequestedId} = require('../middleware/authMiddleware')
 
@@ -37,6 +39,9 @@ router.post('/auth', authToken, authWithToken);
 
 // Protected
 router.get('/all',authToken, authorizeByRole("oscar", "staff"), EventParticipantController.getUsersByEvent);
+
+// Protected
+router.get('/all/participant', authToken, authorizeByRole("oscar", "staff"), PermissionsController.getAllPermissionsByEventId);
 
 // Public
 router.get('/event/:eventId/staff', EventParticipantController.getStaffForEvent);

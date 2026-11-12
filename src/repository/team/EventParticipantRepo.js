@@ -32,11 +32,31 @@ class EventParticipantRepo {
 
         return participant;
     }
+
+    static async findAllParticipantsByEventId(eventId) {
+        const participant = await EventParticipant.findAll({
+            attributes: ['teamId', 'id'],
+            where: { eventId: eventId },
+
+            include: [{
+                model: User,
+                as: 'participants',
+                attributes: [],
+                where: {
+                    isBanned: { [Op.not]: true }
+                }
+            }],
+        });
+
+        return participant;
+    }
+
+
     static async getUsersByEvent(eventId) {
         // List all attributes needed by the controller (from the User model)
         const userAttributes = [
             'id', 'firstName', 'lastName', 'age', 'email', 'phoneNumber',
-            'school', 'tShirtSize', 'dietaryRestrictions', 'role',
+            'school', 'tShirtSize', 'dietaryRestrictions',
             'isBanned'
         ];
 

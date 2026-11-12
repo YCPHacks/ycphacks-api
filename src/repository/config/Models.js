@@ -103,8 +103,16 @@ Prize.belongsTo(HackCategory, {
 });
 
 // EventParticipant <---> Permissions
-EventParticipant.hasMany(Permissions, { foreginKey: 'participantId', onDelete: 'CASCADE'});
-Permissions.belongsTo(EventParticipant, { foreignKey: 'participantId', as: 'participant'});
+EventParticipant.hasMany(Permissions, {
+    foreignKey: 'participantId',
+    sourceKey: 'id',
+    onDelete: 'CASCADE',
+});
+Permissions.belongsTo(EventParticipant, {
+    foreignKey: 'participantId',
+    targetKey: 'id',
+    as: 'participant',
+});
 
 Team.hasMany(EventParticipant, { foreignKey: 'teamId', as: 'EventParticipants' });
 EventParticipant.belongsTo(Team, { foreignKey: 'teamId', as: 'EventParticipants' });

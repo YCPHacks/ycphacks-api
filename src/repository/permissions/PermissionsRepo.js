@@ -1,4 +1,4 @@
-const { Permissions } = require('../config/Models');
+const { Permissions, EventParticipant } = require('../config/Models');
 const PermissionsRepo = {
     /*
     async getAllStaffForEvent() {
@@ -66,6 +66,20 @@ const PermissionsRepo = {
         } catch (err) {
             throw err;
         }
+    },
+
+    async findAllPermissionsForEvent(eventId) {
+        return Permissions.findAll({
+            attributes: ['permission', 'participantId'],
+            include: [{
+                model: EventParticipant,
+                as: 'participant',
+                attributes: [],
+                where: { eventId },
+                required: true,
+            }],
+            logging: console.log,
+        });
     }
 };
 
