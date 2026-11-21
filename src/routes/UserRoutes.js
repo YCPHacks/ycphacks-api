@@ -43,6 +43,12 @@ router.get('/all',authToken, authorizeByRole("oscar", "staff"), EventParticipant
 // Protected
 router.get('/all/participant', authToken, authorizeByRole("oscar", "staff"), PermissionsController.getAllPermissionsByEventId);
 
+// Protected
+router.get('/:userId/participant', authToken, authorizeByRole("oscar", "staff"), EventParticipantController.getActiveParticipantById);
+
+// Protected
+router.put('/:participantId/permissions', authToken, PermissionsController.updatePermissions);
+
 // Public
 router.get('/event/:eventId/staff', EventParticipantController.getStaffForEvent);
 

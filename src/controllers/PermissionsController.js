@@ -26,6 +26,23 @@ const PermissionsController = {
         } catch (err) {
             res.status(500).json({ message: 'Failed to fetch permissions'});
         }
+    },
+
+    async updatePermissions(req, res) {
+        const {participantId} = req.params;
+        const {permissions} = req.body;
+
+        if (!participantId || !Array.isArray(permissions)) {
+            return res.status(400).json({ message: 'Missing ParticipantId or permissions array'});
+        }
+
+        try {
+            const result = await PermissionsRepo.updatePermissionsById(participantId, permissions);
+            return res.status(200).json({ ...result, message: 'Permissions updated'});
+        } catch (err) {
+            console.error('Error updating permissions', err);
+            return res.status(500).json({ message: 'Server error updating permissions' });
+        }
     }
 }
 

@@ -1,4 +1,5 @@
 const { Permissions, EventParticipant } = require('../config/Models');
+const { Op } = require('sequelize');
 const PermissionsRepo = {
     /*
     async getAllStaffForEvent() {
@@ -80,6 +81,42 @@ const PermissionsRepo = {
             }],
             logging: console.log,
         });
+    },
+
+    async updatePermissionsById(participantId, permissions) {
+        try {
+            return await Permissions.sequelize.transaction(async (t) => {
+                const existing = await Permissions.findAll({
+                    attributes: ['permission'],
+                    where: { participantId },
+                    transaction: t,
+                });
+
+                const existingSet = new Set(existing.map(p => p.permission));
+                const desiredSet = new Set(permissions);
+
+                const toAdd = [...desiredSet].filter(p => !existingSet.has(p));
+                const toRemove = [...existingSet].filter(p => !desiredSet.has(p));
+
+                if (toRemove.length) {
+                    await Permissions.destroy({
+                        where: { participantId, permission: { [Op.in]: toRemove } },
+                        transaction: t,
+                    });
+                }
+
+                if (toAdd.length) {
+                    await Permissions.bulkCreate(
+                        toAdd.map(permission => ({ participantId, permission })),
+                        { transaction: t }
+                    );
+                }
+
+                return { added: toAdd, removed: toRemove };
+            });
+        } catch (err) {
+            throw err;
+        }
     }
 };
 

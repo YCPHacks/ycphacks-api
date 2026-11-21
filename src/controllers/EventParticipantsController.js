@@ -101,6 +101,29 @@ class EventParticipantController{
             return res.status(500).json({ message: 'Server error retrieving team status' });
         }
     }
+
+    static async getActiveParticipantById(req, res) {
+        const userId = req.params.userId;
+        const eventId = req.query.eventId;
+
+        if(!userId || !eventId){
+            return res.status(400).json({ message: 'Missing user ID or event ID' });
+        }
+
+        try{
+            const participantId = await EventParticipantsRepo.findParticipantsByUserIdAndEventId(userId, eventId);
+
+            return res.status(200).json({
+                participantId: participantId,
+                message: 'Successfully retrieved participantId'
+            });
+        } catch(err) {
+            console.error("Error fetching participantId", err);
+            return res.status(500).json({message: 'Server error retrieving participantId'});
+        }
+
+    }
+
     static async getTeamsByEvent(req, res) {
         try {
             // 1. Get eventId from query parameters
