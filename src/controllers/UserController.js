@@ -112,6 +112,7 @@ const createUser = async (req, res) => {
             persistedUser.firstName,
             persistedUser.lastName,
             token,
+            persistedUser.notificationPreference_toast
         )
 
         // send back user response dto
@@ -178,7 +179,8 @@ const loginUser = async (req, res) => {
             user.isEmailVerified,
             user.firstName,
             user.lastName,
-            token
+            token,
+            user.notificationPreference_toast
         )
 
         // Respond with success and token
@@ -210,7 +212,8 @@ const getUserById = async (req, res) => {
             user.firstName,
             user.lastName,
             undefined,
-            user.role
+            user.role,
+            user.notificationPreference_toast
         )
 
         // Respond with success and token
@@ -290,6 +293,7 @@ const authWithToken = async (req, res) => {
             user.firstName,
             user.lastName,
             tokenString,
+            user.notificationPreference_toast
         )
 
         // Respond with success and token
@@ -340,7 +344,8 @@ const loginAdminUser = async (req, res) => {
             user.isEmailVerified,
             user.firstName,
             user.lastName,
-            token
+            token,
+            user.notificationPreference_toast
         )
 
         const hasRequiredRole = permissionList.some(p => ['staff', 'oscar'].includes(p));
@@ -437,7 +442,8 @@ const updateUserById = async (req, res) => {
         levelOfStudy: req.body.levelOfStudy,
         tShirtSize: req.body.tShirtSize,
         hackathonsAttended: req.body.hackathonsAttended,
-        dietaryRestrictions: req.body.dietaryRestrictions
+        dietaryRestrictions: req.body.dietaryRestrictions,
+        notificationPreference_toast: req.body.notificationPreference_toast
     };
 
     if (Number.isNaN(userId) || !Number.isInteger(userId))
@@ -448,7 +454,8 @@ const updateUserById = async (req, res) => {
         'firstName', 'lastName', 'age', 'email', 'phoneNumber', 'school', 
         'tShirtSize', 'dietaryRestrictions', 'role', 'gender', 'country', 
         'hackathonsAttended', 'pronouns', 'isVerified', 'major', 
-        'graduationYear', 'levelOfStudy', 'linkedInUrl', 'isBanned'
+        'graduationYear', 'levelOfStudy', 'linkedInUrl', 'isBanned',
+        'notificationPreference_toast'
     ];
 
     const sanitizedUpdateData = {};

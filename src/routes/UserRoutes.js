@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const UserCSVImportController = require('../controllers/UserCSVImportController');
 
 const {
     createUser,
@@ -18,6 +19,8 @@ const EventParticipantController= require('../controllers/EventParticipantsContr
 const PermissionsController = require('../controllers/PermissionsController')
 const { checkBodyForSpecialCharacters, userValidationRules, validate } = require('../middleware/validationMiddleware')
 const { authToken, authorizeByRole, isOwnerOfRequestedId} = require('../middleware/authMiddleware')
+// Protected
+router.post('/importCSV', authToken, authorizeByRole('oscar'), express.text({ type: 'text/csv', limit: '5mb' }), UserCSVImportController.importCSV);
 
 // Protected
 router.post('/validate-qr', authToken, authorizeByRole("oscar", "staff"), EventParticipantController.validateQR);
