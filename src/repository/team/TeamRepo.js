@@ -39,6 +39,12 @@ const TeamRepo = {
             attributes: ['teamLeaderId']
         });
     },
+    async updateTeamLeader(teamId, newTeamLeaderId) {
+        return await Team.update(
+            { teamLeaderId: newTeamLeaderId },
+            { where: {id: teamId} }
+        );
+    },
     async findProjectDetailsById(teamId) {
         try {
             const team = await Team.findByPk(teamId, {

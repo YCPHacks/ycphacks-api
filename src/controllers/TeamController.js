@@ -210,13 +210,11 @@ class TeamController {
         if (!teamId)
             return res.status(400).json({message: "Team ID is required."});
 
-        teamId = parseInt(teamId);
         if (isNaN(teamId))
             return res.status(400).json({message: "Team ID must be a valid integer."})
 
         try {
             const teamMembers = await EventParticipantsRepo.findParticipantsByTeamId(teamId);
-            console.log(teamMembers);
 
             if (!teamMembers)
                 return res.status(404).json({message: "No team found with given ID."});
@@ -263,6 +261,29 @@ class TeamController {
             return res.status(500).json({ message: 'Failed to fetch project details due to a server error.' });
         }
     }
+
+    static async updateTeamLeader(req, res) {
+        const teamId = req.params.teamId || null;
+        const { newTeamLeaderId } = req.body;
+
+        if (!teamId || isNaN(teamId))
+            return res.status(400).json({message: 'Required field teamId must be a valid integer.'});
+
+        if (!newTeamLeaderId || isNaN(newTeamLeaderId))
+            return res.status(400).json({message: 'Required field newTeamLeaderId must be a valid integer.'});
+
+        try {
+            const updatedTeamLeaderId = await TeamRepo.updateTeamLeader(teamId, newTeamLeaderId);
+
+            if (!updatedTeamLeaderId)
+                return res.status(404).json({message: 'Team not found.'});
+
+            return res.status(200).json({message: 'Team leader updated successfully.'});
+        } catch (err) {
+            return res.status(500).json({message: 'Failed to update team leader due to server error'});
+        }
+    }
+
     static async updateTeamProjectDetails(req, res){
         const teamId = req.params.teamId;
         const {

@@ -13,5 +13,6 @@ router.delete('/:id', TeamController.deleteTeam);
 router.get('/:teamId/members', TeamController.getTeamMembers);
 router.get('/:teamId/teamLeader', TeamController.getTeamLeaderId);
 router.get('/:teamId/project-details', TeamController.getTeamProjectDetails);
+router.put('/:teamId/teamLeader', TeamController.updateTeamLeader);
 router.put('/:teamId/project-details', TeamController.updateTeamProjectDetails);
 module.exports = router;
