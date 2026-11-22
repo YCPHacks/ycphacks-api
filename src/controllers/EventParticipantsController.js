@@ -43,17 +43,10 @@ class EventParticipantController{
 
     static async getUnassignedParticipants(req, res) {
         try {
-            let eventId = req.query.eventId || null;
+            let eventId = parseInt(req.query.eventId) || null;
 
-            if (eventId == null) {
-                res.status(400).json({message: 'EventId query field missing'});
-            }
-
-            try {
-                eventId = parseInt(eventId)
-            } catch (err) {
-                res.status(400).json({message: 'Invalid eventId provided', error: err.message});
-            }
+            if (eventId == null || isNaN(eventId))
+                res.status(400).json({message: 'EventId query field missing or invalid.'});
 
             const results = await EventParticipantRepo.findUnassignedParticipants(eventId);
 
@@ -94,19 +87,23 @@ class EventParticipantController{
         }
     }
     static async unassignParticipant(req, res){
-        const {userId, eventId} = req.body;
+        const { participantId } = req.body;
 
-        if(!userId || !eventId){
-            return res.status(400).json({ message: 'Missing userId or eventId in request body.' });
+        if(!participantId){
+            return res.status(400).json({ message: 'Missing participant ID in request body.' });
+        }
+
+        if (isNaN(participantId)) {
+            return res.status(400).json({message: 'Participant ID is not a valid integer.'});
         }
 
         try {
-            const success = await EventParticipantRepo.assignToTeam(userId, eventId, null);
+            const success = await EventParticipantRepo.assignToTeam(participantId, null);
 
             if (success) {
-                return res.status(200).json({ message: `User ${userId} successfully unassigned from team.` });
+                return res.status(200).json({ message: `Participant successfully unassigned from team.` });
             } else {
-                return res.status(404).json({ message: `Event participant record for user ${userId} not found or update failed.` });
+                return res.status(404).json({ message: `Participant not found or update failed.` });
             }
         } catch (error) {
             console.error("Error unassigning participant from team:", error);
@@ -247,7 +244,7 @@ class EventParticipantController{
                 });
             }
 
-            const participant = await EventParticipantRepo.findParticipantsByUserIdAndEventId(userId, activeEvent.id);
+            const participant = await EventParticipantRepo.findParticipantByUserIdAndEventId(userId, activeEvent.id);
 
             return res.status(200).json({
                 message: 'Successfully retrieved enrollment status',

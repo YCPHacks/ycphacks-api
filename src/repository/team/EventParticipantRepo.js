@@ -83,16 +83,10 @@ class EventParticipantRepo {
             ]
         });
     }
-    static async assignToTeam(userId, eventId, teamId){
+    static async assignToTeam(participantId, teamId){
         const [rowsUpdated] = await EventParticipant.update(
             { teamId: teamId },
-            { 
-                where: { 
-                    userId: userId, 
-                    eventId: eventId 
-                },
-                individualHooks: true
-            }
+            { where: {id: participantId} }
         );
         return rowsUpdated > 0;
     }
