@@ -385,15 +385,11 @@ const editActivity = async (req, res) => {
         }
 
         // wait if an alert is sending, otherwise the reset above can get lost
-        const [rowsUpdated] = await discordNotifier.withActivityLock(activity.id, () => EventRepo.updateActivity(activityObj));
+        await discordNotifier.withActivityLock(activity.id, () => EventRepo.updateActivity(activityObj));
 
-        if (rowsUpdated <= 0) {
-            return res.status(404).json({
-                message: "Activity could not be updated (event not found)"
-            });
-        }
-
+        // can't check rows updated since mysql says 0 if nothing changed
         const updatedActivity = await EventRepo.findActivityById(activityObj.id);
+        if (!updatedActivity) return res.status(404).json({ message: 'Activity not found' });
 
         await discordNotifier.scheduleActivity(updatedActivity);
 

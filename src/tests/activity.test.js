@@ -295,6 +295,24 @@ describe('Activity notifyDiscord', () => {
         expect(EventRepo.updateActivity).toHaveBeenCalledWith(expect.objectContaining({ notifyDiscord: false }));
     });
 
+    it('accepts an identical save that MySQL counts as 0 rows changed', async () => {
+        EventRepo.findActivityById.mockResolvedValue(existing);
+        EventRepo.updateActivity.mockResolvedValue([0]);
+
+        const res = await request(app).put('/event/activity').send({ ...validActivityCreateRequest, id: 5 });
+
+        expect(res.statusCode).toEqual(200);
+    });
+
+    it('returns 404 when the activity is deleted during the edit', async () => {
+        EventRepo.findActivityById.mockResolvedValueOnce(existing).mockResolvedValueOnce(null);
+        EventRepo.updateActivity.mockResolvedValue([0]);
+
+        const res = await request(app).put('/event/activity').send({ ...validActivityCreateRequest, id: 5 });
+
+        expect(res.statusCode).toEqual(404);
+    });
+
     it('saves an edit while holding that activity\'s notifier lock', async () => {
         EventRepo.findActivityById.mockResolvedValue(existing);
         EventRepo.updateActivity.mockResolvedValue([1]);
