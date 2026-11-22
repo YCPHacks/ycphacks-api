@@ -19,6 +19,7 @@ const EmailRoutes = require('./routes/EmailRoutes')
 const uploadRoutes = require('./routes/UploadRoutes');
 
 const auditLogRoutes = require('./routes/AuditLogRoutes');
+const { startDiscordNotifier } = require('./util/discordNotifier');
 const app = express();
 const { authMiddleware } = require('./util/JWTUtil');
 
@@ -78,6 +79,7 @@ async function startServer() {
       await sequelize.authenticate();
       attachAuditHooks();
       console.log('✅ Database authenticated successfully.');
+      startDiscordNotifier();
     }
     app.listen(port, () => {
       console.log(`Server running at http://localhost:${port}`);

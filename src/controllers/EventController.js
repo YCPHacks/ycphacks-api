@@ -3,6 +3,7 @@ const Event = require('../models/Event')
 const EventResponseDto = require('../dto/EventResponseDto')
 const Activity = require('../models/Activity');
 const ActivityResponseDto = require('../dto/ActivityResponseDto');
+const discordNotifier = require('../util/discordNotifier');
 const csv = require("csv-parser");
 const { Readable } = require("stream");
 
@@ -51,6 +52,8 @@ const createEvent = async (req, res) => {
                 message: 'There was an error creating the event'
             })
         }
+
+        if (createdEvent.isActive) await discordNotifier.scheduleAll();
 
         // Create event response DTO
         const eventResponseDto = new EventResponseDto(
@@ -187,6 +190,9 @@ const editEvent = async (req, res) => {
 
         const updatedEvent = await EventRepo.findEventById(eventObj.id);
 
+        // check both in case it just got turned on or off
+        if (existingEvent.isActive || updatedEvent.isActive) await discordNotifier.scheduleAll();
+
         // Create event response DTO
         const eventResponseDto = new EventResponseDto(
             updatedEvent.id,
@@ -238,6 +244,8 @@ const deleteEvent = async (req, res) => {
             });
         }
 
+        if (existingEvent.isActive) await discordNotifier.scheduleAll();
+
         return res.status(200).json({
             message: 'Event deleted successfully',
             deletedId: id
@@ -259,7 +267,8 @@ const createActivity = async (req, res) => {
             activityData.activityName,
             activityData.activityDate,
             activityData.activityDescription,
-            activityData.eventId
+            activityData.eventId,
+            activityData.notifyDiscord ?? true
         );
 
         // Validate data
@@ -276,7 +285,8 @@ const createActivity = async (req, res) => {
             activityName: activity.activityName,
             activityDate: activity.activityDate,
             activityDescription: activity.activityDescription,
-            eventId: activity.eventId
+            eventId: activity.eventId,
+            notifyDiscord: activity.notifyDiscord
         }
 
         const createdActivity = await EventRepo.createActivity(activityObj)
@@ -287,13 +297,16 @@ const createActivity = async (req, res) => {
             });
         }
 
+        await discordNotifier.scheduleActivity(createdActivity);
+
         // Create activity response DTO
         const activityResponseDto = new ActivityResponseDto(
           createdActivity.id,
           createdActivity.activityName,
           createdActivity.activityDate,
           createdActivity.activityDescription,
-          createdActivity.eventId
+          createdActivity.eventId,
+          createdActivity.notifyDiscord
         );
 
         return res.status(201).json({
@@ -343,7 +356,8 @@ const editActivity = async (req, res) => {
             activityData.activityName,
             activityData.activityDate,
             activityData.activityDescription,
-            activityData.eventId
+            activityData.eventId,
+            activityData.notifyDiscord ?? existingActivity.notifyDiscord ?? true
         );
 
         // Validate data
@@ -361,10 +375,17 @@ const editActivity = async (req, res) => {
             activityName: activity.activityName,
             activityDate: activity.activityDate,
             activityDescription: activity.activityDescription,
-            eventId: activity.eventId
+            eventId: activity.eventId,
+            notifyDiscord: activity.notifyDiscord
         }
 
-        const [rowsUpdated] = await EventRepo.updateActivity(activityObj)
+        // new time means it gets announced again
+        if (new Date(activity.activityDate).getTime() !== new Date(existingActivity.activityDate).getTime()) {
+            activityObj.discordNotifiedAt = null;
+        }
+
+        // wait if an alert is sending, otherwise the reset above can get lost
+        const [rowsUpdated] = await discordNotifier.withActivityLock(activity.id, () => EventRepo.updateActivity(activityObj));
 
         if (rowsUpdated <= 0) {
             return res.status(404).json({
@@ -374,13 +395,16 @@ const editActivity = async (req, res) => {
 
         const updatedActivity = await EventRepo.findActivityById(activityObj.id);
 
+        await discordNotifier.scheduleActivity(updatedActivity);
+
         // Create activity response DTO
         const activityResponseDto = new ActivityResponseDto(
             updatedActivity.id,
             updatedActivity.activityName,
             updatedActivity.activityDate.toISOString(),
             updatedActivity.activityDescription,
-            updatedActivity.eventId
+            updatedActivity.eventId,
+            updatedActivity.notifyDiscord
         );
 
         return res.status(200).json({
@@ -423,6 +447,8 @@ const deleteActivity = async (req, res) => {
                 message: 'Activity could not be deleted (not found or already removed)'
             });
         }
+
+        discordNotifier.cancelActivity(id);
 
         return res.status(200).json({
             message: 'Activity deleted successfully',
@@ -471,14 +497,20 @@ const importCSVActivities = async (req, res) => {
                 activityDate: new Date(row.activityDate).toISOString(),
                 activityDescription: row.activityDescription,
                 eventId: parseInt(row.eventId.toString().trim(), 10),
+                // optional column, on unless it's false or 0
+                notifyDiscord: !['false', '0'].includes(String(row.notifyDiscord ?? '').trim().toLowerCase()),
             };
 
             await EventRepo.createActivity(activityObj);
         }
 
+        await discordNotifier.scheduleAll();
+
         return res.status(200).json({ message: 'CSV imported successfully', count: parsedCSVData.length, parsedCSVData});
     } catch (err) {
         console.error('CSV import error:', err);
+        // rows before the bad one still saved so they need alerts too
+        await discordNotifier.scheduleAll();
         return res.status(500).json({
             message: 'Error processing CSV',
             error: err.message || err,

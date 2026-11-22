@@ -4,13 +4,15 @@ class ActivityResponseDto {
         activityName,
         activityDate,
         activityDescription,
-        eventId
+        eventId,
+        notifyDiscord
     ) {
         this.id = id;
         this.activityName = activityName;
         this.activityDate = activityDate;
         this.activityDescription = activityDescription;
         this.eventId = eventId;
+        this.notifyDiscord = notifyDiscord;
     }
 }
 
