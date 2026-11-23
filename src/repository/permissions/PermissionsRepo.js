@@ -33,7 +33,7 @@ const PermissionsRepo = {
                     firstName: row.participant.participants.firstName,
                     lastName: row.participant.participants.lastName,
                 }))
-                .sort((a, b) => a.lastName.localeCompare(b.lastName));;
+                .sort((a, b) => a.lastName.localeCompare(b.lastName));
         } catch (error) {
             console.error("Error fetching staff for event:", error);
             throw new Error('Failed to retrieve staff list.');
@@ -63,17 +63,28 @@ const PermissionsRepo = {
     },
 
     async findAllPermissionsForEvent(eventId) {
-        return Permissions.findAll({
+        const rows = await Permissions.findAll({
             attributes: ['permission', 'participantId'],
             include: [{
                 model: EventParticipant,
                 as: 'participant',
-                attributes: [],
+                attributes: ['userId'],
                 where: { eventId },
                 required: true,
+                include: [{
+                    model: User,
+                    as: 'participants',
+                    attributes: ['tShirtSize'],
+                    required: true,
+                }],
             }],
-            logging: console.log,
         });
+
+        return rows.map(r => ({
+            permission: r.permission,
+            participantId: r.participantId,
+            tShirtSize: r.participant.participants.tShirtSize,
+        }));
     },
 
     async updatePermissionsById(participantId, permissions) {
