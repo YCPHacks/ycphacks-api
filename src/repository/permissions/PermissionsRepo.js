@@ -1,52 +1,45 @@
-const { Permissions, EventParticipant } = require('../config/Models');
+const { Permissions, EventParticipant, User } = require('../config/Models');
 const { Op } = require('sequelize');
 const PermissionsRepo = {
-    /*
-    async getAllStaffForEvent() {
-        try{
+    async findStaffForEvent(eventId) {
+        try {
             const staffParticipants = await Permissions.findAll({
-                where: {
-                    permission: 'staff'
-                },
-                // Include EventParticipant data
+                where: { permission: 'staff' },
                 include: [{
                     model: EventParticipant,
                     as: 'participant',
                     required: true,
-                    where: {
-                        eventId: eventId
-                    },
+                    where: { eventId },
                     include: [{
                         model: User,
+                        as: 'participants',
                         required: true,
-                        attributes: [
-                            'firstName',
-                            'lastName'
-                        ]
+                        attributes: ['id', 'firstName', 'lastName'],
                     }],
                 }],
                 order: [
-                    ['lastName', 'ASC']
-                ]
+                    [
+                        { model: EventParticipant, as: 'participant' },
+                        { model: User, as: 'participants' },
+                        'lastName',
+                        'ASC',
+                    ],
+                ],
             });
-            return staffParticipants;
+            return staffParticipants
+                .map(row => ({
+                    participantId: row.participantId,
+                    userId: row.participant.participants.id,
+                    firstName: row.participant.participants.firstName,
+                    lastName: row.participant.participants.lastName,
+                }))
+                .sort((a, b) => a.lastName.localeCompare(b.lastName));;
         } catch (error) {
             console.error("Error fetching staff for event:", error);
             throw new Error('Failed to retrieve staff list.');
         }
     },
-    */
-    /*
-    async findPermissionsById(userId, eventId) {
-        try {
-            const permissions = await Permissions.findAll({
-                where: {
-                    participantId:
-                }
-            })
-        }
-    }
-     */
+
     async createPermission( participantId, permission) {
         try{
             return await Permissions.create({

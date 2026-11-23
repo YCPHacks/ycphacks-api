@@ -487,7 +487,7 @@ class EventParticipantController{
         }
 
         try {
-            const staff = await UserRepo.getStaffForEvent(eventId);
+            const staff = await PermissionsRepo.findStaffForEvent(eventId);
             
             // Send the data back to the frontend
             res.status(200).json(staff);
