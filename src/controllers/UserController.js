@@ -11,7 +11,7 @@ const EventParticipantRepo = require('../repository/team/EventParticipantRepo');
 const QRCode = require('qrcode');
 const userRepo = require("../repository/user/UserRepo");
 const UserProfileResponseDto = require("../dto/UserProfileResponseDto");
-
+const PermissionsRepo = require("../repository/permissions/PermissionsRepo");
 /**
  * This function will create a user based on the data that gets sent in and return
  * the users id, email, first name, and token on success
@@ -44,7 +44,6 @@ const createUser = async (req, res) => {
             userData.lastName,
             userData.email,
             hashedPassword,
-            "participant", // Force participant role initially
             userData.phoneNumber,
             userData.age,
             userData.gender,
@@ -70,7 +69,6 @@ const createUser = async (req, res) => {
             lastName: user.lastName,
             email: user.email,
             password: user.password,
-            role: user.role,
             phoneNumber: user.phoneNumber,
             age: user.age,
             gender: user.gender,
@@ -93,8 +91,11 @@ const createUser = async (req, res) => {
         // Accounts are kept separate from event enrollment, users register for the active event afterwards
         const persistedUser = await UserRepo.create(userObj);
 
+        // TODO: Users no longer need a role, but we still want them to sign in as a user and then
+        // be logged in as whatever participant is them for that active event
+
         // generate JWT
-        const token = generateToken({ email: user.email, role: user.role, id: persistedUser.id });
+        const token = generateToken({ email: user.email, id: persistedUser.id });
 
         // Fire off confirmation email
         //await sendRegistrationConfirmation(user.email, user.firstName);
@@ -111,7 +112,6 @@ const createUser = async (req, res) => {
             persistedUser.firstName,
             persistedUser.lastName,
             token,
-            persistedUser.role,
             persistedUser.notificationPreference_toast
         )
 
@@ -146,7 +146,8 @@ const createQRCode = async (req, res) =>{
 
 const loginUser = async (req, res) => {
     try {
-        const { email, password } = req.body;
+        const { email, password, eventId } = req.body;
+        console.log('body:', req.body);
 
         // Find the user by email
         const user = await UserRepo.findByEmail(email);
@@ -161,8 +162,16 @@ const loginUser = async (req, res) => {
             return res.status(400).json({ message: 'Invalid email or password' });
         }
 
+        // Get the participantId for the active event
+        const participant = await EventParticipantRepo.findParticipantsByUserIdAndEventId(user.id, eventId);
+
+        // Get the participants permissions if they are registered for the active event
+        const permissions = await PermissionsRepo.findAllPermissionsById(participant.id);
+        const permissionList = permissions.map(p => p.permission);
+        console.log('participant.id:', participant?.id, 'permissions:', permissions.length);
+
         // Generate JWT token
-        const token = generateToken({ email: user.email, role: user.role, id: user.id });
+        const token = generateToken({ email: user.email, permission: permissionList, id: user.id });
 
         const userResponseDto = new UserResponseDto(
             user.id,
@@ -171,7 +180,6 @@ const loginUser = async (req, res) => {
             user.firstName,
             user.lastName,
             token,
-            user.role,
             user.notificationPreference_toast
         )
 
@@ -285,13 +293,13 @@ const authWithToken = async (req, res) => {
             user.firstName,
             user.lastName,
             tokenString,
-            user.role,
             user.notificationPreference_toast
         )
 
         // Respond with success and token
         res.status(200).json({
             message: 'Token validated',
+            permission: req.user.permission ?? [],
             data: userResponseDto
         });
     } catch (err) {
@@ -301,7 +309,7 @@ const authWithToken = async (req, res) => {
 
 const loginAdminUser = async (req, res) => {
     try {
-        const { email, password } = req.body;
+        const { email, password, eventId } = req.body;
 
         // Find the user by email
         const user = await UserRepo.findByEmail(email);
@@ -315,8 +323,20 @@ const loginAdminUser = async (req, res) => {
         if (!isPasswordValid) {
             return res.status(400).json({ message: 'Invalid email or password' });
         }
+
+        // Get the participantId for the active event
+        const participant = await EventParticipantRepo.findParticipantsByUserIdAndEventId(user.id, eventId);
+
+        if (!participant) {
+            return res.status(403).json({ message: 'Access denied: not registered for this event' });
+        }
+
+        // Get the participants permissions if they are registered for the active event
+        const permissions = await PermissionsRepo.findAllPermissionsById(participant.id);
+        const permissionList = permissions.map(p => p.permission);
+
         // Generate JWT token
-        const token = generateToken({ email: user.email, role: user.role, id: user.id });
+        const token = generateToken({ email: user.email, permission: permissionList, id: user.id });
 
         const userResponseDto = new UserResponseDto(
             user.id,
@@ -325,15 +345,16 @@ const loginAdminUser = async (req, res) => {
             user.firstName,
             user.lastName,
             token,
-            user.role,
             user.notificationPreference_toast
         )
 
-        if (user.role === 'staff' || user.role === 'oscar') {
+        const hasRequiredRole = permissionList.some(p => ['staff', 'oscar'].includes(p));
+
+        if (hasRequiredRole) {
             // Respond with success and token
             res.status(200).json({
                 message: 'Login successful',
-                data: userResponseDto
+                data: userResponseDto, permissionList
             });
         } else {
             return res.status(403).json({ message: 'Access denied: insufficient permissions' });

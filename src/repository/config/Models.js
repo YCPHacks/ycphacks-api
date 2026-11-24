@@ -17,6 +17,7 @@ const Analytics = require('../analytics/Analytics');
 const Image = require('../image/Image');
 const Activity = require('../event/Activity');
 const AuditLog = require('../audit/AuditLog');
+const Permissions = require('../permissions/Permissions');
 
 /* EVENT ASSOCIATIONS */
 
@@ -125,6 +126,19 @@ Prize.belongsTo(HackCategory, {
     }
 });
 
+
+// EventParticipant <---> Permissions
+EventParticipant.hasMany(Permissions, {
+    foreignKey: 'participantId',
+    sourceKey: 'id',
+    onDelete: 'CASCADE',
+});
+Permissions.belongsTo(EventParticipant, {
+    foreignKey: 'participantId',
+    targetKey: 'id',
+    as: 'participant',
+});
+
 // EventParticipant <---> Team
 Team.hasMany(EventParticipant, { as: 'members', foreignKey: 'teamId' });
 EventParticipant.belongsTo(Team, { as: 'team', foreignKey: 'teamId' });
@@ -159,7 +173,7 @@ function attachAuditHooks() {
         return;
     }
 
-    const ignored = ['AuditLog', 'User', 'EventParticipant']; // We don't want to audit the audit table itself or include participant actions
+    const ignored = ['AuditLog', 'User', 'EventParticipant', 'Permissions']; // We don't want to audit the audit table itself or include participant actions
     const cleanData = (obj) => { // Remove sensitive/unnecessary information like password
         if (!obj) return null;
         const data = obj.toJSON();
@@ -219,6 +233,7 @@ module.exports = {
     Event,
     Activity,
     EventParticipant,
+    Permissions,
     HackCategory,
     Prize,
     Sponsor,

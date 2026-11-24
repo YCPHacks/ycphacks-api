@@ -1,8 +1,11 @@
-const EventParticipantRepo = require('../repository/team/EventParticipantRepo');
+const EventParticipantsRepo = require('../repository/team/EventParticipantRepo');
 const TeamRepo = require('../repository/team/TeamRepo')
 const EventRepo = require('../repository/event/EventRepo')
 const UserRepo = require('../repository/user/UserRepo')
 const EventController = require('../controllers/EventController')
+const PermissionsRepo = require("../repository/permissions/PermissionsRepo");
+const { generateToken, validateToken} = require('../util/JWTUtil');
+const UserResponseDto = require('../dto/UserResponseDto')
 const TeamingRequestsRepo = require('../repository/team/TeamingRequestsRepo')
 
 class EventParticipantController{
@@ -29,7 +32,7 @@ class EventParticipantController{
             }
 
 
-            const result = await EventParticipantRepo.findParticipantByUserIdAndEventId(userId, eventId);
+            const result = await EventParticipantsRepo.findParticipantsByUserIdAndEventId(userId, eventId);
 
             if (result == null) {
                 return res.status(404).json({ message: 'No participant found', data: { participant: null }});
@@ -49,19 +52,25 @@ class EventParticipantController{
             if (eventId == null || isNaN(eventId))
                 res.status(400).json({message: 'EventId query field missing or invalid.'});
 
-            const results = await EventParticipantRepo.findUnassignedParticipants(eventId);
+            const participants = await EventParticipantsRepo.findUnassignedParticipants(eventId);
 
-            const formattedResults = results.map(r => ({
-                userId: r.userId,
-                firstName: r.participants.firstName,
-                lastName: r.participants.lastName,
-                email: r.participants.email
+            const nonBannedParticipants = participants.filter(p =>
+                p.participants && p.participants.isBanned !== true && p.participants.isBanned !== 1
+            );
+
+            const formattedParticipants = nonBannedParticipants.map(p => ({
+                id: p.userId,
+                firstName: p.participants?.firstName,
+                lastName: p.participants?.lastName,
+                email: p.participants?.email,
+                checkIn: p.checkIn,
+                teamId: p.teamId
             }));
 
-            res.status(200).json({ message: 'Successfully fetched unassigned participants', data: formattedResults });
+            return res.status(200).json({ message: 'Successfully fetched unassigned participants', data: formattedParticipants });
         } catch (err) {
             console.error("Backend Error in getUnassignedParticipants:", err);
-            res.status(500).json({ message: 'Error getting unassigned participants', error: err.message });
+            return res.status(500).json({ message: 'Error getting unassigned participants', error: err.message });
         }
     }
     static async assignParticipant(req, res) {
@@ -79,7 +88,7 @@ class EventParticipantController{
             });
 
         try {
-            const assignmentSuccess = await EventParticipantRepo.assignToTeam(participantId, teamId);
+            const assignmentSuccess = await EventParticipantsRepo.assignToTeam(participantId, teamId);
 
             if (!assignmentSuccess)
                 return res.status(404).json({ message: `Failed to assign participant to team due to internal server error.` });
@@ -91,7 +100,7 @@ class EventParticipantController{
         } catch (error) {
             console.error("Error assigning participant to team:", error);
 
-            res.status(500).json({ 
+            res.status(500).json({
                 message: 'Failed to assign participant to team.', 
                 error: error.message 
             });
@@ -109,7 +118,7 @@ class EventParticipantController{
         }
 
         try {
-            const success = await EventParticipantRepo.assignToTeam(participantId, null);
+            const success = await EventParticipantsRepo.assignToTeam(participantId, null);
 
             if (success) {
                 return res.status(200).json({ message: `Participant successfully unassigned from team.` });
@@ -140,7 +149,7 @@ class EventParticipantController{
                 });
             }
 
-            const teamStatus = await EventParticipantRepo.getParticipantTeamStatus(participantId);
+            const teamStatus = await EventParticipantsRepo.getParticipantTeamStatus(participantId);
 
             return res.status(200).json({
                 teamId: teamStatus,
@@ -151,6 +160,29 @@ class EventParticipantController{
             return res.status(500).json({ message: 'Server error retrieving team status' });
         }
     }
+
+    static async getActiveParticipantById(req, res) {
+        const userId = req.params.userId;
+        const eventId = req.query.eventId;
+
+        if(!userId || !eventId){
+            return res.status(400).json({ message: 'Missing user ID or event ID' });
+        }
+
+        try{
+            const participantId = await EventParticipantsRepo.findParticipantsByUserIdAndEventId(userId, eventId);
+
+            return res.status(200).json({
+                participantId: participantId,
+                message: 'Successfully retrieved participantId'
+            });
+        } catch(err) {
+            console.error("Error fetching participantId", err);
+            return res.status(500).json({message: 'Server error retrieving participantId'});
+        }
+
+    }
+
     static async getTeamsByEvent(req, res) {
         try {
             // 1. Get eventId from query parameters
@@ -220,7 +252,7 @@ class EventParticipantController{
 
         try {
             // The repository method should handle creating the new EventParticipant record.
-            const newParticipant = await EventParticipantRepo.addParticipant(userId, eventId);
+            const newParticipant = await EventParticipantsRepo.addParticipant(userId, eventId);
 
             return res.status(201).json({ 
                 message: `User ${userId} successfully added as participant to Event ${eventId}.`,
@@ -255,7 +287,7 @@ class EventParticipantController{
                 });
             }
 
-            const participant = await EventParticipantRepo.findParticipantByUserIdAndEventId(userId, activeEvent.id);
+            const participant = await EventParticipantsRepo.findParticipantsByUserIdAndEventId(userId, activeEvent.id);
 
             return res.status(200).json({
                 message: 'Successfully retrieved enrollment status',
@@ -293,12 +325,31 @@ class EventParticipantController{
                 return res.status(403).json({ message: 'Registration declined: This user has been banned from previous events.' });
             }
 
-            await EventParticipantRepo.addParticipant(userId, activeEvent.id);
+           const newParticipant = await EventParticipantsRepo.addParticipant(userId, activeEvent.id);
+
+            // Create participant permission for newly created participant
+           const newPermission = await PermissionsRepo.createPermission(newParticipant.id, 'participant');
+
+            // Generate JWT token
+            const token = generateToken({ email: user.email, permission: [newPermission.permission], id: user.id });
+            console.log(newParticipant);
+            console.log(newPermission);
+
+            // create user response dto
+            const userResponseDto = new UserResponseDto(
+                user.id,
+                user.email,
+                true,
+                user.firstName,
+                user.lastName,
+                token
+            )
 
             return res.status(201).json({
                 message: `Successfully registered for ${activeEvent.eventName}`,
                 data: {
                     event: { id: activeEvent.id, eventName: activeEvent.eventName, startDate: activeEvent.startDate, endDate: activeEvent.endDate },
+                    userResponseDto,
                     isEnrolled: true
                 }
             });
@@ -332,7 +383,7 @@ class EventParticipantController{
             }
 
             // Check-in is per event, users must be registered for the active event first
-            const updated = await EventParticipantRepo.updateCheckInStatus(
+            const updated = await EventParticipantsRepo.updateCheckInStatus(
                 userId,
                 activeEvent.id,
                 !!checkIn
@@ -373,7 +424,7 @@ class EventParticipantController{
             }
 
             // Check-in is per event, users must be registered for the active event first
-            const checkedIn = await EventParticipantRepo.updateCheckInStatus(user.id, activeEvent.id, true);
+            const checkedIn = await EventParticipantsRepo.updateCheckInStatus(user.id, activeEvent.id, true);
 
             if(!checkedIn){
                 return res.json({ valid: false, message: 'User is not registered for the active event.' });
@@ -437,7 +488,7 @@ class EventParticipantController{
             }
 
             // 2. Call a new repository function to get users filtered by event
-            const users = await EventParticipantRepo.getUsersByEvent(eventId);
+            const users = await EventParticipantsRepo.getUsersByEvent(eventId); 
 
             // 3. Map the data
             const userData = users.map(user => ({
@@ -450,7 +501,6 @@ class EventParticipantController{
                 school: user.dataValues.school,
                 tShirtSize: user.dataValues.tShirtSize,
                 dietaryRestrictions: user.dataValues.dietaryRestrictions,
-                role: user.dataValues.role,
                 // The query only includes this event's participant row
                 checkIn: !!user.participant?.[0]?.checkIn,
                 isBanned: user.dataValues.isBanned
@@ -459,6 +509,32 @@ class EventParticipantController{
             res.status(200).json({ message: `Successfully fetched users for event ${eventId}`, data: userData });
         } catch (err) {
             res.status(500).json({ message: 'Error getting users by event', error: err.message });
+        }
+    }
+
+    static async getParticipantsForEvent(req, res) {
+        const eventId = req.query.eventId;
+
+        console.log(eventId);
+        console.log("it's above!!!");
+
+        if (!eventId) {
+            return res.status(400).json({ message: 'Missing event ID in request.' });
+        }
+
+        try {
+            const participants = await EventParticipantsRepo.findAllParticipantsByEventId(eventId);
+
+            const participantData = participants.map(EventParticipant =>({
+                eventId: EventParticipant.dataValues.eventId,
+                userId: EventParticipant.dataValues.userId,
+                teamId: EventParticipant.dataValues.teamId,
+                id: EventParticipant.dataValues.id,
+            }));
+
+            res.status(200).json({ message: `Successfully fetched participants for event ${eventId}`, data: participantData});
+        } catch (err) {
+            res.status(500).json({ message: 'Error getting participants by event', error: err.message});
         }
     }
     static async getStaffForEvent(req, res){
@@ -470,7 +546,7 @@ class EventParticipantController{
         }
 
         try {
-            const staff = await UserRepo.getStaffForEvent(eventId);
+            const staff = await PermissionsRepo.findStaffForEvent(eventId);
             
             // Send the data back to the frontend
             res.status(200).json(staff);
@@ -529,7 +605,7 @@ class EventParticipantController{
 
 
         try {
-            const addToTeamSuccess = EventParticipantRepo.assignToTeam(participantId, teamId);
+            const addToTeamSuccess = EventParticipantsRepo.assignToTeam(participantId, teamId);
 
             if (!addToTeamSuccess)
                 return res.status(500).json({

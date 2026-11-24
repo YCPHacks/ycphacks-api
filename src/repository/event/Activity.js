@@ -29,6 +29,16 @@ const Activity = sequelize.define(
                 model: 'Event',
                 key: 'id'
             }
+        },
+        notifyDiscord: {
+            type: DataTypes.BOOLEAN,
+            allowNull: false,
+            defaultValue: true
+        },
+        discordNotifiedAt: {
+            type: DataTypes.DATE,
+            allowNull: true,
+            defaultValue: null
         }
     },
 

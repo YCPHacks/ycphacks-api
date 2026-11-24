@@ -100,7 +100,7 @@ class EventSponsorRepo {
     // Gets Sponsor Tiers
     async getSponsorTiers(){
       return await SponsorTier.findAll({
-        attributes: ["id", "tier", "lowerThreshold", 'width', 'height'],
+        attributes: ["id", "tier", "lowerThreshold"],
         order: [
           ['lowerThreshold', 'ASC']
         ]
@@ -111,9 +111,7 @@ class EventSponsorRepo {
   async addSponsorTier(tierData){
     return await SponsorTier.create({
       tier: tierData.tier,
-      lowerThreshold: tierData.lowerThreshold,
-      width: tierData.imageWidth,
-      height: tierData.imageHeight,
+      lowerThreshold: tierData.lowerThreshold
     });
   }
 
@@ -130,14 +128,6 @@ class EventSponsorRepo {
     
     if ('lowerThreshold' in updates && updates.lowerThreshold !== null && updates.lowerThreshold !== undefined) {
       tier.lowerThreshold = Number(updates.lowerThreshold); 
-    }
-
-    if ('imageWidth' in updates && updates.imageWidth !== null && updates.imageWidth !== undefined) {
-        tier.width = Number(updates.imageWidth); 
-    }
-
-    if ('imageHeight' in updates && updates.imageHeight !== null && updates.imageHeight !== undefined) {
-        tier.height = Number(updates.imageHeight);
     }
 
     await tier.save();

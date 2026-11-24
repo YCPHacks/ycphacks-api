@@ -2,11 +2,13 @@ class EventParticipant {
     constructor(
         eventId,
         userId,
-        teamId
+        teamId,
+        id
     ) {
         this.eventId = eventId;
         this.userId = userId;
         this.teamId = teamId;
+        this.id = id;
     }
 }
 

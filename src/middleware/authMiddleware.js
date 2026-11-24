@@ -30,18 +30,22 @@ function authToken(req, res, next) {
 // Check the user role inside the token payload
 const authorizeByRole = (...allowedRoles) => {
     return (req, res, next) => {
-        if(!req.user || !req.user.role){
+        console.log(req.user);
+        if(!req.user.permission){
             return res.status(401).json({ Message: 'User role not found' });
         }
 
-        const hasRequiredRole = allowedRoles.includes(req.user.role);
+        // Check that there is at least one allowed role
+        const hasRequiredRole = allowedRoles.some(p => req.user.permission.includes(p));
 
         if(!hasRequiredRole){
             return res.status(403).json({ message: 'Forbidden: You do not have the required permissions'} );
         }
 
+        const isParticipantOnly = req.user.permission.every(p => p === 'participant');
+
         // Participants are always only allowed to make changes and get info for their own account
-        if(req.user.role === 'participant' ){
+        if( isParticipantOnly ){
             if(!req.user || !req.user.id){
                 return res.status(401).json({ Message: 'User id not found'});
             }
@@ -64,7 +68,7 @@ const isOwnerOfRequestedId = (req, res, next) => {
     }
 
     if(req.params.id !== String(req.user.id)){
-        return res.status(403).json({ message: 'Forbidden: You cannot access another users info TESTNG'});
+        return res.status(403).json({ message: 'Forbidden: You cannot access another users info'});
     }
     next();
 }

@@ -6,7 +6,6 @@ class UserResponseDto {
         firstName,
         lastName,
         token,
-        role,
         notificationPreference_toast
     ) {
         this.id = id
@@ -15,7 +14,6 @@ class UserResponseDto {
         this.firstName = firstName
         this.lastName = lastName
         this.token = token
-        this.role = role
         this.notificationPreference_toast = notificationPreference_toast
     }
 }

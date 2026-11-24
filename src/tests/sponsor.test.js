@@ -65,8 +65,6 @@ const mockTierData = {
     id: 5,
     tier: 'Platinum',
     lowerThreshold: 1000,
-    imageWidth: 200,
-    imageHeight: 200,
     eventId: 123, 
     upperThreshold: 99999, 
 };
@@ -81,8 +79,6 @@ const mockTier = {
             id: this.id, 
             name: this.tier,
             lowerThreshold: this.lowerThreshold, 
-            imageWidth: this.imageWidth, 
-            imageHeight: this.imageHeight,
             eventId: this.eventId, 
             upperThreshold: this.upperThreshold,
         }; 
@@ -92,16 +88,12 @@ const mockTier = {
 const mockCreatedTier = {
     id: 6,
     tier: 'Bronze',
-    lowerThreshold: 500,
-    imageWidth: 150, 
-    imageHeight: 75,  
+    lowerThreshold: 500,  
     toJSON: function() { 
         return { 
             id: this.id, 
             name: this.tier,
             lowerThreshold: this.lowerThreshold, 
-            imageWidth: this.imageWidth, 
-            imageHeight: this.imageHeight 
         }; 
     }
 };
@@ -110,15 +102,11 @@ const mockUpdatedTier = {
     id: 5,
     tier: 'Super Platinum',
     lowerThreshold: 1500,
-    imageWidth: 200,
-    imageHeight: 100,
     toJSON: function() { 
         return { 
             id: this.id, 
             name: this.tier,
             lowerThreshold: this.lowerThreshold, 
-            imageWidth: this.imageWidth, 
-            imageHeight: this.imageHeight 
         }; 
     }
 };
@@ -274,15 +262,11 @@ describe('Event Sponsor Routes', () => {
         const requestPayload = {
             tier: 'Bronze',
             lowerThreshold: 500,
-            width: 150, 
-            height: 75,
         };
 
         const repoExpectedPayload = {
             tier: 'Bronze',
             lowerThreshold: 500,
-            imageWidth: 150, 
-            imageHeight: 75, 
         };
 
         it('should create a new sponsor tier and return 201', async () => {
@@ -307,8 +291,6 @@ describe('Event Sponsor Routes', () => {
             const requestPayload = { 
                 tier: 'Gold',
                 lowerThreshold: 5000,
-                width: 150,
-                height: 150,
             };
             const res = await request(app)
                 .post('/sponsors/tiers')
@@ -336,15 +318,11 @@ describe('Event Sponsor Routes', () => {
         const updatePayload = {
             tier: 'Super Platinum',
             lowerThreshold: 1500,
-            imageWidth: 0, 
-            imageHeight: 0,
         };
         const updatedTierPayload = { 
             id: testTierId, 
             tier: 'Super Platinum',
             lowerThreshold: 1500, 
-            imageWidth: 0, 
-            imageHeight: 0
         };
 
         it('should update the sponsor tier and return 200', async () => {
@@ -390,9 +368,7 @@ describe('Event Sponsor Routes', () => {
             const updatedTierPayloadWithDefault = { 
                 id: testTierId, 
                 tier: 'Bronze', 
-                lowerThreshold: 100, 
-                imageWidth: 0, 
-                imageHeight: 0 
+                lowerThreshold: 100
             };
              EventSponsorRepoInstance.updateSponsorTier.mockResolvedValue({ toJSON: () => updatedTierPayloadWithDefault });
 
@@ -406,9 +382,7 @@ describe('Event Sponsor Routes', () => {
                 String(testTierId), 
                 expect.objectContaining({ 
                     tier: 'Bronze',
-                    lowerThreshold: 100,
-                    imageWidth: 0,  
-                    imageHeight: 0  
+                    lowerThreshold: 100
                 })
             );
         });

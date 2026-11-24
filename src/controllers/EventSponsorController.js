@@ -3,21 +3,6 @@ const SponsorRepo = require("../repository/sponsor/SponsorRepo");
 const EventRepo = require("../repository/event/EventRepo");
 const ImageRepo = require("../repository/image/ImageRepo");
 
-const setDefaultImageDimensions = (tierName) => {
-    switch (tierName.toLowerCase()) {
-        case 'Bronze':
-            return { imageWidth: 50, imageHeight: 50 };
-        case 'Silver':
-            return { imageWidth: 100, imageHeight: 100 };
-        case 'Gold':
-            return { imageWidth: 150, imageHeight: 150 };
-        case 'Platinum':
-            return { imageWidth: 200, imageHeight: 200 };
-        default:
-            return { imageWidth: 0, imageHeight: 0 }; 
-    }
-};
-
 class EventSponsorController {
 //    Get all sponsors for a specific event
     static async getEventSponsors(req, res) {
@@ -219,26 +204,14 @@ class EventSponsorController {
 
     static async addSponsorTier(req, res){
         try{
-            const { tier, lowerThreshold, width, height } = req.body;
-            
-            let imageWidth = width;
-            let imageHeight = height;
+            const { tier, lowerThreshold } = req.body;
 
-            if (!imageWidth && !imageHeight) {
-                const defaults = setDefaultImageDimensions(tier);
-                imageWidth = defaults.imageWidth;
-                imageHeight = defaults.imageHeight;
-            }
-
-            if (!tier || lowerThreshold === undefined || !imageWidth || !imageHeight) {
-                return res.status(400).json({ error: "Missing required fields: Tier Name, Lower Threshold, Width, or Height." });
+            if (!tier || lowerThreshold === undefined) {
+                return res.status(400).json({ error: "Missing required fields: Tier Name, or Lower Threshold" });
             }
 
             if (isNaN(Number(lowerThreshold)) || Number(lowerThreshold) < 0) {
                 return res.status(400).json({ error: "lowerThreshold must be a non-negative number." });
-            }
-            if (isNaN(Number(imageWidth)) || isNaN(Number(imageHeight))) {
-                return res.status(400).json({ error: "imageWidth and imageHeight must be numbers." });
             }
 
             // console.log("mmmm, sending to repo file now...");
@@ -246,8 +219,6 @@ class EventSponsorController {
             const newTier = await EventSponsorRepo.addSponsorTier({
                 tier,
                 lowerThreshold: Number(lowerThreshold),
-                imageWidth: Number(imageWidth),
-                imageHeight: Number(imageHeight)
             });
             return res.status(201).json(newTier);
         }catch(err){
@@ -259,15 +230,9 @@ class EventSponsorController {
     static async updateSponsorTier(req, res){
         try {
             const tierId = req.params.id;
-            let { tier, lowerThreshold, width, height } = req.body;
+            let { tier, lowerThreshold } = req.body;
             
             const updates = {};
-
-            if (!width && !height && tier) {
-                const defaults = setDefaultImageDimensions(tier);
-                width = defaults.imageWidth;
-                height = defaults.imageHeight;
-            }
 
             // --- 1. Validation and Assignment ---
 
@@ -283,24 +248,6 @@ class EventSponsorController {
                     return res.status(400).json({ error: "lowerThreshold must be a non-negative number." });
                 }
                 updates.lowerThreshold = threshold;
-            }
-
-            // Validate and assign 'imageWidth'
-            if (width !== undefined) {
-                const Parsedwidth = Number(width);
-                if (isNaN(Parsedwidth)) {
-                    return res.status(400).json({ error: "imageWidth must be a number." });
-                }
-                updates.imageWidth = Parsedwidth;
-            }
-
-            // Validate and assign 'imageHeight'
-            if (height !== undefined) {
-                const Parsedheight = Number(height);
-                if (isNaN(Parsedheight)) {
-                    return res.status(400).json({ error: "imageHeight must be a number." });
-                }
-                updates.imageHeight = Parsedheight;
             }
 
             // Check if no valid update fields were provided (optional, but good practice)

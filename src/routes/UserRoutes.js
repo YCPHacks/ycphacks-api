@@ -12,9 +12,11 @@ const {
     getProfileById,
     getAllUsers,
     updatePassword,
-    updateUserById
+    updateUserById,
+
 } = require('../controllers/UserController')
 const EventParticipantController= require('../controllers/EventParticipantsController')
+const PermissionsController = require('../controllers/PermissionsController')
 const { checkBodyForSpecialCharacters, userValidationRules, validate } = require('../middleware/validationMiddleware')
 const { authToken, authorizeByRole, isOwnerOfRequestedId} = require('../middleware/authMiddleware')
 // Protected
@@ -41,6 +43,15 @@ router.post('/auth', authToken, authWithToken);
 // Protected
 router.get('/all',authToken, authorizeByRole("oscar", "staff"), EventParticipantController.getUsersByEvent);
 
+// Protected
+router.get('/all/participant', authToken, authorizeByRole("oscar", "staff"), PermissionsController.getAllPermissionsByEventId);
+
+// Protected
+router.get('/:userId/participant', authToken, authorizeByRole("oscar", "staff"), EventParticipantController.getActiveParticipantById);
+
+// Protected
+router.put('/:participantId/permissions', authToken, PermissionsController.updatePermissions);
+
 // Public
 router.get('/event/:eventId/staff', EventParticipantController.getStaffForEvent);
 
@@ -51,10 +62,10 @@ router.put('/:id/checkin', authToken, authorizeByRole("oscar", "staff"), EventPa
 router.put('/:id/updatePassword', authToken, isOwnerOfRequestedId, updatePassword);
 
 // Protected - Participants can only view their own enrollment status for the active event
-router.get('/:id/enrollment', authToken, authorizeByRole("oscar", "staff", "participant"), EventParticipantController.getEnrollmentStatus);
+router.get('/:id/enrollment', authToken, EventParticipantController.getEnrollmentStatus);
 
 // Protected - Participants can only register themselves for the active event
-router.post('/:id/enrollment', authToken, authorizeByRole("oscar", "staff", "participant"), EventParticipantController.enrollInActiveEvent);
+router.post('/:id/enrollment', authToken, EventParticipantController.enrollInActiveEvent);
 
 // Protected - Participants can only update their own info
 router.put('/:id', authToken, authorizeByRole("oscar", "staff", "participant"), checkBodyForSpecialCharacters, updateUserById);

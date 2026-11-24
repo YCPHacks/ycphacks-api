@@ -24,16 +24,48 @@ class EventParticipantRepo {
         });
     }
 
-    static async findParticipantByUserIdAndEventId(userId, eventId){
-        return await EventParticipant.findOne({
-            where: { userId: userId, eventId: eventId }
+    static async findParticipantsByUserIdAndEventId(userId, eventId){
+        const participant = await EventParticipant.findOne({
+            attributes: ['teamId', 'id'],
+            where: { userId: userId, eventId: eventId },
+            
+            include: [{ 
+                model: User, 
+                as: 'participants',
+                attributes: [],
+                where: {
+                    isBanned: { [Op.not]: true }
+                }
+            }],
         });
+
+        return participant;
     }
+
+    static async findAllParticipantsByEventId(eventId) {
+        const participant = await EventParticipant.findAll({
+            attributes: ['teamId', 'id'],
+            where: { eventId: eventId },
+
+            include: [{
+                model: User,
+                as: 'participants',
+                attributes: [],
+                where: {
+                    isBanned: { [Op.not]: true }
+                }
+            }],
+        });
+
+        return participant;
+    }
+
+
     static async getUsersByEvent(eventId) {
         // List all attributes needed by the controller (from the User model)
         const userAttributes = [
             'id', 'firstName', 'lastName', 'age', 'email', 'phoneNumber',
-            'school', 'tShirtSize', 'dietaryRestrictions', 'role',
+            'school', 'tShirtSize', 'dietaryRestrictions',
             'isBanned'
         ];
 
@@ -69,18 +101,13 @@ class EventParticipantRepo {
             include: [{
                 model: User,
                 as: 'participants',
+                attributes: ['id', 'firstName', 'lastName', 'email', 'isBanned'] ,
                 where: {
-                    role: 'participant'
-                },
-                attributes: [
-                    'firstName',
-                    'lastName',
-                    'email'
-                ]
+                    role: 'participant',
+                    isBanned: {[Op.not]: true}
+                }
             }],
-            attributes: [
-                'userId'
-            ]
+            raw: false
         });
     }
     static async assignToTeam(participantId, teamId){
