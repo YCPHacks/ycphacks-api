@@ -2,13 +2,13 @@ const TeamModel = require('../repository/team/Team')
 const TeamRepo = require('../repository/team/TeamRepo')
 const Team = require('../models/Team')
 const TeamDto = require('../dto/TeamDto')
+const TeamingRequestsRepo = require('../repository/team/TeamingRequestsRepo')
 const EventParticipantsRepo = require('../repository/team/EventParticipantRepo')
 const EventRepo = require('../repository/event/EventRepo');
 
 class TeamController {
     static async createTeam(req, res) {
         const { participantIds, teamLeaderId, ...teamData } = req.body;
-        console.log(`>> >> >> TEAM LEADER ID: ${teamLeaderId} << << <<`)
 
         try{
             const team = new Team(
@@ -332,6 +332,96 @@ class TeamController {
         } catch (err) {
             console.error('Error updating team project details:', err);
             return res.status(500).json({ message: 'Failed to update project details due to a server error.' });
+        }
+    }
+
+    static async getOutgoingTeamingRequests(req, res) {
+        const teamId = req.params.teamId || null;
+
+        if (!teamId || isNaN(teamId))
+            return res.status(400).json({message: 'Required field teamId must be a valid integer.'});
+
+        try {
+            const outgoingTeamingRequests = await TeamingRequestsRepo.getAllTeamRequestsForTeamId(teamId);
+
+            if (!outgoingTeamingRequests)
+                return res.status(404).json({message: 'No teaming requests found.'});
+
+            const formattedTeamingRequests = outgoingTeamingRequests.map(teamingRequest => ({
+                teamId: teamId,
+                participant: {
+                    id: teamingRequest.participantId,
+                    firstName: teamingRequest.EventParticipant.participants.firstName,
+                    lastName: teamingRequest.EventParticipant.participants.lastName
+                }
+            }));
+
+            return res.status(200).json({
+                teamingRequests: formattedTeamingRequests,
+                message: 'Successfully retrieved outgoing teaming requests'
+            });
+        } catch (err) {
+            console.log(err);
+            return res.status(500).json({
+                message: 'Failed to retrieve outgoing teaming requests due to server error'
+            });
+        }
+    }
+
+    static async sendOutgoingTeamingRequest(req, res) {
+        const teamId = parseInt(req.params.teamId) || null;
+        const participantId = parseInt(req.body.participantId) || null
+
+
+        if (!teamId || isNaN(teamId))
+            return res.status(400).json({message: 'Required field teamId must be a valid integer.'});
+
+        if (!participantId || isNaN(participantId))
+            return res.status(400).json({message: 'Required field participantId must be a valid integer.'});
+
+
+        try {
+            const success = await TeamingRequestsRepo.createTeamRequest(teamId);
+
+            if (!success)
+                return res.status(500).json({
+                    message: 'Failed to send outgoing teaming requests due to server error.'
+                });
+
+            return res.status(200).json({
+                message: 'Successfully sent teaming request'
+            });
+        } catch (err) {
+            return res.status(500).json({message: 'Failed to send teaming request due to server error'});
+        }
+    }
+
+    static async rescindOutgoingTeamingRequest(req, res) {
+        const teamId = parseInt(req.params.teamId) || null;
+        const participantId = parseInt(req.body.participantId) || null
+
+
+        if (!teamId || isNaN(teamId))
+            return res.status(400).json({message: 'Required field teamId must be a valid integer.'});
+
+        if (!participantId || isNaN(participantId))
+            return res.status(400).json({message: 'Required field participantId must be a valid integer.'});
+
+
+        try {
+            const success = await TeamingRequestsRepo.deleteTeamRequest(teamId, participantId);
+
+            if (!success)
+                return res.status(500).json({
+                    message: 'Failed to rescind outgoing teaming requests due to server error.'
+                });
+
+            return res.status(200).json({
+                message: 'Successfully sent teaming request'
+            });
+
+        } catch (err) {
+            return res.status(500).json({message: 'Failed to rescind teaming request due to server error'});
         }
     }
 }

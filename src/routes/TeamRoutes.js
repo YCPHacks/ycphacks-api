@@ -15,4 +15,7 @@ router.get('/:teamId/teamLeader', TeamController.getTeamLeaderId);
 router.get('/:teamId/project-details', TeamController.getTeamProjectDetails);
 router.put('/:teamId/teamLeader', TeamController.updateTeamLeader);
 router.put('/:teamId/project-details', TeamController.updateTeamProjectDetails);
+router.get('/:teamId/outgoingTeamingRequests', TeamController.getOutgoingTeamingRequests);
+router.post('/:teamId/sendTeamingRequest', TeamController.sendOutgoingTeamingRequest);
+router.post('/:teamId/rescindTeamingRequest', TeamController.rescindOutgoingTeamingRequest);
 module.exports = router;

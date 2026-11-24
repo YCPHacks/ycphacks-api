@@ -3,6 +3,7 @@ const TeamRepo = require('../repository/team/TeamRepo')
 const EventRepo = require('../repository/event/EventRepo')
 const UserRepo = require('../repository/user/UserRepo')
 const EventController = require('../controllers/EventController')
+const TeamingRequestsRepo = require('../repository/team/TeamingRequestsRepo')
 
 class EventParticipantController{
     static async getParticipantByEventAndUser(req, res) {
@@ -64,22 +65,32 @@ class EventParticipantController{
         }
     }
     static async assignParticipant(req, res) {
-        const { userId, eventId, teamId } = req.body;
+        const participantId = parseInt(req.params.participantId);
+        const teamId = parseInt(req.body.teamId);
 
-        if (!userId || !eventId || !teamId) {
-            return res.status(400).json({ message: 'Missing userId, eventId, or teamId in request body.' });
-        }
+        if (!participantId || isNaN(participantId))
+            return res.status(400).json({
+                message: 'Required field participantId must be a valid integer'
+            });
+
+        if (!teamId || isNaN(teamId))
+            return res.status(400).json({
+                message: 'Required field teamId must be a valid integer'
+            });
 
         try {
-            const success = await EventParticipantRepo.assignToTeam(userId, eventId, teamId);
+            const assignmentSuccess = await EventParticipantRepo.assignToTeam(participantId, teamId);
 
-            if (success) {
-                return res.status(200).json({ message: `User ${userId} successfully assigned to Team ${teamId}.` });
-            } else {
-                return res.status(404).json({ message: `Event participant record for user ${userId} not found or update failed.` });
-            }
+            if (!assignmentSuccess)
+                return res.status(404).json({ message: `Failed to assign participant to team due to internal server error.` });
+
+            await TeamingRequestsRepo.deleteTeamRequest(teamId, participantId);
+
+            return res.status(200).json({ message: `Participant successfully assigned to team.` });
+
         } catch (error) {
             console.error("Error assigning participant to team:", error);
+
             res.status(500).json({ 
                 message: 'Failed to assign participant to team.', 
                 error: error.message 
@@ -468,6 +479,106 @@ class EventParticipantController{
             res.status(500).json({ message: "Internal server error: Failed to fetch staff list." });
         }
     };
+
+    static async getIncomingTeamingRequests(req, res) {
+        const participantId = parseInt(req.params.participantId) || null;
+
+        if (!participantId || isNaN(participantId))
+            return res.status(400).json({
+                message: 'Required field participantId must be a valid integer'
+            });
+
+        try {
+            const incomingTeamingRequests = await TeamingRequestsRepo.getAllTeamRequestsForParticipantId(participantId);
+
+            if (!incomingTeamingRequests)
+                return res.status(404).json({
+                    message: 'No incoming teaming requests found'
+                });
+
+            const formattedTeamingRequests = incomingTeamingRequests.map(teamingRequest => ({
+                participantId: participantId,
+                team: {
+                    teamId: teamingRequest.teamId,
+                    teamName: teamingRequest.Team.teamName
+                }
+            }));
+
+            return res.status(200).json({
+                teamingRequests: formattedTeamingRequests,
+                message: 'Successfully retrieved incoming teaming requests for participant'
+            });
+
+        } catch (err) {
+            return res.status(500).json({
+                message: 'Failed to retrieve incoming teaming requests due to server error'
+            });
+        }
+    }
+
+    static async acceptIncomingTeamRequest(req, res) {
+        const teamId = parseInt(req.params.teamId) || null;
+        const participantId = parseInt(req.params.participantId) || null
+
+
+        if (!teamId || isNaN(teamId))
+            return res.status(400).json({message: 'Required field teamId must be a valid integer.'});
+
+        if (!participantId || isNaN(participantId))
+            return res.status(400).json({message: 'Required field participantId must be a valid integer.'});
+
+
+        try {
+            const addToTeamSuccess = EventParticipantRepo.assignToTeam(participantId, teamId);
+
+            if (!addToTeamSuccess)
+                return res.status(500).json({
+                    message: 'Failed to accept team request due to server error'
+                });
+
+            const deletionSuccess = await TeamingRequestsRepo.deleteTeamRequest(teamId, participantId);
+
+            if (!deletionSuccess)
+                return res.status(500).json({
+                    message: 'Failed to accept team request due to server error'
+                });
+
+            return res.status(200).json({
+                message: 'Successfully accepted teaming request'
+            });
+
+        } catch (err) {
+            return res.status(500).json({message: 'Failed to accept teaming request due to server error'});
+        }
+    }
+
+    static async declineIncomingTeamRequest(req, res) {
+        const teamId = parseInt(req.body.teamId) || null;
+        const participantId = parseInt(req.params.participantId) || null
+
+        if (!teamId || isNaN(teamId))
+            return res.status(400).json({message: 'Required field teamId must be a valid integer.'});
+
+        if (!participantId || isNaN(participantId))
+            return res.status(400).json({message: 'Required field participantId must be a valid integer.'});
+
+
+        try {
+            const deletionSuccess = await TeamingRequestsRepo.deleteTeamRequest(teamId, participantId);
+
+            if (!deletionSuccess)
+                return res.status(500).json({
+                    message: 'Failed to decline team request due to server error'
+                });
+
+            return res.status(200).json({
+                message: 'Successfully declined teaming request'
+            });
+
+        } catch (err) {
+            return res.status(500).json({message: 'Failed to decline teaming request due to server error'});
+        }
+    }
 }
 
 module.exports = EventParticipantController;

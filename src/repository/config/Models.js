@@ -10,6 +10,7 @@ const EventSponsor = require('../sponsor/EventSponsor');
 const Hardware = require('../hardware/Hardware');
 const HardwareType = require('../hardware/HardwareType');
 const Team = require('../team/Team');
+const TeamingRequests = require('../team/TeamingRequests')
 const HackCategory = require('../category/HackCategory');
 const Prize = require('../prize/Prize');
 const Analytics = require('../analytics/Analytics');
@@ -68,6 +69,29 @@ Team.belongsTo(Event, {
     foreignKey: 'eventId',
     onDelete: 'CASCADE',
 });
+
+// TeamingRequests <---> Team
+TeamingRequests.belongsTo(Team, {
+    foreignKey: 'teamId',
+    onDelete: 'CASCADE'
+});
+
+Team.hasMany(TeamingRequests, {
+    foreignKey: 'teamId',
+    onDelete: 'CASCADE'
+});
+
+// TeamingRequests <---> EventParticipant
+TeamingRequests.belongsTo(EventParticipant, {
+    foreignKey: 'participantId',
+    onDelete: 'CASCADE'
+});
+
+EventParticipant.hasMany(TeamingRequests, {
+    foreignKey: 'participantId',
+    onDelete: 'CASCADE'
+});
+
 
 // Event <---> HackCategory
 Event.hasMany(HackCategory, {
@@ -191,6 +215,7 @@ module.exports = {
     attachAuditHooks,
     User,
     Team,
+    TeamingRequests,
     Event,
     Activity,
     EventParticipant,
