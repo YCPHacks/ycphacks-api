@@ -1,5 +1,6 @@
 const EventParticipantController = require('../controllers/EventParticipantsController'); // <-- Potential fix: changed to singular
 const EventParticipantsRepo = require('../repository/team/EventParticipantRepo');
+const PermissionsRepo = require('../repository/permissions/PermissionsRepo');
 const EventRepo = require('../repository/event/EventRepo');
 const UserRepo = require('../repository/user/UserRepo');
 
@@ -7,6 +8,11 @@ const UserRepo = require('../repository/user/UserRepo');
 jest.mock('../repository/team/EventParticipantRepo');
 jest.mock('../repository/event/EventRepo');
 jest.mock('../repository/user/UserRepo');
+jest.mock('../repository/permissions/PermissionsRepo');
+jest.mock('../util/JWTUtil', () => ({
+    generateToken: jest.fn(() => 'mock-token'),
+    validateToken: jest.fn(),
+}));
 
 const mockUser = { id: '1', role: 'oscar'}
 jest.mock('../middleware/authMiddleware', () => ({
@@ -24,6 +30,8 @@ jest.mock('../middleware/authMiddleware', () => ({
     })
 
 }));
+
+
 
 // --- Test Helpers ---
 
@@ -235,15 +243,15 @@ describe('EventParticipantController', () => {
     // ----------------------------------------------------
     describe('getStaffForEvent', () => {
         const eventId = 10;
-        
+
         it('should return 200 with the list of staff members', async () => {
             req = { params: { eventId: eventId } };
-            const mockStaff = [{ firstName: 'Staff', lastName: 'A' }];
-            UserRepo.getStaffForEvent.mockResolvedValue(mockStaff);
+            const mockStaff = [{ participantId: 1, userId: 2, firstName: 'Staff', lastName: 'A' }];
+            PermissionsRepo.findStaffForEvent.mockResolvedValue(mockStaff);
 
             await EventParticipantController.getStaffForEvent(req, res);
 
-            expect(UserRepo.getStaffForEvent).toHaveBeenCalledWith(eventId);
+            expect(PermissionsRepo.findStaffForEvent).toHaveBeenCalledWith(eventId);
             expect(res.status).toHaveBeenCalledWith(200);
             expect(res.json).toHaveBeenCalledWith(mockStaff);
         });
@@ -254,20 +262,20 @@ describe('EventParticipantController', () => {
             await EventParticipantController.getStaffForEvent(req, res);
 
             expect(res.status).toHaveBeenCalledWith(400);
-            expect(UserRepo.getStaffForEvent).not.toHaveBeenCalled();
+            expect(PermissionsRepo.findStaffForEvent).not.toHaveBeenCalled();
         });
-        
+
         it('should return 500 on repository error (and suppress console log)', async () => {
             req = { params: { eventId: eventId } };
-            UserRepo.getStaffForEvent.mockRejectedValue(new Error('Staff DB Error'));
-            
-            const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {}); 
+            PermissionsRepo.findStaffForEvent.mockRejectedValue(new Error('Staff DB Error'));
+
+            const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
 
             await EventParticipantController.getStaffForEvent(req, res);
 
             expect(res.status).toHaveBeenCalledWith(500);
             expect(res.json).toHaveBeenCalledWith({ message: expect.stringContaining("Internal server error") });
-            
+
             consoleErrorSpy.mockRestore();
         });
     });
@@ -288,7 +296,10 @@ describe('EventParticipantController', () => {
             expect(EventParticipantsRepo.findParticipantsByUserIdAndEventId).toHaveBeenCalledWith(5, 2);
             expect(res.status).toHaveBeenCalledWith(200);
             expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
-                data: { event: activeEvent, isEnrolled: true }
+                data: expect.objectContaining({
+                    event: activeEvent,
+                    isEnrolled: true
+                })
             }));
         });
 
@@ -337,14 +348,19 @@ describe('EventParticipantController', () => {
             req = { params: { id: '5' } };
             EventRepo.findActiveEvent.mockResolvedValue(activeEvent);
             UserRepo.getUserById.mockResolvedValue({ id: 5, isBanned: false });
-            EventParticipantsRepo.addParticipant.mockResolvedValue({ userId: 5, eventId: 2, teamId: null });
+            EventParticipantsRepo.addParticipant.mockResolvedValue({ id: 7, userId: 5, eventId: 2, teamId: null });
+            PermissionsRepo.createPermission.mockResolvedValue({ participantId: 7, permission: 'participant' });
 
             await EventParticipantController.enrollInActiveEvent(req, res);
 
             expect(EventParticipantsRepo.addParticipant).toHaveBeenCalledWith(5, 2);
+            expect(PermissionsRepo.createPermission).toHaveBeenCalledWith(7, 'participant');
             expect(res.status).toHaveBeenCalledWith(201);
             expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
-                data: { event: activeEvent, isEnrolled: true }
+                data: expect.objectContaining({
+                    event: activeEvent,
+                    isEnrolled: true
+                })
             }));
         });
 
