@@ -4,13 +4,15 @@ class Activity {
         activityName,
         activityDate,
         activityDescription,
-        eventId
+        eventId,
+        notifyDiscord = true
     ) {
         this.id = id;
         this.activityName = activityName;
         this.activityDate = activityDate;
         this.activityDescription = activityDescription;
         this.eventId = eventId;
+        this.notifyDiscord = notifyDiscord;
     }
 
     validate(isCreate = true) {
@@ -46,6 +48,11 @@ class Activity {
         // 5. Validate event ID presence
         if (!this.eventId || this.eventId < 0) {
             errors.eventId = 'Event ID is required';
+        }
+
+        // 6. Validate Discord toggle
+        if (typeof this.notifyDiscord !== 'boolean') {
+            errors.notifyDiscord = 'Notify Discord must be true or false';
         }
 
         return errors;

@@ -1,3 +1,4 @@
+const { Op } = require("sequelize");
 const Event = require("./Event")
 const Activity = require("./Activity");
 
@@ -41,6 +42,26 @@ const EventRepo = {
 
     async getAllActivities(eventId) {
         return Activity.findAll({ where: { eventId: eventId } });
+    },
+
+    async getUpcomingActivitiesToNotify(eventId, from) {
+        return Activity.findAll({
+            where: {
+                eventId: eventId,
+                notifyDiscord: true,
+                discordNotifiedAt: null,
+                activityDate: { [Op.gt]: from }
+            }
+        });
+    },
+
+    // match on the date too in case the time changed while it was sending
+    // no hooks so it doesn't fill up the audit log
+    async markActivityNotified(activityId, announcedDate) {
+        return Activity.update(
+            { discordNotifiedAt: new Date() },
+            { where: { id: activityId, activityDate: announcedDate } }
+        );
     },
 
     async updateEvent(event) {
